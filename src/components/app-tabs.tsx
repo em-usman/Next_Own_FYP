@@ -1,33 +1,43 @@
-import { NativeTabs } from 'expo-router/unstable-native-tabs';
-import React from 'react';
-import { useColorScheme } from 'react-native';
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { NativeTabs } from "expo-router/unstable-native-tabs";
+import React from "react";
+import { useColorScheme } from "react-native";
 
-import { Colors } from '@/constants/theme';
+import { APP_TABS } from "@/constants/tabs";
+import { Colors } from "@/constants/theme";
 
 export default function AppTabs() {
   const scheme = useColorScheme();
-  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
+  const colors = Colors[scheme === "unspecified" ? "light" : scheme];
 
   return (
     <NativeTabs
       backgroundColor={colors.background}
       indicatorColor={colors.backgroundElement}
-      labelStyle={{ selected: { color: colors.text } }}>
-      <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/home.png')}
-          renderingMode="template"
-        />
-      </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="explore">
-        <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
-        />
-      </NativeTabs.Trigger>
+      iconColor={{ default: colors.textSecondary, selected: colors.text }}
+      labelStyle={{ selected: { color: colors.text } }}
+    >
+      {APP_TABS.map((tab) => (
+        <NativeTabs.Trigger key={tab.name} name={tab.name}>
+          <NativeTabs.Trigger.Label>{tab.label}</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon
+            src={{
+              default: (
+                <NativeTabs.Trigger.VectorIcon
+                  family={Ionicons}
+                  name={tab.icon.default}
+                />
+              ),
+              selected: (
+                <NativeTabs.Trigger.VectorIcon
+                  family={Ionicons}
+                  name={tab.icon.selected}
+                />
+              ),
+            }}
+          />
+        </NativeTabs.Trigger>
+      ))}
     </NativeTabs>
   );
 }
