@@ -58,23 +58,27 @@ export function TabButton({
 }: TabButtonProps) {
   const scheme = useColorScheme();
   const colors = Colors[scheme === "unspecified" ? "light" : scheme];
-  const iconName = isFocused && selectedIconName ? selectedIconName : defaultIconName;
+  const iconName =
+    isFocused && selectedIconName ? selectedIconName : defaultIconName;
 
   return (
     <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
       <ThemedView
         type={isFocused ? "backgroundSelected" : "backgroundElement"}
-        style={styles.tabButtonView}
+        style={[
+          styles.tabButtonView,
+          isFocused && { borderBottomColor: colors.tabActive },
+        ]}
       >
         <AppIcon
           name={iconName}
           family={iconFamily}
           size={14}
-          color={isFocused ? colors.text : colors.textSecondary}
+          color={isFocused ? colors.tabActive : colors.textSecondary}
         />
         <ThemedText
           type="small"
-          themeColor={isFocused ? "text" : "textSecondary"}
+          themeColor={isFocused ? "tabActive" : "textSecondary"}
         >
           {children}
         </ThemedText>
@@ -139,6 +143,8 @@ const styles = StyleSheet.create({
   tabButtonView: {
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.three,
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent",
     borderRadius: Spacing.three,
     flexDirection: "row",
     alignItems: "center",
