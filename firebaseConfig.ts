@@ -1,15 +1,14 @@
 // Import the functions you need from the SDKs you need
+import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 import { getAnalytics } from "firebase/analytics";
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
 import {
-  getAuth,
-  signOut,
-  initializeAuth,
   getReactNativePersistence,
+  initializeAuth,
+  signOut,
 } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -35,5 +34,4 @@ const analytics = getAnalytics(app);
 const storage = getStorage(app);
 const logout = () => signOut(auth);
 
-
-export default { app, auth, db, analytics, storage, logout };
+export { analytics, app, auth, db, logout, storage };

@@ -1,7 +1,7 @@
 export const APP_TABS = [
   {
     name: "index",
-    href: "/",
+    href: "/index",
     label: "Home",
     icon: { default: "home-outline", selected: "home" },
   },
@@ -13,13 +13,13 @@ export const APP_TABS = [
   },
   {
     name: "activity",
-    href: "./activity",
+    href: "/activity",
     label: "Activity",
     icon: { default: "time-outline", selected: "time" },
   },
   {
     name: "profile",
-    href: "./profile",
+    href: "/profile",
     label: "Profile",
     icon: { default: "person-outline", selected: "person" },
   },

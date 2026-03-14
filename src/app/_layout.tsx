@@ -1,16 +1,77 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import React from 'react';
-import { useColorScheme } from 'react-native';
+import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
+import "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import "react-native-reanimated";
+import "../global.css";
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ActivityIndicator } from "react-native";
+import WelcomeScreen from "./WelcomeScreen";
 
-export default function TabLayout() {
+SplashScreen.preventAutoHideAsync();
+
+export default function RootLayout() {
+  const [showWelcome, setShowWelcome] = useState<boolean | null>(null);
   const colorScheme = useColorScheme();
+  // const [loaded] = useFonts({
+  //   SourceSans3Regular: require("../assets/fonts/SourceSans3-Regular.ttf"),
+  // });
+
+  useEffect(() => {
+    const checkFirstLaunch = async () => {
+      const hasSeenWelcome = await AsyncStorage.getItem("hasSeenWelcome");
+      setShowWelcome(hasSeenWelcome ? false : true);
+
+      await SplashScreen.hideAsync();
+    };
+
+    checkFirstLaunch();
+  }, []);
+
+  useEffect(() => {
+    console.log("showWelcome:", showWelcome);
+  }, [showWelcome]);
+
+  if (showWelcome === null) {
+    <ActivityIndicator />;
+  }
+
+  if (showWelcome) {
+    return (
+      <WelcomeScreen
+        onComplete={async () => {
+          await AsyncStorage.setItem("hasSeenWelcome", "true");
+
+          setShowWelcome(false);
+        }}
+      />
+    );
+  }
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider
+        value={colorScheme === "dark" ? DefaultTheme : DefaultTheme}
+        // value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+      >
+        <Stack initialRouteName="(auth)">
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(shortccuts)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="(ride-booking)"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen name="(Chat)" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
