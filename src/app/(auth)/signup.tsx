@@ -1,4 +1,5 @@
 import { ThemedView } from "@/components/themed-view";
+import { Colors } from "@/constants/theme";
 import useGoogleSignIn from "@/hooks/useGoogleSignIn";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -157,11 +158,14 @@ export default function SignupScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.logoContainer}>
+            <Image
+              source={require("@/assets/new/splash-icon.png")}
+              style={styles.logo}
+            />
+          </View>
           <View style={styles.formContainer}>
             <View style={{ gap: 12 }}>
-              <Text style={styles.title}>Create Account</Text>
-              <Text style={styles.subtitle}>Join us to start your journey</Text>
-
               {/* Full Name Input Field */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Full Name</Text>
@@ -293,68 +297,64 @@ export default function SignupScreen() {
 
               {/* Google Sign Up Button */}
               <TouchableOpacity
-                style={styles.googleButton}
+                style={[styles.googleButton, loading && { opacity: 0.6 }]}
                 onPress={signIn}
                 disabled={loading}
               >
                 {loading ? (
                   <ActivityIndicator color="#4285F4" size="small" />
                 ) : (
-                  <>
-                    <Image
-                      // source={require("@/assets/images/googleLogo.png")}
-                      style={styles.googleIcon}
-                    />
-                    <Text style={styles.googleButtonText}>Google</Text>
-                  </>
+                  <Image
+                    source={require("@/assets/new/googleIcon.png")}
+                    style={styles.googleIcon}
+                  />
                 )}
               </TouchableOpacity>
-            </View>
-          </View>
-          <View style={styles.bottomContainer}>
-            {/* Terms & Conditions Clickable Container */}
-            <TouchableOpacity
-              style={styles.termsContainer}
-              onPress={() => setTermsChecked((prev) => !prev)}
-              activeOpacity={0.7}
-            >
-              <View
-                style={[
-                  styles.checkbox,
-                  termsChecked && {
-                    backgroundColor: "#0A66D9",
-                    borderColor: "#0A66D9",
-                  },
-                ]}
+
+              {/* Terms & Conditions Clickable Container */}
+              <TouchableOpacity
+                style={styles.termsContainer}
+                onPress={() => setTermsChecked((prev) => !prev)}
+                activeOpacity={0.7}
               >
-                {termsChecked && (
-                  <MaterialIcons name="check" size={16} color="#fff" />
-                )}
-              </View>
-              <Text style={styles.termsText}>
-                I Accept{" "}
-                <Text style={styles.highlightedText}>Terms & Conditions</Text>
-              </Text>
-            </TouchableOpacity>
-
-            {/* Sign Up Button */}
-            <TouchableOpacity
-              style={[
-                styles.signupButton,
-                !termsChecked && styles.buttonDisabled,
-              ]}
-              onPress={handleManualSignup}
-              disabled={!termsChecked}
-            >
-              <Text style={styles.signupButtonText}>Create Account</Text>
-            </TouchableOpacity>
-
-            {/* Sign In Link */}
-            <View style={styles.signinPrompt}>
-              <Text style={styles.signinText}>Already have an account? </Text>
-              <TouchableOpacity onPress={() => router.push("/(auth)")}>
-                <Text style={styles.signinLink}>Sign In</Text>
+                <View
+                  style={[
+                    styles.checkbox,
+                    termsChecked && {
+                      backgroundColor: Colors.light.primary,
+                      borderColor: Colors.light.primary,
+                    },
+                  ]}
+                >
+                  {termsChecked && (
+                    <MaterialIcons name="check" size={16} color="#fff" />
+                  )}
+                </View>
+                <Text style={styles.termsText}>
+                  I Accept{" "}
+                  <Text style={styles.highlightedText}>Terms & Conditions</Text>
+                </Text>
               </TouchableOpacity>
+
+              {/* Sign Up Button */}
+              <TouchableOpacity
+                style={[
+                  styles.signupButton,
+                  !termsChecked && styles.buttonDisabled,
+                ]}
+                onPress={handleManualSignup}
+                disabled={!termsChecked}
+              >
+                <Text style={styles.signupButtonText}>Create Account</Text>
+              </TouchableOpacity>
+
+              {/* Sign In Link */}
+              <View style={styles.signinPrompt}>
+                <Text style={styles.signinText}>Already have an account? </Text>
+                <TouchableOpacity onPress={() => router.push("/(auth)")}>
+                  <Text style={styles.signinLink}>Sign In</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </ScrollView>
@@ -366,34 +366,46 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.background,
   },
   keyboardAvoidingView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
+    backgroundColor: Colors.light.background,
+  },
+  logoContainer: {
+    alignItems: "center",
+    paddingVertical: 24,
+    backgroundColor: Colors.light.black,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    resizeMode: "contain",
   },
   formContainer: {
     paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingTop: 32,
     paddingBottom: 100,
+    backgroundColor: Colors.light.background,
   },
   title: {
     fontSize: 28,
     fontWeight: "700",
-    color: "#000000",
+    color: Colors.light.text,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
-    color: "#60646C",
+    color: Colors.light.textSecondary,
     marginBottom: 24,
   },
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#000000",
+    color: Colors.light.text,
     marginBottom: 8,
   },
   inputGroup: {
@@ -403,24 +415,24 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 48,
     borderWidth: 1,
-    borderColor: "#D1D1D6",
+    borderColor: Colors.light.border,
     borderRadius: 10,
     paddingHorizontal: 16,
     fontSize: 16,
-    color: "#000000",
-    backgroundColor: "#F8F8F9",
+    color: Colors.light.text,
+    backgroundColor: Colors.light.inputBackground,
   },
   inputError: {
-    borderColor: "#FF3B30",
-    backgroundColor: "#FFE5E1",
+    borderColor: Colors.light.error,
+    backgroundColor: Colors.light.errorBackground,
   },
   passwordInputContainer: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#D1D1D6",
+    borderColor: Colors.light.border,
     borderRadius: 10,
-    backgroundColor: "#F8F8F9",
+    backgroundColor: Colors.light.inputBackground,
     paddingRight: 12,
   },
   passwordInput: {
@@ -428,14 +440,14 @@ const styles = StyleSheet.create({
     height: 48,
     paddingHorizontal: 16,
     fontSize: 16,
-    color: "#000000",
+    color: Colors.light.text,
   },
   eyeIcon: {
     padding: 8,
   },
   errorText: {
     fontSize: 12,
-    color: "#FF3B30",
+    color: Colors.light.error,
     marginTop: 6,
     fontWeight: "500",
   },
@@ -447,11 +459,11 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: "#D1D1D6",
+    backgroundColor: Colors.light.divider,
   },
   dividerText: {
     paddingHorizontal: 12,
-    color: "#60646C",
+    color: Colors.light.textSecondary,
     fontSize: 13,
     fontWeight: "500",
   },
@@ -459,61 +471,52 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 48,
     borderWidth: 1,
-    borderColor: "#D1D1D6",
+    borderColor: Colors.light.border,
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F8F8F9",
-    flexDirection: "row",
-    gap: 8,
+    backgroundColor: Colors.light.inputBackground,
   },
   googleIcon: {
-    width: 20,
-    height: 20,
-  },
-  googleButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#000000",
-  },
-  bottomContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: 32,
-    gap: 12,
+    width: 24,
+    height: 24,
+    resizeMode: "contain",
   },
   termsContainer: {
     flexDirection: "row",
     alignItems: "center",
+    marginTop: 8,
   },
   checkbox: {
     width: 20,
     height: 20,
     borderWidth: 1.5,
-    borderColor: "#D1D1D6",
+    borderColor: Colors.light.border,
     borderRadius: 4,
     marginRight: 12,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F8F8F9",
+    backgroundColor: Colors.light.inputBackground,
   },
   termsText: {
     fontSize: 14,
-    color: "#60646C",
+    color: Colors.light.textSecondary,
   },
   highlightedText: {
-    color: "#0A66D9",
+    color: Colors.light.primary,
     fontWeight: "600",
   },
   signupButton: {
-    backgroundColor: "#0A66D9",
+    backgroundColor: Colors.light.primary,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#0A66D9",
+    shadowColor: Colors.light.primary,
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
+    marginTop: 8,
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -521,7 +524,7 @@ const styles = StyleSheet.create({
   signupButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: Colors.light.background,
   },
   signinPrompt: {
     flexDirection: "row",
@@ -530,11 +533,11 @@ const styles = StyleSheet.create({
   },
   signinText: {
     fontSize: 14,
-    color: "#60646C",
+    color: Colors.light.textSecondary,
   },
   signinLink: {
     fontSize: 14,
-    color: "#0A66D9",
+    color: Colors.light.primary,
     fontWeight: "600",
   },
 });

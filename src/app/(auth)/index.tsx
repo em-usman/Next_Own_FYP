@@ -1,4 +1,5 @@
 import { ThemedView } from "@/components/themed-view";
+import { Colors } from "@/constants/theme";
 import useGoogleSignIn from "@/hooks/useGoogleSignIn";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -237,11 +238,14 @@ export default function Index() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.logoContainer}>
+            <Image
+              source={require("@/assets/new/splash-icon.png")}
+              style={styles.logo}
+            />
+          </View>
           <View style={styles.formContainer}>
             <View style={{ gap: 12 }}>
-              <Text style={styles.title}>Sign In</Text>
-              <Text style={styles.subtitle}>Welcome back to your account</Text>
-
               {/* Email Input Field */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Email Address</Text>
@@ -330,39 +334,39 @@ export default function Index() {
                 {loading ? (
                   <ActivityIndicator color="#4285F4" size="small" />
                 ) : (
-                  <>
-                    <Image
-                      // source={require("@/assets/images/googleLogo.png")}
-                      style={styles.googleIcon}
-                    />
-                    <Text style={styles.googleButtonText}>Google</Text>
-                  </>
+                  <Image
+                    source={require("@/assets/new/googleIcon.png")}
+                    style={styles.googleIcon}
+                  />
                 )}
               </TouchableOpacity>
+
+              {/* Sign In Button */}
+              <TouchableOpacity
+                style={[
+                  styles.nextButton,
+                  isSubmitting && styles.buttonDisabled,
+                ]}
+                onPress={handleManualLogin}
+                disabled={isSubmitting || isResendingVerification}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.nextButtonText}>Sign In</Text>
+                )}
+              </TouchableOpacity>
+
+              {/* Sign Up Prompt */}
+              <View style={styles.signupPrompt}>
+                <Text style={styles.signupText}>Don't have an account? </Text>
+                <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
+                  <Text style={styles.signupLink}>Sign Up</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </ScrollView>
-
-        <View style={styles.bottomContainer}>
-          {/* Next Button */}
-          <TouchableOpacity
-            style={[styles.nextButton, isSubmitting && styles.buttonDisabled]}
-            onPress={handleManualLogin}
-            disabled={isSubmitting || isResendingVerification}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.nextButtonText}>Sign In</Text>
-            )}
-          </TouchableOpacity>
-          <View style={styles.signupPrompt}>
-            <Text style={styles.signupText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
-              <Text style={styles.signupLink}>Sign Up</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
       </KeyboardAvoidingView>
     </ThemedView>
   );
@@ -371,34 +375,46 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.background,
   },
   keyboardAvoidingView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
+    backgroundColor: Colors.light.background,
+  },
+  logoContainer: {
+    alignItems: "center",
+    paddingVertical: 24,
+    backgroundColor: Colors.light.black,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    resizeMode: "contain",
   },
   formContainer: {
     paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingTop: 32,
     paddingBottom: 100,
+    backgroundColor: Colors.light.background,
   },
   title: {
     fontSize: 28,
     fontWeight: "700",
-    color: "#000000",
+    color: Colors.light.text,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
-    color: "#60646C",
+    color: Colors.light.textSecondary,
     marginBottom: 24,
   },
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#000000",
+    color: Colors.light.text,
     marginBottom: 8,
   },
   inputGroup: {
@@ -408,24 +424,24 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 48,
     borderWidth: 1,
-    borderColor: "#D1D1D6",
+    borderColor: Colors.light.border,
     borderRadius: 10,
     paddingHorizontal: 16,
     fontSize: 16,
-    color: "#000000",
-    backgroundColor: "#F8F8F9",
+    color: Colors.light.text,
+    backgroundColor: Colors.light.inputBackground,
   },
   inputError: {
-    borderColor: "#FF3B30",
-    backgroundColor: "#FFE5E1",
+    borderColor: Colors.light.error,
+    backgroundColor: Colors.light.errorBackground,
   },
   passwordInputContainer: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#D1D1D6",
+    borderColor: Colors.light.border,
     borderRadius: 10,
-    backgroundColor: "#F8F8F9",
+    backgroundColor: Colors.light.inputBackground,
     paddingRight: 12,
   },
   passwordInput: {
@@ -433,14 +449,14 @@ const styles = StyleSheet.create({
     height: 48,
     paddingHorizontal: 16,
     fontSize: 16,
-    color: "#000000",
+    color: Colors.light.text,
   },
   eyeIcon: {
     padding: 8,
   },
   errorText: {
     fontSize: 12,
-    color: "#FF3B30",
+    color: Colors.light.error,
     marginTop: 6,
     fontWeight: "500",
   },
@@ -450,7 +466,7 @@ const styles = StyleSheet.create({
   },
   forgotLinkText: {
     fontSize: 14,
-    color: "#0A66D9",
+    color: Colors.light.primary,
     fontWeight: "600",
   },
   dividerContainer: {
@@ -461,11 +477,11 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: "#D1D1D6",
+    backgroundColor: Colors.light.divider,
   },
   dividerText: {
     paddingHorizontal: 12,
-    color: "#60646C",
+    color: Colors.light.textSecondary,
     fontSize: 13,
     fontWeight: "500",
   },
@@ -473,35 +489,24 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 48,
     borderWidth: 1,
-    borderColor: "#D1D1D6",
+    borderColor: Colors.light.border,
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F8F8F9",
-    flexDirection: "row",
-    gap: 8,
+    backgroundColor: Colors.light.inputBackground,
   },
   googleIcon: {
-    width: 20,
-    height: 20,
-  },
-  googleButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#000000",
-  },
-  bottomContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: 32,
-    gap: 12,
+    width: 24,
+    height: 24,
+    resizeMode: "contain",
   },
   nextButton: {
-    backgroundColor: "#0A66D9",
+    backgroundColor: Colors.light.primary,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#0A66D9",
+    shadowColor: Colors.light.primary,
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
@@ -512,7 +517,7 @@ const styles = StyleSheet.create({
   nextButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: Colors.light.background,
   },
   signupPrompt: {
     flexDirection: "row",
@@ -521,11 +526,11 @@ const styles = StyleSheet.create({
   },
   signupText: {
     fontSize: 14,
-    color: "#60646C",
+    color: Colors.light.textSecondary,
   },
   signupLink: {
     fontSize: 14,
-    color: "#0A66D9",
+    color: Colors.light.primary,
     fontWeight: "600",
   },
 });
