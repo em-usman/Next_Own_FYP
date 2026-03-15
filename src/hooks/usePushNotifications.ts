@@ -39,40 +39,47 @@ export const usePushNotifications = (): PushNotificationState => {
   > {
     let token: Notifications.ExpoPushToken | undefined;
 
-    if (Device.isDevice) {
-      const { status: existingStatus } =
-        await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-
-      if (existingStatus !== "granted") {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-
-      if (finalStatus !== "granted") {
-        alert("Failed to get push token");
+    try {
+      // Skip push notifications on Android due to Firebase native initialization issues
+      if (Platform.OS === "android") {
+        console.log(
+          "Push notifications not available on Android (Expo managed workflow)",
+        );
         return undefined;
       }
 
-      token = await Notifications.getExpoPushTokenAsync({
-        projectId:
-          Constants.expoConfig?.extra?.eas?.projectId ??
-          Constants.easConfig?.projectId,
-      });
+      if (Device.isDevice) {
+        const { status: existingStatus } =
+          await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
 
-      if (Platform.OS === "android") {
-        await Notifications.setNotificationChannelAsync("default", {
-          name: "default",
-          importance: Notifications.AndroidImportance.MAX,
-          vibrationPattern: [0, 250, 250, 250],
+        if (existingStatus !== "granted") {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+
+        if (finalStatus !== "granted") {
+          console.warn("Push notification permissions not granted");
+          return undefined;
+        }
+
+        token = await Notifications.getExpoPushTokenAsync({
+          projectId:
+            Constants.expoConfig?.extra?.eas?.projectId ??
+            Constants.easConfig?.projectId,
         });
+
+        return token;
       }
 
-      return token;
+      console.log(
+        "Warning: Please use a physical device for push notifications",
+      );
+      return undefined;
+    } catch (error: any) {
+      console.warn("Error registering for push notifications:", error?.message);
+      return undefined;
     }
-
-    console.log("Error: Please use a physical device");
-    return undefined;
   }
 
   React.useEffect(() => {

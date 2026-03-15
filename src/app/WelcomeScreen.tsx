@@ -2,14 +2,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-       Image,
-       SafeAreaView,
-       ScrollView,
-       StatusBar,
-       StyleSheet,
-       Text,
-       TouchableOpacity,
-       View,
+    Image,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 const screens = [
@@ -143,8 +143,8 @@ const WelcomeScreen = ({ onComplete }: { onComplete: () => void }) => {
       ]}
     >
       <StatusBar
-        backgroundColor={isStartScreen ? "#000000" : "#000000"}
-        barStyle={isStartScreen ? "light-content" : "light-content"}
+        backgroundColor={isStartScreen ? "#0A66D9" : "#FFFFFF"}
+        barStyle={isStartScreen ? "light-content" : "dark-content"}
       />
 
       {isStartScreen ? (
@@ -210,10 +210,10 @@ export default WelcomeScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
   },
   startScreenContainer: {
-    backgroundColor: "#000",
+    backgroundColor: "#0A66D9",
   },
   loaderContainer: {
     flex: 1,
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
   logoLarge: {
     width: "50%",
@@ -250,12 +250,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   startScreenTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#fff",
+    fontSize: 32,
+    fontWeight: "700",
+    color: "#FFFFFF",
     textAlign: "center",
     marginTop: "auto",
     marginBottom: 10,
+    lineHeight: 40,
   },
   image: {
     width: 220,
@@ -267,62 +268,71 @@ const styles = StyleSheet.create({
   dotsContainer: {
     flexDirection: "row",
     justifyContent: "center",
+    marginVertical: 24,
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginHorizontal: 6,
   },
   activeDot: {
-    backgroundColor: "#000",
+    backgroundColor: "#0A66D9",
   },
   inactiveDot: {
-    backgroundColor: "#E0E0E0",
+    backgroundColor: "#D1D1D6",
   },
   textContainer: {
-    marginTop: "50%",
+    marginTop: "40%",
     paddingHorizontal: 24,
     marginBottom: "10%",
+    flex: 1,
   },
   title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#000",
-    marginBottom: 12,
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#000000",
+    marginBottom: 16,
+    lineHeight: 32,
   },
   description: {
-    fontSize: 14,
-    color: "#666",
-    lineHeight: 20,
+    fontSize: 15,
+    color: "#60646C",
+    lineHeight: 24,
   },
   buttonContainer: {
     paddingHorizontal: 24,
     width: "100%",
-    paddingBottom: 24,
+    paddingBottom: 32,
+    gap: 12,
   },
   button: {
-    backgroundColor: "#000",
-    borderRadius: 8,
+    backgroundColor: "#0A66D9",
+    borderRadius: 12,
     paddingVertical: 16,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#0A66D9",
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   startScreenButton: {
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
   },
   buttonText: {
     fontSize: 16,
-    fontWeight: "bold",
-    color: "#fff",
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   startScreenButtonText: {
-    color: "#000",
+    color: "#0A66D9",
   },
   skipText: {
-    fontSize: 12,
-    color: "#8E8E8E",
+    fontSize: 14,
+    color: "#60646C",
     textAlign: "center",
-    marginTop: 5,
+    marginTop: 8,
+    fontWeight: "500",
   },
 });

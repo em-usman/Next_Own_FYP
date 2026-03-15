@@ -16,7 +16,8 @@
         "backgroundImage": "./assets/images/android-icon.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.imosman.Next_Own"
+      "package": "imosman.next_own",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -32,6 +33,14 @@
             "image": "./assets/images/splash-icon.png",
             "imageWidth": 76
           }
+        }
+      ],
+      "expo-image",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#0A66D9"
         }
       ]
     ],

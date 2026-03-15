@@ -62,13 +62,7 @@ export default function RootLayout() {
         <Stack initialRouteName="(auth)">
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(shortccuts)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="(ride-booking)"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen name="(Chat)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
+          {/* <Stack.Screen name="+not-found" /> */}
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>

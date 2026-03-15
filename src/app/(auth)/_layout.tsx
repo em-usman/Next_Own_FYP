@@ -16,11 +16,20 @@ export default function AuthLayout() {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // User is signed in and persisted by Firebase
-        console.log("User is authenticated:", user.uid);
-        router.replace("/(tabs)");
+        // Reload user to get latest emailVerified status
+        await user.reload();
+
+        if (user.emailVerified) {
+          // User is signed in and email verified
+          console.log("User is authenticated and email verified:", user.uid);
+          router.replace("/(tabs)");
+        } else {
+          // User signed in but email NOT verified - stay on auth
+          console.log("User signed in but email not verified");
+          setIsCheckingAuth(false);
+        }
       } else {
         // No user → stay on auth screens
         setIsCheckingAuth(false);
