@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "687652208380",
+    "project_id": "next-own",
+    "storage_bucket": "next-own.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:687652208380:android:f6f6cf31b91cd384b5a179",
+        "android_client_info": {
+          "package_name": "imosman.next_own"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "687652208380-1chnq5401hv87msr88iunagj0jj9ooqd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "imosman.next_own",
+            "certificate_hash": "cdd8de042467e72b19fdca4d7e945ca8ff28f66b"
+          }
+        },
+        {
+          "client_id": "687652208380-4luc7vds2egvke9tc64n3c681eii65ah.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB38zqcQwLBP3fOIFH0QE1qUntvWWXIiQQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "687652208380-4luc7vds2egvke9tc64n3c681eii65ah.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
