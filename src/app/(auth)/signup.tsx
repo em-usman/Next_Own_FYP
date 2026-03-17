@@ -17,11 +17,12 @@ import {
   Alert,
   Image,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   ScrollView,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { auth, db } from "../../../firebaseConfig";
 
@@ -49,6 +50,13 @@ export default function SignupScreen() {
   const validateEmail = (value: string) => /\S+@\S+\.\S+/.test(value);
   const validateFullName = (value: string) =>
     /^[A-Za-z]+(?:\s+[A-Za-z]+)*$/.test(value.trim());
+
+  const generateAvatarUrl = (seed: string) => {
+    const url = new URL("https://api.dicebear.com/9.x/toon-head/png");
+    url.searchParams.set("seed", seed);
+    url.searchParams.set("size", "128");
+    return url.href;
+  };
 
   const handleManualSignup = async () => {
     setFullNameError("");
@@ -103,11 +111,15 @@ export default function SignupScreen() {
       const user = userCredential.user;
 
       await sendEmailVerification(user);
+      // Generate random seed
+      const randomSeed = fullName.trim() + Math.floor(Math.random() * 1000000);
+      const avatarUrl = generateAvatarUrl(randomSeed);
+
       await setDoc(doc(db, "users", user.uid), {
         email: user.email || "",
         displayName: fullName.trim() || "",
         phoneNumber: "",
-        imageUri: "",
+        imageUri: avatarUrl,
         expoPushToken: expoPushToken?.data || null,
         createdAt: new Date().toISOString(),
       });
@@ -383,37 +395,45 @@ export default function SignupScreen() {
             </TouchableOpacity>
 
             {/* Terms & Conditions */}
-            <TouchableOpacity
-              className="flex-row items-center mt-2"
-              onPress={() => setTermsChecked((prev) => !prev)}
-              activeOpacity={0.7}
-            >
-              <View
-                style={{
-                  backgroundColor: termsChecked
-                    ? theme.primary
-                    : theme.backgroundElement,
-                  borderColor: termsChecked
-                    ? theme.primary
-                    : theme.borderStrong,
-                }}
-                className="w-5 h-5 rounded border items-center justify-center mr-3"
+            <View className="flex-row items-center mt-2">
+              {/* Checkbox — sirf yahi tick/untick karta hai */}
+              <TouchableOpacity
+                onPress={() => setTermsChecked((prev) => !prev)}
+                activeOpacity={0.7}
+                className="flex-row items-center"
               >
-                {termsChecked && (
-                  <MaterialIcons name="check" size={14} color={theme.white} />
-                )}
-              </View>
+                <View
+                  style={{
+                    backgroundColor: termsChecked
+                      ? theme.primary
+                      : theme.backgroundElement,
+                    borderColor: termsChecked
+                      ? theme.primary
+                      : theme.borderStrong,
+                  }}
+                  className="w-5 h-5 rounded border items-center justify-center mr-3"
+                >
+                  {termsChecked && (
+                    <MaterialIcons name="check" size={14} color={theme.white} />
+                  )}
+                </View>
+              </TouchableOpacity>
+
+              {/* Text — "Terms & Conditions" link alag hai */}
               <ThemedText type="small" themeColor="textSecondary">
                 I Accept{" "}
                 <ThemedText
                   type="small"
                   themeColor="primary"
                   style={{ fontWeight: "600" }}
+                  onPress={() =>
+                    Linking.openURL("https://term-and-conditions.netlify.app/")
+                  }
                 >
                   Terms & Conditions
                 </ThemedText>
               </ThemedText>
-            </TouchableOpacity>
+            </View>
 
             {/* Create Account Button */}
             <TouchableOpacity

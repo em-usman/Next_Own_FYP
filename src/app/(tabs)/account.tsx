@@ -1,17 +1,43 @@
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { Alert, Pressable } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Alert, Image, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
-import { logout } from "../../../firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db, logout } from "../../../firebaseConfig";
 
 export default function Account() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const router = useRouter();
   const theme = useTheme();
+
+  // Fetch user data from Firestore
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        if (!auth.currentUser) return;
+
+        const userDocRef = doc(db, "users", auth.currentUser.uid);
+        const userSnap = await getDoc(userDocRef);
+
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+          setAvatarUri(data.imageUri || null);
+          setDisplayName(data.displayName || null);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+        Alert.alert("Error", "Could not load user profile.");
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -30,8 +56,20 @@ export default function Account() {
 
   return (
     <ThemedView className="flex-1 items-center justify-center">
-      <SafeAreaView className="w-full max-w-xl items-center justify-center gap-2 px-4 pb-16">
-        <ThemedText type="subtitle">Profile</ThemedText>
+      <SafeAreaView className="w-full max-w-xl items-center justify-center gap-4 px-4 pb-16">
+        {avatarUri && (
+          <Image
+            source={{ uri: avatarUri }}
+            style={{
+              width: 128,
+              height: 128,
+              borderRadius: 64,
+              marginBottom: 10,
+            }}
+          />
+        )}
+
+        {displayName && <ThemedText type="subtitle">{displayName}</ThemedText>}
 
         <ThemedText themeColor="textSecondary" className="text-center">
           Manage your account details, settings, and preferences here.
