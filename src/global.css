@@ -1,9 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Prevent default browser tap/focus highlight on React Native Web tab triggers (anchors). */
+#app-tabs-tablist,
+#app-tabs-tablist * {
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app-tabs-tablist a,
+#app-tabs-tablist button {
+  outline: none;
+}
+
+/* Keep keyboard focus accessible, but avoid OS accent (often green) by using our brand blue. */
+#app-tabs-tablist a:focus-visible,
+#app-tabs-tablist button:focus-visible {
+  outline: 2px solid rgba(10, 102, 217, 0.55);
+  outline-offset: 2px;
+}
+
 :root {
   --font-display:
-    Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
-    Segoe UI Symbol, Noto Color Emoji;
+    Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji,
+    Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
   --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
-  --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
-  --font-serif: Georgia, 'Times New Roman', serif;
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono,
+    Courier New, monospace;
+  --font-rounded:
+    "SF Pro Rounded", "Hiragino Maru Gothic ProN", Meiryo, "MS PGothic",
+    sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+
+  /* Primary Colors */
+  --color-primary: #0a66d9;
+  --color-primary-light: #5b9eff;
+  --color-primary-dark: #0052b8;
+
+  /* Neutral Colors */
+  --color-text-primary: #000000;
+  --color-text-secondary: #60646c;
+  --color-text-light: #999999;
+
+  /* Background Colors */
+  --color-background: #ffffff;
+  --color-background-secondary: #f0f0f3;
+  --color-background-tertiary: #e8e8eb;
+
+  /* Border Colors */
+  --color-border: #d1d1d6;
+  --color-border-light: #e8e8eb;
+
+  /* Status Colors */
+  --color-error: #ff3b30;
+  --color-error-light: #ffe5e1;
+  --color-success: #34c759;
+  --color-success-light: #e8f6e8;
+
+  /* Icon Colors */
+  --color-icon-primary: #0a66d9;
+  --color-icon-secondary: #60646c;
 }
