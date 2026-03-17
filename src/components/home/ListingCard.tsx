@@ -11,12 +11,12 @@ export function ListingCard({ listing }: { listing: Listing }) {
   const theme = useTheme();
 
   function handlePress() {
+    const { image, images, ...serializableData } = listing;
     router.push({
-      pathname: "/(tabs)/listing/[id]",
+      pathname: "/listing/[id]",
       params: {
         id: String(listing.id),
-        // Keep it URL-safe on web (raw JSON in query params can break navigation).
-        data: encodeURIComponent(JSON.stringify(listing)),
+        data: encodeURIComponent(JSON.stringify(serializableData)),
       },
     });
   }

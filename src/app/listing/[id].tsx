@@ -1,23 +1,23 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
-       Dimensions,
-       FlatList,
-       Image,
-       ScrollView,
-       TouchableOpacity,
-       View,
+  Dimensions,
+  FlatList,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
-import type { Listing } from "@/types/listing";
 
 const { width } = Dimensions.get("window");
 
-// Detail row helper
+const placeholderImage = require("@/assets/categories/mobile.png");
+
 function DetailRow({ label, value }: { label: string; value: string }) {
   const theme = useTheme();
   return (
@@ -39,12 +39,13 @@ export default function ListingDetailScreen() {
   const theme = useTheme();
   const { data } = useLocalSearchParams<{ data?: string | string[] }>();
   const rawData = Array.isArray(data) ? data[0] : data;
-  const listing: Listing | null = rawData
-    ? JSON.parse(decodeURIComponent(rawData))
-    : null;
+  const listing = rawData ? JSON.parse(decodeURIComponent(rawData)) : null;
+
+  const images = [placeholderImage];
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isWishlisted, setIsWishlisted] = useState(false);
 
   if (!listing) {
-    // If navigation arrives without params (or with invalid params), fail gracefully.
     return (
       <ThemedView className="flex-1 items-center justify-center px-6">
         <ThemedText type="subtitle" style={{ fontSize: 18 }}>
@@ -65,10 +66,6 @@ export default function ListingDetailScreen() {
       </ThemedView>
     );
   }
-
-  const images = listing.images?.length ? listing.images : [listing.image];
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isWishlisted, setIsWishlisted] = useState(false);
 
   return (
     <ThemedView className="flex-1">
