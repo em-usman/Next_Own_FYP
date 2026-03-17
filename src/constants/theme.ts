@@ -1,42 +1,79 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
 import "@/global.css";
-
 import { Platform } from "react-native";
 
 export const Colors = {
   light: {
-    text: "#000000",
-    background: "#ffffff",
-    backgroundElement: "#F0F0F3",
-    backgroundSelected: "#E0E1E6",
-    textSecondary: "#60646C",
-    tabActive: "#0A66D9",
-    primary: "#0A66D9",
-    error: "#FF3B30",
-    errorBackground: "#FFE5E1",
-    border: "#D1D1D6",
-    inputBackground: "#F8F8F9",
-    divider: "#D1D1D6",
+    // Base
+    text: "#111827", // gray-900
+    textSecondary: "#6B7280", // gray-500
+    textMuted: "#9CA3AF", // gray-400
+    textInverse: "#FFFFFF", // white text on dark bg
+
+    // Backgrounds
+    background: "#FFFFFF", // main screen bg
+    backgroundHeader: "#000000", // top black header
+    backgroundElement: "#F9FAFB", // gray-50 — inputs, buttons
+    backgroundSelected: "#E5E7EB", // gray-200 — dividers, pressed
+
+    // Primary / Accent
+    primary: "#2563EB", // blue-600
+    primaryForeground: "#FFFFFF", // text on primary
+
+    // Borders
+    border: "#E5E7EB", // gray-200 — default borders
+    borderStrong: "#D1D5DB", // gray-300 — checkbox border
+    borderError: "#F87171", // red-400 — error field border
+
+    // Error
+    error: "#EF4444", // red-500
+    errorBackground: "#FEE2E2",
+
+    // Divider
+    divider: "#E5E7EB", // gray-200
+
+    // Misc
+    icon: "#60646C", // icon color used in inputs
     black: "#000000",
+    white: "#FFFFFF",
+
+    tabActive: "#2563EB",
   },
+
   dark: {
-    text: "#ffffff",
-    background: "#000000",
-    backgroundElement: "#212225",
-    backgroundSelected: "#2E3135",
-    textSecondary: "#B0B4BA",
-    tabActive: "#7CC4FF",
-    primary: "#7CC4FF",
-    error: "#FF453A",
-    errorBackground: "#5A2C2C",
-    border: "#424245",
-    inputBackground: "#2E3135",
-    divider: "#424245",
+    // Base
+    text: "#F9FAFB", // near white
+    textSecondary: "#9CA3AF", // muted
+    textMuted: "#6B7280",
+    textInverse: "#FFFFFF", // dark text on light surface
+
+    // Backgrounds
+    background: "#111827", // dark screen bg
+    backgroundHeader: "#000000", // keep header pure black
+    backgroundElement: "#1F2937", // elevated surfaces, inputs
+    backgroundSelected: "#374151", // pressed/selected
+
+    // Primary / Accent
+    primary: "#60A5FA", // blue-400 — readable on dark
+    primaryForeground: "#FFFFFF",
+
+    // Borders
+    border: "#374151", // gray-700
+    borderStrong: "#4B5563", // gray-600
+    borderError: "#F87171", // red-400 stays same
+
+    // Error
+    error: "#FCA5A5", // red-300 — softer on dark
+    errorBackground: "#7F1D1D",
+
+    // Divider
+    divider: "#374151",
+
+    // Misc
+    icon: "#9CA3AF",
     black: "#000000",
+    white: "#FFFFFF",
+
+    tabActive: "#60A5FA",
   },
 } as const;
 
@@ -44,13 +81,9 @@ export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: "system-ui",
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: "ui-serif",
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: "ui-rounded",
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: "ui-monospace",
   },
   default: {

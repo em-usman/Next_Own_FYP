@@ -6,11 +6,11 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 
-export default function ActivityScreen() {
+export default function Sell() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ThemedText type="subtitle">Activity</ThemedText>
+        <ThemedText type="subtitle">Sell</ThemedText>
         <ThemedText themeColor="textSecondary" style={styles.description}>
           Recent updates, notifications, and interactions will appear here.
         </ThemedText>

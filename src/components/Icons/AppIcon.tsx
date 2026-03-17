@@ -1,13 +1,12 @@
 import {
-       Entypo,
-       Feather,
-       FontAwesome,
-       FontAwesome5,
-       FontAwesome6,
-       Fontisto,
-       Ionicons,
-       MaterialCommunityIcons,
-       MaterialIcons,
+  Entypo,
+  Feather,
+  FontAwesome5,
+  FontAwesome6,
+  Fontisto,
+  Ionicons,
+  MaterialCommunityIcons,
+  MaterialIcons,
 } from "@expo/vector-icons";
 import React from "react";
 import { TextStyle } from "react-native";
@@ -18,7 +17,6 @@ type IconFamily =
   | "material"
   | "ionicons"
   | "fa"
-  | "fa6"
   | "fa5"
   | "entypo"
   | "material-community"
@@ -46,8 +44,6 @@ export function AppIcon({
     case "material":
       return <MaterialIcons name={name as any} size={size} color={color} />;
     case "fa":
-      return <FontAwesome name={name as any} size={size} color={color} />;
-    case "fa6":
       return <FontAwesome6 name={name as any} size={size} color={color} />;
     case "fa5":
       return <FontAwesome5 name={name as any} size={size} color={color} />;

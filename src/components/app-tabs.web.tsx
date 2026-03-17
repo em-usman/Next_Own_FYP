@@ -1,3 +1,4 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   TabList,
   TabListProps,
@@ -6,18 +7,24 @@ import {
   TabTrigger,
   TabTriggerSlotProps,
 } from "expo-router/ui";
-import { SymbolView } from "expo-symbols";
 import React from "react";
 import { Pressable, StyleSheet, useColorScheme, View } from "react-native";
 
-import { AppIcon } from "@/components/Icons/AppIcon";
-
-import { ExternalLink } from "./external-link";
 import { ThemedText } from "./themed-text";
 import { ThemedView } from "./themed-view";
 
 import { APP_TABS } from "@/constants/tabs";
-import { Colors, MaxContentWidth, Spacing } from "@/constants/theme";
+import { Colors, Spacing } from "@/constants/theme";
+
+// `TabTrigger` passes `href` down to `Pressable` on web, so the underlying DOM element can
+// get the browser's default focus/tap highlight (often seen as a "mystery" colored flash).
+// We explicitly reset it for our tab buttons to avoid the green blink.
+const WEB_PRESSABLE_RESET = {
+  outlineStyle: "none",
+  outlineWidth: 0,
+  boxShadow: "none",
+  WebkitTapHighlightColor: "transparent",
+} as any;
 
 export default function AppTabs() {
   return (
@@ -30,6 +37,7 @@ export default function AppTabs() {
               <TabButton
                 defaultIconName={tab.icon.default}
                 selectedIconName={tab.icon.selected}
+                isSell={tab.name === "sell"}
               >
                 {tab.label}
               </TabButton>
@@ -45,14 +53,14 @@ type TabButtonProps = TabTriggerSlotProps & {
   children: React.ReactNode;
   defaultIconName: string;
   selectedIconName?: string;
-  iconFamily?: React.ComponentProps<typeof AppIcon>["family"];
+  isSell?: boolean;
 };
 
 export function TabButton({
   children,
   defaultIconName,
   selectedIconName,
-  iconFamily = "ion",
+  isSell = false,
   isFocused,
   ...props
 }: TabButtonProps) {
@@ -61,8 +69,42 @@ export function TabButton({
   const iconName =
     isFocused && selectedIconName ? selectedIconName : defaultIconName;
 
+  // Special center Sell button
+  if (isSell) {
+    return (
+      <Pressable
+        {...props}
+        style={({ pressed }) => [
+          WEB_PRESSABLE_RESET,
+          styles.sellPressable,
+          pressed && styles.pressed,
+        ]}
+      >
+        <View style={styles.sellWrapper}>
+          <View style={[styles.sellButton, { backgroundColor: colors.black }]}>
+            <Ionicons name="add" size={28} color={colors.white} />
+          </View>
+          <ThemedText
+            type="small"
+            themeColor={isFocused ? "tabActive" : "textSecondary"}
+            style={styles.sellLabel}
+          >
+            {children}
+          </ThemedText>
+        </View>
+      </Pressable>
+    );
+  }
+
   return (
-    <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
+    <Pressable
+      {...props}
+      style={({ pressed }) => [
+        WEB_PRESSABLE_RESET,
+        styles.tabPressable,
+        pressed && styles.pressed,
+      ]}
+    >
       <ThemedView
         type={isFocused ? "backgroundSelected" : "backgroundElement"}
         style={[
@@ -70,10 +112,9 @@ export function TabButton({
           isFocused && { borderBottomColor: colors.tabActive },
         ]}
       >
-        <AppIcon
-          name={iconName}
-          family={iconFamily}
-          size={14}
+        <Ionicons
+          name={iconName as any}
+          size={18}
           color={isFocused ? colors.tabActive : colors.textSecondary}
         />
         <ThemedText
@@ -92,25 +133,16 @@ export function CustomTabList(props: TabListProps) {
   const colors = Colors[scheme === "unspecified" ? "light" : scheme];
 
   return (
-    <View {...props} style={styles.tabListContainer}>
-      <ThemedView type="backgroundElement" style={styles.innerContainer}>
-        <ThemedText type="smallBold" style={styles.brandText}>
-          Expo Starter
-        </ThemedText>
-
-        {props.children}
-
-        <ExternalLink href="https://docs.expo.dev" asChild>
-          <Pressable style={styles.externalPressable}>
-            <ThemedText type="link">Docs</ThemedText>
-            <SymbolView
-              tintColor={colors.text}
-              name={{ ios: "arrow.up.right.square", web: "link" }}
-              size={12}
-            />
-          </Pressable>
-        </ExternalLink>
-      </ThemedView>
+    <View
+      {...props}
+      nativeID={props.nativeID ?? "app-tabs-tablist"}
+      style={[
+        WEB_PRESSABLE_RESET,
+        styles.tabListContainer,
+        { backgroundColor: colors.background, borderTopColor: colors.border },
+      ]}
+    >
+      {props.children}
     </View>
   );
 }
@@ -118,43 +150,56 @@ export function CustomTabList(props: TabListProps) {
 const styles = StyleSheet.create({
   tabListContainer: {
     position: "absolute",
+    bottom: 0,
     width: "100%",
-    padding: Spacing.three,
-    justifyContent: "center",
-    alignItems: "center",
     flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "flex-end",
+    paddingBottom: 24,
+    paddingTop: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
-  innerContainer: {
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.five,
-    borderRadius: Spacing.five,
-    flexDirection: "row",
-    alignItems: "center",
-    flexGrow: 1,
-    gap: Spacing.two,
-    maxWidth: MaxContentWidth,
-  },
-  brandText: {
-    marginRight: "auto",
-  },
-  pressed: {
-    opacity: 0.7,
+  tabPressable: {
+    backgroundColor: "transparent",
+    borderRadius: Spacing.two,
   },
   tabButtonView: {
     paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
+    paddingHorizontal: Spacing.two,
     borderBottomWidth: 2,
     borderBottomColor: "transparent",
-    borderRadius: Spacing.three,
-    flexDirection: "row",
+    borderRadius: Spacing.two,
+    flexDirection: "column",
     alignItems: "center",
     gap: Spacing.one,
+    minWidth: 56,
   },
-  externalPressable: {
-    flexDirection: "row",
-    justifyContent: "center",
+  sellWrapper: {
     alignItems: "center",
     gap: Spacing.one,
-    marginLeft: Spacing.three,
+    marginBottom: 4,
+  },
+  sellPressable: {
+    backgroundColor: "transparent",
+    borderRadius: 9999,
+  },
+  sellButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  sellLabel: {
+    textAlign: "center",
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

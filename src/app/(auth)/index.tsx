@@ -1,5 +1,6 @@
+import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Colors } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import useGoogleSignIn from "@/hooks/useGoogleSignIn";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -19,18 +20,16 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { auth } from "../../../firebaseConfig";
-
 const height = Dimensions.get("window").height;
 const RESEND_COOLDOWN_SECONDS = 60;
 
 export default function Index() {
+  const theme = useTheme();
   const { signIn, loading } = useGoogleSignIn();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -229,30 +228,47 @@ export default function Index() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView className="flex-1">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoidingView}
+        className="flex-1"
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.logoContainer}>
+          {/* Top Black Header */}
+          <ThemedView
+            type="backgroundHeader"
+            className="px-6 pt-14 pb-16 items-center justify-end"
+          >
             <Image
               source={require("@/assets/new/splash-icon.png")}
-              style={styles.logo}
+              className="w-16 h-16"
+              resizeMode="contain"
             />
-          </View>
-          <View style={styles.formContainer}>
-            <View style={{ gap: 12 }}>
-              {/* Email Input Field */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Email Address</Text>
+            <ThemedText type="title" themeColor="textInverse" className="mt-3">
+              Login
+            </ThemedText>
+          </ThemedView>
+
+          {/* Form Section */}
+          <ThemedView className="flex-1 rounded-t-[40px] -mt-8 px-6 pt-8 pb-24 gap-4">
+            {/* Email Field */}
+            <View className="gap-1">
+              <ThemedView
+                type="backgroundElement"
+                style={{
+                  borderColor: emailError ? theme.borderError : theme.border,
+                }}
+                className="flex-row items-center border rounded-2xl px-4"
+              >
+                <MaterialIcons name="email" size={20} color={theme.icon} />
                 <TextInput
-                  style={[styles.input, emailError && styles.inputError]}
-                  placeholder="Enter your email"
-                  placeholderTextColor="#999"
+                  className="flex-1 ml-3 h-12 text-base"
+                  style={{ color: theme.text }}
+                  placeholder="example@gmail.com"
+                  placeholderTextColor={theme.textMuted}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   value={email}
@@ -262,275 +278,159 @@ export default function Index() {
                     setGeneralError("");
                   }}
                 />
-                {emailError ? (
-                  <Text style={styles.errorText}>{emailError}</Text>
-                ) : null}
-              </View>
-
-              {/* Password Input Field with Eye Icon */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Password</Text>
-                <View style={styles.passwordInputContainer}>
-                  <TextInput
-                    style={[
-                      styles.passwordInput,
-                      passwordError && styles.inputError,
-                    ]}
-                    placeholder="Enter your password"
-                    placeholderTextColor="#999"
-                    secureTextEntry={!showPassword}
-                    value={password}
-                    onChangeText={(text) => {
-                      setPassword(text);
-                      setPasswordError("");
-                      setGeneralError("");
-                    }}
-                  />
-                  <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
-                    style={styles.eyeIcon}
-                  >
-                    <MaterialIcons
-                      name={showPassword ? "visibility" : "visibility-off"}
-                      size={20}
-                      color="#60646C"
-                    />
-                  </TouchableOpacity>
-                </View>
-                {passwordError ? (
-                  <Text style={styles.errorText}>{passwordError}</Text>
-                ) : null}
-              </View>
-
-              {generalError ? (
-                <Text style={styles.errorText}>{generalError}</Text>
+              </ThemedView>
+              {emailError ? (
+                <ThemedText themeColor="error" className="text-xs ml-1">
+                  {emailError}
+                </ThemedText>
               ) : null}
+            </View>
 
-              <TouchableOpacity
-                onPress={handleForgotPassword}
-                disabled={isSendingReset}
-                style={styles.forgotLinkWrap}
+            {/* Password Field */}
+            <View className="gap-1">
+              <ThemedView
+                type="backgroundElement"
+                style={{
+                  borderColor: passwordError ? theme.borderError : theme.border,
+                }}
+                className="flex-row items-center border rounded-2xl px-4"
               >
-                {isSendingReset ? (
-                  <ActivityIndicator size="small" color="#0A66D9" />
-                ) : (
-                  <Text style={styles.forgotLinkText}>Forgot password?</Text>
-                )}
-              </TouchableOpacity>
+                <MaterialIcons name="lock" size={20} color={theme.icon} />
+                <TextInput
+                  className="flex-1 ml-3 h-12 text-base"
+                  style={{ color: theme.text }}
+                  placeholder="Enter your password"
+                  placeholderTextColor={theme.textMuted}
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    setPasswordError("");
+                    setGeneralError("");
+                  }}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <MaterialIcons
+                    name={showPassword ? "visibility" : "visibility-off"}
+                    size={20}
+                    color={theme.icon}
+                  />
+                </TouchableOpacity>
+              </ThemedView>
+              {passwordError ? (
+                <ThemedText themeColor="error" className="text-xs ml-1">
+                  {passwordError}
+                </ThemedText>
+              ) : null}
+            </View>
 
-              {/* OR Divider */}
-              <View style={styles.dividerContainer}>
-                <View style={styles.divider} />
-                <Text style={styles.dividerText}>Or Sign In With</Text>
-                <View style={styles.divider} />
-              </View>
+            {/* General Error */}
+            {generalError ? (
+              <ThemedText themeColor="error" className="text-xs ml-1">
+                {generalError}
+              </ThemedText>
+            ) : null}
 
-              {/* Google Sign In Button */}
-              <TouchableOpacity
-                style={[styles.googleButton, loading && { opacity: 0.6 }]}
-                onPress={signIn}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#4285F4" size="small" />
-                ) : (
+            {/* Forgot Password */}
+            <TouchableOpacity
+              onPress={handleForgotPassword}
+              disabled={isSendingReset}
+              className="items-end"
+            >
+              {isSendingReset ? (
+                <ActivityIndicator size="small" color={theme.primary} />
+              ) : (
+                <ThemedText type="small" themeColor="primary">
+                  Forget password?
+                </ThemedText>
+              )}
+            </TouchableOpacity>
+
+            {/* OR Divider */}
+            <View className="flex-row items-center gap-3 my-2">
+              <View
+                style={{ backgroundColor: theme.divider }}
+                className="flex-1 h-px"
+              />
+              <ThemedText type="small" themeColor="textMuted">
+                Or Sign In With
+              </ThemedText>
+              <View
+                style={{ backgroundColor: theme.divider }}
+                className="flex-1 h-px"
+              />
+            </View>
+
+            {/* Google Button */}
+            <TouchableOpacity
+              style={{
+                borderColor: theme.border,
+                backgroundColor: theme.backgroundElement,
+              }}
+              className={`flex-row items-center justify-center border rounded-2xl py-3 ${
+                loading ? "opacity-60" : "opacity-100"
+              }`}
+              onPress={signIn}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#4285F4" size="small" />
+              ) : (
+                <>
                   <Image
                     source={require("@/assets/new/googleIcon.png")}
-                    style={styles.googleIcon}
+                    className="w-5 h-5"
+                    resizeMode="contain"
                   />
-                )}
-              </TouchableOpacity>
+                  <ThemedText
+                    type="small"
+                    themeColor="textSecondary"
+                    className="ml-2"
+                  >
+                    Continue with Google
+                  </ThemedText>
+                </>
+              )}
+            </TouchableOpacity>
 
-              {/* Sign In Button */}
-              <TouchableOpacity
-                style={[
-                  styles.nextButton,
-                  isSubmitting && styles.buttonDisabled,
-                ]}
-                onPress={handleManualLogin}
-                disabled={isSubmitting || isResendingVerification}
-              >
-                {isSubmitting ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.nextButtonText}>Sign In</Text>
-                )}
-              </TouchableOpacity>
+            {/* Login Button */}
+            <TouchableOpacity
+              style={{ backgroundColor: theme.black }}
+              className={`rounded-full py-4 items-center justify-center mt-2 ${
+                isSubmitting ? "opacity-60" : "opacity-100"
+              }`}
+              onPress={handleManualLogin}
+              disabled={isSubmitting || isResendingVerification}
+            >
+              {isSubmitting ? (
+                <ActivityIndicator color={theme.white} />
+              ) : (
+                <ThemedText
+                  type="default"
+                  themeColor="textInverse"
+                  style={{ fontWeight: "700" }}
+                >
+                  Login
+                </ThemedText>
+              )}
+            </TouchableOpacity>
 
-              {/* Sign Up Prompt */}
-              <View style={styles.signupPrompt}>
-                <Text style={styles.signupText}>Don't have an account? </Text>
-                <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
-                  <Text style={styles.signupLink}>Sign Up</Text>
-                </TouchableOpacity>
-              </View>
+            {/* Sign Up Prompt */}
+            <View className="flex-row items-center justify-center mt-2">
+              <ThemedText type="small" themeColor="textSecondary">
+                New user?{" "}
+              </ThemedText>
+              <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
+                <ThemedText type="smallBold" themeColor="primary">
+                  Signup
+                </ThemedText>
+              </TouchableOpacity>
             </View>
-          </View>
+          </ThemedView>
         </ScrollView>
       </KeyboardAvoidingView>
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.light.background,
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    backgroundColor: Colors.light.background,
-  },
-  logoContainer: {
-    alignItems: "center",
-    paddingVertical: 24,
-    backgroundColor: Colors.light.black,
-  },
-  logo: {
-    width: 100,
-    height: 100,
-    resizeMode: "contain",
-  },
-  formContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 100,
-    backgroundColor: Colors.light.background,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: Colors.light.text,
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.light.text,
-    marginBottom: 8,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  input: {
-    width: "100%",
-    height: 48,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: Colors.light.text,
-    backgroundColor: Colors.light.inputBackground,
-  },
-  inputError: {
-    borderColor: Colors.light.error,
-    backgroundColor: Colors.light.errorBackground,
-  },
-  passwordInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    borderRadius: 10,
-    backgroundColor: Colors.light.inputBackground,
-    paddingRight: 12,
-  },
-  passwordInput: {
-    flex: 1,
-    height: 48,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: Colors.light.text,
-  },
-  eyeIcon: {
-    padding: 8,
-  },
-  errorText: {
-    fontSize: 12,
-    color: Colors.light.error,
-    marginTop: 6,
-    fontWeight: "500",
-  },
-  forgotLinkWrap: {
-    alignSelf: "flex-end",
-    paddingVertical: 8,
-  },
-  forgotLinkText: {
-    fontSize: 14,
-    color: Colors.light.primary,
-    fontWeight: "600",
-  },
-  dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 20,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: Colors.light.divider,
-  },
-  dividerText: {
-    paddingHorizontal: 12,
-    color: Colors.light.textSecondary,
-    fontSize: 13,
-    fontWeight: "500",
-  },
-  googleButton: {
-    width: "100%",
-    height: 48,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: Colors.light.inputBackground,
-  },
-  googleIcon: {
-    width: 24,
-    height: 24,
-    resizeMode: "contain",
-  },
-  nextButton: {
-    backgroundColor: Colors.light.primary,
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: Colors.light.primary,
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  nextButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: Colors.light.background,
-  },
-  signupPrompt: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  signupText: {
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-  },
-  signupLink: {
-    fontSize: 14,
-    color: Colors.light.primary,
-    fontWeight: "600",
-  },
-});

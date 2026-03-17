@@ -1,5 +1,6 @@
+import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Colors } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import useGoogleSignIn from "@/hooks/useGoogleSignIn";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -14,22 +15,18 @@ import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Dimensions,
   Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { auth, db } from "../../../firebaseConfig";
 
-const height = Dimensions.get("window").height;
-
 export default function SignupScreen() {
+  const theme = useTheme();
   const { signIn, loading } = useGoogleSignIn();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -44,17 +41,14 @@ export default function SignupScreen() {
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [generalError, setGeneralError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const router = useRouter();
   const { expoPushToken } = usePushNotifications();
 
-  const validateEmail = (value: string) => {
-    return /\S+@\S+\.\S+/.test(value);
-  };
-
-  const validateFullName = (value: string) => {
-    return /^[A-Za-z]+(?:\s+[A-Za-z]+)*$/.test(value.trim());
-  };
+  const validateEmail = (value: string) => /\S+@\S+\.\S+/.test(value);
+  const validateFullName = (value: string) =>
+    /^[A-Za-z]+(?:\s+[A-Za-z]+)*$/.test(value.trim());
 
   const handleManualSignup = async () => {
     setFullNameError("");
@@ -64,6 +58,7 @@ export default function SignupScreen() {
     setGeneralError("");
 
     let valid = true;
+
     if (!fullName.trim()) {
       setFullNameError("Full name is required.");
       valid = false;
@@ -99,6 +94,7 @@ export default function SignupScreen() {
     if (!valid) return;
 
     try {
+      setIsSubmitting(true);
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email.trim(),
@@ -107,7 +103,6 @@ export default function SignupScreen() {
       const user = userCredential.user;
 
       await sendEmailVerification(user);
-
       await setDoc(doc(db, "users", user.uid), {
         email: user.email || "",
         displayName: fullName.trim() || "",
@@ -128,12 +123,7 @@ export default function SignupScreen() {
       Alert.alert(
         "Verify your email",
         "A verification link has been sent to your inbox. Please verify before logging in.",
-        [
-          {
-            text: "OK",
-            onPress: () => router.replace("/(auth)"),
-          },
-        ],
+        [{ text: "OK", onPress: () => router.replace("/(auth)") }],
       );
     } catch (error: any) {
       if (error.code === "auth/email-already-in-use") {
@@ -145,35 +135,56 @@ export default function SignupScreen() {
       } else {
         setGeneralError(error.message || "Failed to sign up.");
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView className="flex-1">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoidingView}
+        className="flex-1"
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.logoContainer}>
+          {/* Top Black Header */}
+          <ThemedView
+            type="backgroundHeader"
+            className="px-6 pt-14 pb-16 items-center justify-end"
+          >
             <Image
               source={require("@/assets/new/splash-icon.png")}
-              style={styles.logo}
+              className="w-16 h-16"
+              resizeMode="contain"
             />
-          </View>
-          <View style={styles.formContainer}>
-            <View style={{ gap: 12 }}>
-              {/* Full Name Input Field */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Full Name</Text>
+            <ThemedText type="title" themeColor="textInverse" className="mt-3">
+              Sign Up
+            </ThemedText>
+          </ThemedView>
+
+          {/* Form */}
+          <ThemedView className="flex-1 rounded-t-[40px] -mt-8 px-6 pt-8 pb-24 gap-4">
+            {/* Full Name */}
+            <View className="gap-1">
+              <ThemedText type="smallBold" className="mb-1">
+                Full Name
+              </ThemedText>
+              <ThemedView
+                type="backgroundElement"
+                style={{
+                  borderColor: fullNameError ? theme.borderError : theme.border,
+                }}
+                className="flex-row items-center border rounded-2xl px-4"
+              >
+                <MaterialIcons name="person" size={20} color={theme.icon} />
                 <TextInput
-                  style={[styles.input, fullNameError && styles.inputError]}
+                  className="flex-1 ml-3 h-12 text-base"
+                  style={{ color: theme.text }}
                   placeholder="Enter your full name"
-                  placeholderTextColor="#999"
-                  keyboardType="default"
+                  placeholderTextColor={theme.textMuted}
                   autoCapitalize="words"
                   value={fullName}
                   onChangeText={(text) => {
@@ -189,18 +200,32 @@ export default function SignupScreen() {
                     }
                   }}
                 />
-                {fullNameError ? (
-                  <Text style={styles.errorText}>{fullNameError}</Text>
-                ) : null}
-              </View>
+              </ThemedView>
+              {fullNameError ? (
+                <ThemedText themeColor="error" className="text-xs ml-1">
+                  {fullNameError}
+                </ThemedText>
+              ) : null}
+            </View>
 
-              {/* Email Input Field */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Email Address</Text>
+            {/* Email */}
+            <View className="gap-1">
+              <ThemedText type="smallBold" className="mb-1">
+                Email Address
+              </ThemedText>
+              <ThemedView
+                type="backgroundElement"
+                style={{
+                  borderColor: emailError ? theme.borderError : theme.border,
+                }}
+                className="flex-row items-center border rounded-2xl px-4"
+              >
+                <MaterialIcons name="email" size={20} color={theme.icon} />
                 <TextInput
-                  style={[styles.input, emailError && styles.inputError]}
-                  placeholder="Enter your email"
-                  placeholderTextColor="#999"
+                  className="flex-1 ml-3 h-12 text-base"
+                  style={{ color: theme.text }}
+                  placeholder="example@gmail.com"
+                  placeholderTextColor={theme.textMuted}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   value={email}
@@ -209,335 +234,223 @@ export default function SignupScreen() {
                     setEmailError("");
                   }}
                 />
-                {emailError ? (
-                  <Text style={styles.errorText}>{emailError}</Text>
-                ) : null}
-              </View>
-
-              {/* Password Input Field with Eye Icon */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Password</Text>
-                <View style={styles.passwordInputContainer}>
-                  <TextInput
-                    style={[
-                      styles.passwordInput,
-                      passwordError && styles.inputError,
-                    ]}
-                    placeholder="Enter your password"
-                    placeholderTextColor="#999"
-                    secureTextEntry={!showPassword}
-                    value={password}
-                    onChangeText={(text) => {
-                      setPassword(text);
-                      setPasswordError("");
-                    }}
-                  />
-                  <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
-                    style={styles.eyeIcon}
-                  >
-                    <MaterialIcons
-                      name={showPassword ? "visibility" : "visibility-off"}
-                      size={20}
-                      color="#60646C"
-                    />
-                  </TouchableOpacity>
-                </View>
-                {passwordError ? (
-                  <Text style={styles.errorText}>{passwordError}</Text>
-                ) : null}
-              </View>
-
-              {/* Confirm Password Input Field with Eye Icon */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Confirm Password</Text>
-                <View style={styles.passwordInputContainer}>
-                  <TextInput
-                    style={[
-                      styles.passwordInput,
-                      confirmPasswordError && styles.inputError,
-                    ]}
-                    placeholder="Confirm your password"
-                    placeholderTextColor="#999"
-                    secureTextEntry={!showConfirmPassword}
-                    value={confirmPassword}
-                    onChangeText={(text) => {
-                      setConfirmPassword(text);
-                      setConfirmPasswordError("");
-                    }}
-                  />
-                  <TouchableOpacity
-                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                    style={styles.eyeIcon}
-                  >
-                    <MaterialIcons
-                      name={
-                        showConfirmPassword ? "visibility" : "visibility-off"
-                      }
-                      size={20}
-                      color="#60646C"
-                    />
-                  </TouchableOpacity>
-                </View>
-                {confirmPasswordError ? (
-                  <Text style={styles.errorText}>{confirmPasswordError}</Text>
-                ) : null}
-              </View>
-
-              {generalError ? (
-                <Text style={styles.errorText}>{generalError}</Text>
+              </ThemedView>
+              {emailError ? (
+                <ThemedText themeColor="error" className="text-xs ml-1">
+                  {emailError}
+                </ThemedText>
               ) : null}
+            </View>
 
-              {/* OR Divider */}
-              <View style={styles.dividerContainer}>
-                <View style={styles.divider} />
-                <Text style={styles.dividerText}>Or Sign Up With</Text>
-                <View style={styles.divider} />
-              </View>
-
-              {/* Google Sign Up Button */}
-              <TouchableOpacity
-                style={[styles.googleButton, loading && { opacity: 0.6 }]}
-                onPress={signIn}
-                disabled={loading}
+            {/* Password */}
+            <View className="gap-1">
+              <ThemedText type="smallBold" className="mb-1">
+                Password
+              </ThemedText>
+              <ThemedView
+                type="backgroundElement"
+                style={{
+                  borderColor: passwordError ? theme.borderError : theme.border,
+                }}
+                className="flex-row items-center border rounded-2xl px-4"
               >
-                {loading ? (
-                  <ActivityIndicator color="#4285F4" size="small" />
-                ) : (
+                <MaterialIcons name="lock" size={20} color={theme.icon} />
+                <TextInput
+                  className="flex-1 ml-3 h-12 text-base"
+                  style={{ color: theme.text }}
+                  placeholder="Enter your password"
+                  placeholderTextColor={theme.textMuted}
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    setPasswordError("");
+                  }}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <MaterialIcons
+                    name={showPassword ? "visibility" : "visibility-off"}
+                    size={20}
+                    color={theme.icon}
+                  />
+                </TouchableOpacity>
+              </ThemedView>
+              {passwordError ? (
+                <ThemedText themeColor="error" className="text-xs ml-1">
+                  {passwordError}
+                </ThemedText>
+              ) : null}
+            </View>
+
+            {/* Confirm Password */}
+            <View className="gap-1">
+              <ThemedText type="smallBold" className="mb-1">
+                Confirm Password
+              </ThemedText>
+              <ThemedView
+                type="backgroundElement"
+                style={{
+                  borderColor: confirmPasswordError
+                    ? theme.borderError
+                    : theme.border,
+                }}
+                className="flex-row items-center border rounded-2xl px-4"
+              >
+                <MaterialIcons name="lock" size={20} color={theme.icon} />
+                <TextInput
+                  className="flex-1 ml-3 h-12 text-base"
+                  style={{ color: theme.text }}
+                  placeholder="Confirm your password"
+                  placeholderTextColor={theme.textMuted}
+                  secureTextEntry={!showConfirmPassword}
+                  value={confirmPassword}
+                  onChangeText={(text) => {
+                    setConfirmPassword(text);
+                    setConfirmPasswordError("");
+                  }}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  <MaterialIcons
+                    name={showConfirmPassword ? "visibility" : "visibility-off"}
+                    size={20}
+                    color={theme.icon}
+                  />
+                </TouchableOpacity>
+              </ThemedView>
+              {confirmPasswordError ? (
+                <ThemedText themeColor="error" className="text-xs ml-1">
+                  {confirmPasswordError}
+                </ThemedText>
+              ) : null}
+            </View>
+
+            {/* General Error */}
+            {generalError ? (
+              <ThemedText themeColor="error" className="text-xs ml-1">
+                {generalError}
+              </ThemedText>
+            ) : null}
+
+            {/* OR Divider */}
+            <View className="flex-row items-center gap-3 my-2">
+              <View
+                style={{ backgroundColor: theme.divider }}
+                className="flex-1 h-px"
+              />
+              <ThemedText type="small" themeColor="textMuted">
+                Or Sign Up With
+              </ThemedText>
+              <View
+                style={{ backgroundColor: theme.divider }}
+                className="flex-1 h-px"
+              />
+            </View>
+
+            {/* Google Button */}
+            <TouchableOpacity
+              style={{
+                borderColor: theme.border,
+                backgroundColor: theme.backgroundElement,
+              }}
+              className={`flex-row items-center justify-center border rounded-2xl py-3 ${
+                loading ? "opacity-60" : "opacity-100"
+              }`}
+              onPress={signIn}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#4285F4" size="small" />
+              ) : (
+                <>
                   <Image
                     source={require("@/assets/new/googleIcon.png")}
-                    style={styles.googleIcon}
+                    className="w-5 h-5"
+                    resizeMode="contain"
                   />
+                  <ThemedText
+                    type="small"
+                    themeColor="textSecondary"
+                    className="ml-2"
+                  >
+                    Continue with Google
+                  </ThemedText>
+                </>
+              )}
+            </TouchableOpacity>
+
+            {/* Terms & Conditions */}
+            <TouchableOpacity
+              className="flex-row items-center mt-2"
+              onPress={() => setTermsChecked((prev) => !prev)}
+              activeOpacity={0.7}
+            >
+              <View
+                style={{
+                  backgroundColor: termsChecked
+                    ? theme.primary
+                    : theme.backgroundElement,
+                  borderColor: termsChecked
+                    ? theme.primary
+                    : theme.borderStrong,
+                }}
+                className="w-5 h-5 rounded border items-center justify-center mr-3"
+              >
+                {termsChecked && (
+                  <MaterialIcons name="check" size={14} color={theme.white} />
                 )}
-              </TouchableOpacity>
-
-              {/* Terms & Conditions Clickable Container */}
-              <TouchableOpacity
-                style={styles.termsContainer}
-                onPress={() => setTermsChecked((prev) => !prev)}
-                activeOpacity={0.7}
-              >
-                <View
-                  style={[
-                    styles.checkbox,
-                    termsChecked && {
-                      backgroundColor: Colors.light.primary,
-                      borderColor: Colors.light.primary,
-                    },
-                  ]}
-                >
-                  {termsChecked && (
-                    <MaterialIcons name="check" size={16} color="#fff" />
-                  )}
-                </View>
-                <Text style={styles.termsText}>
-                  I Accept{" "}
-                  <Text style={styles.highlightedText}>Terms & Conditions</Text>
-                </Text>
-              </TouchableOpacity>
-
-              {/* Sign Up Button */}
-              <TouchableOpacity
-                style={[
-                  styles.signupButton,
-                  !termsChecked && styles.buttonDisabled,
-                ]}
-                onPress={handleManualSignup}
-                disabled={!termsChecked}
-              >
-                <Text style={styles.signupButtonText}>Create Account</Text>
-              </TouchableOpacity>
-
-              {/* Sign In Link */}
-              <View style={styles.signinPrompt}>
-                <Text style={styles.signinText}>Already have an account? </Text>
-                <TouchableOpacity onPress={() => router.push("/(auth)")}>
-                  <Text style={styles.signinLink}>Sign In</Text>
-                </TouchableOpacity>
               </View>
+              <ThemedText type="small" themeColor="textSecondary">
+                I Accept{" "}
+                <ThemedText
+                  type="small"
+                  themeColor="primary"
+                  style={{ fontWeight: "600" }}
+                >
+                  Terms & Conditions
+                </ThemedText>
+              </ThemedText>
+            </TouchableOpacity>
+
+            {/* Create Account Button */}
+            <TouchableOpacity
+              style={{ backgroundColor: theme.black }}
+              className={`rounded-full py-4 items-center justify-center mt-2 ${
+                !termsChecked || isSubmitting ? "opacity-50" : "opacity-100"
+              }`}
+              onPress={handleManualSignup}
+              disabled={!termsChecked || isSubmitting}
+            >
+              {isSubmitting ? (
+                <ActivityIndicator color={theme.white} size="small" />
+              ) : (
+                <ThemedText
+                  type="default"
+                  themeColor="textInverse"
+                  style={{ fontWeight: "700" }}
+                >
+                  Create Account
+                </ThemedText>
+              )}
+            </TouchableOpacity>
+
+            {/* Sign In Link */}
+            <View className="flex-row items-center justify-center mt-2">
+              <ThemedText type="small" themeColor="textSecondary">
+                Already have an account?{" "}
+              </ThemedText>
+              <TouchableOpacity onPress={() => router.push("/(auth)")}>
+                <ThemedText type="smallBold" themeColor="primary">
+                  Sign In
+                </ThemedText>
+              </TouchableOpacity>
             </View>
-          </View>
+          </ThemedView>
         </ScrollView>
       </KeyboardAvoidingView>
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.light.background,
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    backgroundColor: Colors.light.background,
-  },
-  logoContainer: {
-    alignItems: "center",
-    paddingVertical: 24,
-    backgroundColor: Colors.light.black,
-  },
-  logo: {
-    width: 100,
-    height: 100,
-    resizeMode: "contain",
-  },
-  formContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 100,
-    backgroundColor: Colors.light.background,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: Colors.light.text,
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.light.text,
-    marginBottom: 8,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  input: {
-    width: "100%",
-    height: 48,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: Colors.light.text,
-    backgroundColor: Colors.light.inputBackground,
-  },
-  inputError: {
-    borderColor: Colors.light.error,
-    backgroundColor: Colors.light.errorBackground,
-  },
-  passwordInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    borderRadius: 10,
-    backgroundColor: Colors.light.inputBackground,
-    paddingRight: 12,
-  },
-  passwordInput: {
-    flex: 1,
-    height: 48,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: Colors.light.text,
-  },
-  eyeIcon: {
-    padding: 8,
-  },
-  errorText: {
-    fontSize: 12,
-    color: Colors.light.error,
-    marginTop: 6,
-    fontWeight: "500",
-  },
-  dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 20,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: Colors.light.divider,
-  },
-  dividerText: {
-    paddingHorizontal: 12,
-    color: Colors.light.textSecondary,
-    fontSize: 13,
-    fontWeight: "500",
-  },
-  googleButton: {
-    width: "100%",
-    height: 48,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: Colors.light.inputBackground,
-  },
-  googleIcon: {
-    width: 24,
-    height: 24,
-    resizeMode: "contain",
-  },
-  termsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderWidth: 1.5,
-    borderColor: Colors.light.border,
-    borderRadius: 4,
-    marginRight: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: Colors.light.inputBackground,
-  },
-  termsText: {
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-  },
-  highlightedText: {
-    color: Colors.light.primary,
-    fontWeight: "600",
-  },
-  signupButton: {
-    backgroundColor: Colors.light.primary,
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: Colors.light.primary,
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  signupButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: Colors.light.background,
-  },
-  signinPrompt: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  signinText: {
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-  },
-  signinLink: {
-    fontSize: 14,
-    color: Colors.light.primary,
-    fontWeight: "600",
-  },
-});
