@@ -119,6 +119,7 @@ export default function SignupScreen() {
         email: user.email || "",
         displayName: fullName.trim() || "",
         phoneNumber: "",
+        address: "",
         imageUri: avatarUrl,
         expoPushToken: expoPushToken?.data || null,
         createdAt: new Date().toISOString(),
