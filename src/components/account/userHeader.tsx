@@ -17,7 +17,7 @@ export default function UserHeader() {
   const imageURL = userData?.imageUri || null;
 
   return (
-    <TouchableOpacity onPress={() => router.push("/(profile)/manageProfile")}>
+    <TouchableOpacity onPress={() => router.push("/profile")}>
       <ThemedView
         type="backgroundElement"
         style={{

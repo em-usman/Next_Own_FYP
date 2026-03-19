@@ -42,6 +42,12 @@
           "icon": "./assets/images/icon.png",
           "color": "#0A66D9"
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Next_Own to access your photos to update your profile picture."
+        }
       ]
     ],
     "experiments": {

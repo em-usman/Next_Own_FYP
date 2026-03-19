@@ -8,7 +8,7 @@ import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
-import { auth } from "../../../../firebaseConfig";
+import { auth } from "../../../firebaseConfig";
 
 interface MenuItem {
   id: string;
@@ -35,7 +35,7 @@ const menuItems: MenuItem[] = [
     icon: { family: "material-community", name: "account-circle-outline" },
     title: "Profile",
     description: "Manage your personal information",
-    route: "/profile/manageProfile",
+    route: "/profile",
   },
   {
     id: "feedback",

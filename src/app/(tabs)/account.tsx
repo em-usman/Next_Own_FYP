@@ -5,9 +5,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 
-import MenuList from "@/components/ui/account/menuList";
-import ProfileBoxes from "@/components/ui/account/profileBoxes";
-import UserHeader from "@/components/ui/account/userHeader";
+import MenuList from "@/components/account/menuList";
+import ProfileBoxes from "@/components/account/profileBoxes";
+import UserHeader from "@/components/account/userHeader";
 
 export default function Account() {
   return (

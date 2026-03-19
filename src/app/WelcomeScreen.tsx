@@ -2,20 +2,20 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-    Image,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const screens = [
   {
     id: 1,
-    title: "Welcome to Navigo Ride",
+    title: "Welcome to Next Own",
     //     image: require("../assets/images/NavigoGroupIcon.png"),
     buttonText: "Get Started",
     showDots: false,
@@ -24,8 +24,7 @@ const screens = [
   {
     id: 2,
     title: "Enable Location Access",
-    description:
-      "Allow location to get faster ride requests, real-time routes, and accurate trip tracking.",
+    description: "Allow location to get near",
     //     image: require("../assets/images/img1.png"),
     buttonText: "Allow",
     showDots: true,

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
+import Toast from "react-native-toast-message";
 import "../global.css";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -62,10 +63,12 @@ export default function RootLayout() {
         <Stack initialRouteName="(auth)">
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          {/* <Stack.Screen name="+not-found" /> */}
+          <Stack.Screen name="profile" options={{ headerShown: false }} />
+          <Stack.Screen name="(listing)" options={{ headerShown: false }} />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
+      <Toast />
     </GestureHandlerRootView>
   );
 }
