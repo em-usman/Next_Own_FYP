@@ -22,7 +22,7 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { auth, db } from "../../../firebaseConfig";
 
@@ -120,6 +120,7 @@ export default function SignupScreen() {
         displayName: fullName.trim() || "",
         phoneNumber: "",
         address: "",
+        dateOfBirth: "",
         imageUri: avatarUrl,
         expoPushToken: expoPushToken?.data || null,
         createdAt: new Date().toISOString(),

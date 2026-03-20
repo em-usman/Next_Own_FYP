@@ -42,7 +42,7 @@ const menuItems: MenuItem[] = [
     icon: { family: "material-community", name: "message-draw" },
     title: "Feedback",
     description: "Share your thoughts and suggestions",
-    route: "/profile/feedback",
+    route: "/feedback",
   },
   {
     id: "settings",

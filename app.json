@@ -48,7 +48,8 @@
         {
           "photosPermission": "Allow Next_Own to access your photos to update your profile picture."
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,

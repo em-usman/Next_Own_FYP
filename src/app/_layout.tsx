@@ -64,7 +64,8 @@ export default function RootLayout() {
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="profile" options={{ headerShown: false }} />
-          <Stack.Screen name="(listing)" options={{ headerShown: false }} />
+          <Stack.Screen name="feedback" options={{ headerShown: false }} />
+          <Stack.Screen name="listing" options={{ headerShown: false }} />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>

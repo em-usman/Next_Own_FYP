@@ -10,8 +10,10 @@ type UserData = {
   phoneNumber: string;
   imageUri: string;
   address: string;
+  dateOfBirth: string;
   expoPushToken: string | null;
   createdAt: string;
+  updatedAt: string; // ✅ Added
 };
 
 type Status = "idle" | "loading" | "success" | "error";
@@ -44,7 +46,10 @@ export const useUserData = (): UseUserDataReturn => {
     try {
       setIsSaving(true);
       const userRef = doc(db, "users", uid);
-      await updateDoc(userRef, data);
+      await updateDoc(userRef, {
+        ...data,
+        updatedAt: new Date().toISOString(), // ✅ Added — har update pe current time save hoga
+      });
       Toast.show({
         type: "success",
         text1: "Success",
@@ -120,8 +125,11 @@ export const useUserData = (): UseUserDataReturn => {
               phoneNumber: data.phoneNumber || firebaseUser.phoneNumber || "",
               imageUri: data.imageUri || firebaseUser.photoURL || "",
               address: data.address || "",
+              dateOfBirth: data.dateOfBirth || "",
               expoPushToken: data.expoPushToken || null,
-              createdAt: data.createdAt || "",
+              createdAt:
+                data.createdAt || firebaseUser.metadata.creationTime || "", // ✅ Firebase Auth se bhi fallback
+              updatedAt: data.updatedAt || "", // ✅ Added
             });
 
             setStatus("success");
