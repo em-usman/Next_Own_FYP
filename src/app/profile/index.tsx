@@ -34,7 +34,7 @@ const FIELDS = [
     label: "Phone",
     key: "phoneNumber",
     editable: true,
-    placeholder: "Enter phone number",
+    placeholder: "3212345678", // ✅ format placeholder
   },
   {
     label: "Address",
@@ -61,12 +61,20 @@ export default function ProfileScreen() {
     dateOfBirth: "",
   });
 
+  // ✅ +92 hata ke sirf 10 digits show karo
+  function stripPhonePrefix(phone: string): string {
+    if (phone.startsWith("+92")) return phone.slice(3);
+    if (phone.startsWith("92")) return phone.slice(2);
+    if (phone.startsWith("0")) return phone.slice(1);
+    return phone;
+  }
+
   useEffect(() => {
     if (userData) {
       setForm({
         displayName: userData.displayName || "",
         email: userData.email || "",
-        phoneNumber: userData.phoneNumber || "",
+        phoneNumber: stripPhonePrefix(userData.phoneNumber || ""), // ✅ sirf 10 digits
         address: userData.address || "",
         dateOfBirth: userData.dateOfBirth || "",
       });
@@ -86,7 +94,7 @@ export default function ProfileScreen() {
       setForm({
         displayName: userData.displayName || "",
         email: userData.email || "",
-        phoneNumber: userData.phoneNumber || "",
+        phoneNumber: stripPhonePrefix(userData.phoneNumber || ""), // ✅
         address: userData.address || "",
         dateOfBirth: userData.dateOfBirth || "",
       });
@@ -95,21 +103,37 @@ export default function ProfileScreen() {
 
   function validate() {
     const newErrors: Record<string, string> = {};
+
     if (!form.displayName.trim()) {
       newErrors.displayName = "Name cannot be empty.";
     }
+
+    // ✅ Phone validation
+    if (form.phoneNumber.trim()) {
+      const cleaned = stripPhonePrefix(form.phoneNumber.replace(/[\s\-]/g, ""));
+      if (!/^3[0-9]{9}$/.test(cleaned)) {
+        newErrors.phoneNumber = "Enter valid number e.g. 3217168912";
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
 
   async function handleSave() {
     if (!validate()) return;
+
+    // ✅ +92 prefix attach karke store karo
+    const cleaned = stripPhonePrefix(form.phoneNumber.replace(/[\s\-]/g, ""));
+    const formattedPhone = cleaned ? `+92${cleaned}` : "";
+
     const success = await updateUser({
       displayName: form.displayName.trim(),
-      phoneNumber: form.phoneNumber.trim(),
+      phoneNumber: formattedPhone,
       address: form.address.trim(),
       dateOfBirth: form.dateOfBirth,
     });
+
     if (success) {
       setIsEditing(false);
       setErrors({});
@@ -163,10 +187,7 @@ export default function ProfileScreen() {
       ) : (
         <ThemedView className="flex-1">
           <KeyboardAwareScrollView
-            contentContainerStyle={{
-              padding: 20,
-              paddingBottom: 60,
-            }}
+            contentContainerStyle={{ padding: 20, paddingBottom: 60 }}
             enableOnAndroid
             keyboardShouldPersistTaps="handled"
             extraScrollHeight={20}
@@ -271,6 +292,7 @@ export default function ProfileScreen() {
               {FIELDS.map((item) => {
                 const hasError = !!errors[item.key];
                 const isFieldEditable = isEditing && item.editable;
+                const isPhone = item.key === "phoneNumber"; // ✅
 
                 return (
                   <View key={item.key}>
@@ -286,6 +308,7 @@ export default function ProfileScreen() {
                             : theme.border,
                       }}
                     >
+                      {/* Label row */}
                       <View className="flex-row items-center gap-1 mb-1">
                         <ThemedText
                           type="small"
@@ -294,6 +317,20 @@ export default function ProfileScreen() {
                         >
                           {item.label}
                         </ThemedText>
+                        {/* ✅ +92 badge phone field mein */}
+                        {isPhone && (
+                          <ThemedText
+                            type="small"
+                            style={{
+                              fontSize: 11,
+                              color: isFieldEditable
+                                ? theme.primary
+                                : theme.textMuted,
+                            }}
+                          >
+                            +92
+                          </ThemedText>
+                        )}
                         {!item.editable && (
                           <AppIcon
                             name="lock-closed"
@@ -302,24 +339,70 @@ export default function ProfileScreen() {
                           />
                         )}
                       </View>
-                      <TextInput
-                        value={form[item.key as keyof typeof form]}
-                        editable={isFieldEditable}
-                        placeholder={item.placeholder}
-                        onChangeText={(text) => {
-                          setForm({ ...form, [item.key]: text });
-                          if (errors[item.key]) {
-                            setErrors({ ...errors, [item.key]: "" });
-                          }
-                        }}
-                        style={{
-                          fontSize: 15,
-                          color: isFieldEditable ? theme.text : theme.textMuted,
-                          paddingVertical: 0,
-                        }}
-                        placeholderTextColor={theme.textMuted}
-                      />
+
+                      {/* ✅ Phone field ke liye prefix + input side by side */}
+                      {isPhone ? (
+                        <View
+                          style={{ flexDirection: "row", alignItems: "center" }}
+                        >
+                          <ThemedText
+                            style={{
+                              fontSize: 15,
+                              color: isFieldEditable
+                                ? theme.text
+                                : theme.textMuted,
+                              marginRight: 4,
+                            }}
+                          >
+                            +92
+                          </ThemedText>
+                          <TextInput
+                            value={form.phoneNumber}
+                            editable={isFieldEditable}
+                            placeholder={item.placeholder}
+                            keyboardType="number-pad"
+                            maxLength={10}
+                            onChangeText={(text) => {
+                              const numeric = text.replace(/[^0-9]/g, "");
+                              setForm({ ...form, phoneNumber: numeric });
+                              if (errors.phoneNumber) {
+                                setErrors({ ...errors, phoneNumber: "" });
+                              }
+                            }}
+                            style={{
+                              flex: 1,
+                              fontSize: 15,
+                              color: isFieldEditable
+                                ? theme.text
+                                : theme.textMuted,
+                              paddingVertical: 0,
+                            }}
+                            placeholderTextColor={theme.textMuted}
+                          />
+                        </View>
+                      ) : (
+                        <TextInput
+                          value={form[item.key as keyof typeof form]}
+                          editable={isFieldEditable}
+                          placeholder={item.placeholder}
+                          onChangeText={(text) => {
+                            setForm({ ...form, [item.key]: text });
+                            if (errors[item.key]) {
+                              setErrors({ ...errors, [item.key]: "" });
+                            }
+                          }}
+                          style={{
+                            fontSize: 15,
+                            color: isFieldEditable
+                              ? theme.text
+                              : theme.textMuted,
+                            paddingVertical: 0,
+                          }}
+                          placeholderTextColor={theme.textMuted}
+                        />
+                      )}
                     </ThemedView>
+
                     {hasError && (
                       <ThemedText
                         type="small"
@@ -425,7 +508,7 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             )}
 
-            {/* ✅ Account Info Card — createdAt + updatedAt */}
+            {/* Account Info Card */}
             <ThemedView
               type="backgroundElement"
               style={{
@@ -436,7 +519,6 @@ export default function ProfileScreen() {
                 overflow: "hidden",
               }}
             >
-              {/* Header */}
               <View
                 style={{
                   flexDirection: "row",
@@ -463,7 +545,6 @@ export default function ProfileScreen() {
                 </ThemedText>
               </View>
 
-              {/* Member Since Row */}
               <View
                 style={{
                   flexDirection: "row",
@@ -499,7 +580,6 @@ export default function ProfileScreen() {
                 </ThemedText>
               </View>
 
-              {/* Last Updated Row — sirf tab show hoga jab updatedAt ho */}
               {userData.updatedAt ? (
                 <View
                   style={{
