@@ -115,16 +115,37 @@ export default function PostFormScreen() {
   }
 
   async function handlePickImages() {
-    if (images.length >= 10) return;
+    if (images.length >= 5) return;
+
+    const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: true,
       quality: 0.8,
-      selectionLimit: 10 - images.length,
+      selectionLimit: 5 - images.length,
     });
+
     if (!result.canceled) {
-      const uris = result.assets.map((a) => a.uri);
-      setImages((prev) => [...prev, ...uris].slice(0, 10));
+      const validAssets = result.assets.filter(
+        (asset) =>
+          typeof asset.fileSize !== "number" ||
+          asset.fileSize <= MAX_IMAGE_SIZE_BYTES,
+      );
+
+      const hasOversized = validAssets.length !== result.assets.length;
+      if (hasOversized) {
+        setErrors((prev) => ({
+          ...prev,
+          images: "Each image must be less than or equal to 5MB.",
+        }));
+      } else {
+        setErrors((prev) => ({ ...prev, images: "" }));
+      }
+
+      if (validAssets.length === 0) return;
+
+      const uris = validAssets.map((asset) => asset.uri);
+      setImages((prev) => [...prev, ...uris].slice(0, 5));
     }
   }
 
@@ -245,7 +266,7 @@ export default function PostFormScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ gap: 10, marginBottom: 4 }}
           >
-            {images.length < 10 && (
+            {images.length < 5 && (
               <TouchableOpacity
                 onPress={handlePickImages}
                 className="items-center justify-center rounded-xl"
@@ -267,7 +288,7 @@ export default function PostFormScreen() {
                 <ThemedText
                   style={{ fontSize: 11, color: theme.primary, marginTop: 4 }}
                 >
-                  {images.length}/10
+                  {images.length}/5
                 </ThemedText>
               </TouchableOpacity>
             )}
