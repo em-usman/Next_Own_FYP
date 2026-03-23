@@ -2,7 +2,8 @@ import { useState } from "react";
 import Toast from "react-native-toast-message";
 
 const CLOUD_NAME = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME;
-const UPLOAD_PRESET = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+const UPLOAD_PRESET =
+  process.env.EXPO_PUBLIC_CLOUDINARY_ADDS_IMAGE_UPLOAD_PRESET;
 
 type UseCloudinaryReturn = {
   isUploading: boolean;
@@ -24,6 +25,7 @@ export const useCloudinary = (): UseCloudinaryReturn => {
       } as any);
 
       formData.append("upload_preset", UPLOAD_PRESET || "");
+      formData.append("cloud_name", CLOUD_NAME || "");
       formData.append("folder", "listings");
 
       const response = await fetch(

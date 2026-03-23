@@ -5,9 +5,8 @@ import { Platform } from "react-native"; // Android check ke liye zaroori
 import Toast from "react-native-toast-message";
 import { auth, db } from "../../firebaseConfig";
 
-const CLOUD_NAME = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME ?? "df3y6jl0q";
-const UPLOAD_PRESET =
-  process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? "next_Own_avatars";
+const CLOUD_NAME = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME;
+const UPLOAD_PRESET = process.env.EXPO_PUBLIC_CLOUDINARY_AVATAR_UPLOAD_PRESET;
 
 type UseAvatarUploadReturn = {
   isUploading: boolean;
@@ -84,8 +83,8 @@ export const useAvatarUpload = (): UseAvatarUploadReturn => {
         name: asset.fileName || `avatar_${Date.now()}.jpg`,
       } as any);
 
-      formData.append("upload_preset", UPLOAD_PRESET);
-      formData.append("cloud_name", CLOUD_NAME);
+      formData.append("upload_preset", UPLOAD_PRESET || "");
+      formData.append("cloud_name", CLOUD_NAME || "");
       formData.append("folder", "avatars");
 
       // 5. Cloudinary Upload Request
