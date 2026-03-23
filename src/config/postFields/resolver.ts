@@ -1,0 +1,22 @@
+import { MOBILE_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/mobiles";
+import type { Field } from "@/config/postFields/types";
+
+const POST_FIELDS_BY_MAIN_CATEGORY: Record<string, Record<string, Field[]>> = {
+  mobiles: MOBILE_POST_FIELDS_BY_SUBCATEGORY,
+};
+
+export function getPostFields(
+  categoryId: string,
+  subCategoryId: string,
+): Field[] {
+  const normalizedCategoryId = categoryId?.toLowerCase().trim();
+  const normalizedSubCategoryId = subCategoryId?.toLowerCase().trim();
+
+  const categoryFieldConfig =
+    POST_FIELDS_BY_MAIN_CATEGORY[normalizedCategoryId];
+  if (!categoryFieldConfig) {
+    return [];
+  }
+
+  return categoryFieldConfig[normalizedSubCategoryId] || [];
+}

@@ -1,7 +1,7 @@
 import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { MOBILE_BRAND_MODELS, MOBILE_BRANDS } from "@/config/categoryConfig";
+import type { BrandModelsMap } from "@/config/brandModels";
 import { useTheme } from "@/hooks/use-theme";
 import React, { useEffect, useState } from "react";
 import {
@@ -15,6 +15,8 @@ import {
 type Props = {
   brand: string;
   model: string;
+  brands: string[];
+  brandModels: BrandModelsMap;
   onBrandChange: (brand: string) => void;
   onModelChange: (model: string) => void;
   error?: string;
@@ -24,6 +26,8 @@ type Props = {
 export default function BrandModelPicker({
   brand,
   model,
+  brands,
+  brandModels,
   onBrandChange,
   onModelChange,
   error,
@@ -35,9 +39,9 @@ export default function BrandModelPicker({
   // ✅ pendingOpenModel — brand select hone ke baad model modal open karne ka flag
   const [pendingOpenModel, setPendingOpenModel] = useState(false);
 
-  const models = brand ? MOBILE_BRAND_MODELS[brand] || [] : [];
+  const models = brand ? brandModels[brand] || [] : [];
 
-  const filteredBrands = MOBILE_BRANDS.filter((b) =>
+  const filteredBrands = brands.filter((b) =>
     b.toLowerCase().includes(search.toLowerCase()),
   );
   const filteredModels = models.filter((m) =>

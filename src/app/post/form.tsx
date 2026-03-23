@@ -3,6 +3,7 @@ import CommonListingForm, { CommonFormData } from "@/components/post/postForm";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { CATEGORIES } from "@/config/categoryConfig";
+import { getPostFields } from "@/config/postFields";
 import { useTheme } from "@/hooks/use-theme";
 import { useCloudinary } from "@/hooks/useCloudnary";
 import { usePost } from "@/hooks/usePost";
@@ -28,14 +29,13 @@ function stripPhonePrefix(phone: string): string {
   return phone;
 }
 
-function findSubCategoryFields(categoryId: string, subCategoryId: string) {
+function findSubCategoryLabel(categoryId: string, subCategoryId: string) {
   const category = CATEGORIES.find((c) => c.id === categoryId);
-  if (!category) return { fields: [], label: "" };
+  if (!category) return "";
   type Item = (typeof category.subCategories)[number];
-  function search(items: Item[]): { fields: any[]; label: string } | null {
+  function search(items: Item[]): string | null {
     for (const item of items) {
-      if (item.id === subCategoryId)
-        return { fields: item.fields ?? [], label: item.label };
+      if (item.id === subCategoryId) return item.label;
       if (item.children?.length) {
         const found = search(item.children);
         if (found) return found;
@@ -43,7 +43,7 @@ function findSubCategoryFields(categoryId: string, subCategoryId: string) {
     }
     return null;
   }
-  return search(category.subCategories) ?? { fields: [], label: "" };
+  return search(category.subCategories) ?? "";
 }
 
 const LOCATIONS = [
@@ -76,8 +76,8 @@ export default function PostFormScreen() {
     ? params.subCategoryId[0]
     : (params.subCategoryId as string) || "";
 
-  const { fields: dynamicFields, label: subCategoryLabel } =
-    findSubCategoryFields(categoryId, subCategoryId);
+  const dynamicFields = getPostFields(categoryId, subCategoryId);
+  const subCategoryLabel = findSubCategoryLabel(categoryId, subCategoryId);
 
   const [images, setImages] = useState<string[]>([]);
   const [locationModal, setLocationModal] = useState(false);
@@ -349,6 +349,8 @@ export default function PostFormScreen() {
 
           {/* ── Form ── */}
           <CommonListingForm
+            categoryId={categoryId}
+            subCategoryId={subCategoryId}
             form={form}
             dynamicFields={dynamicFields}
             errors={errors}

@@ -3,7 +3,9 @@ import BrandModelPicker from "@/components/post/brandModelPicker";
 import ChipsField from "@/components/post/chipsField";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Field } from "@/config/categoryConfig";
+import { getBrandModelConfig } from "@/config/brandModels";
+import { getChipsFieldOptions } from "@/config/chipsOptions";
+import type { Field } from "@/config/postFields";
 import { useTheme } from "@/hooks/use-theme";
 import React from "react";
 import { Switch, TextInput, TouchableOpacity, View } from "react-native";
@@ -20,6 +22,8 @@ export type CommonFormData = {
 };
 
 type Props = {
+  categoryId: string;
+  subCategoryId: string;
   form: CommonFormData;
   dynamicFields: Field[];
   errors: Record<string, string>;
@@ -186,6 +190,8 @@ export function FormSelect({
 }
 
 export default function CommonListingForm({
+  categoryId,
+  subCategoryId,
   form,
   dynamicFields,
   errors,
@@ -194,6 +200,7 @@ export default function CommonListingForm({
   onSelectLocation,
 }: Props) {
   const theme = useTheme();
+  const brandModelConfig = getBrandModelConfig(categoryId, subCategoryId);
 
   function updateDetail(key: string, value: string) {
     onChange({ details: { ...form.details, [key]: value } });
@@ -216,6 +223,8 @@ export default function CommonListingForm({
                   key={field.key}
                   brand={brand}
                   model={model}
+                  brands={brandModelConfig.brands}
+                  brandModels={brandModelConfig.brandModels}
                   onBrandChange={(b) => {
                     onChange({
                       details: { ...form.details, brand: b, model: "" },
@@ -229,11 +238,17 @@ export default function CommonListingForm({
             }
 
             if (field.type === "chips") {
+              const chipOptions = getChipsFieldOptions(
+                categoryId,
+                subCategoryId,
+                field.key,
+              );
+
               return (
                 <ChipsField
                   key={field.key}
                   label={field.label}
-                  options={field.options || []}
+                  options={chipOptions}
                   selected={value}
                   onSelect={(val) => updateDetail(field.key, val)}
                   error={error}
