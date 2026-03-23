@@ -1,4 +1,6 @@
 import { AppIcon } from "@/components/Icons/AppIcon";
+import BrandModelPicker from "@/components/post/brandModelPicker";
+import ChipsField from "@/components/post/chipsField";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Field } from "@/config/categoryConfig";
@@ -6,7 +8,6 @@ import { useTheme } from "@/hooks/use-theme";
 import React from "react";
 import { Switch, TextInput, TouchableOpacity, View } from "react-native";
 
-// ── Types ────────────────────────────────────────────────────────
 export type CommonFormData = {
   title: string;
   description: string;
@@ -24,30 +25,21 @@ type Props = {
   errors: Record<string, string>;
   categoryLabel: string;
   onChange: (updated: Partial<CommonFormData>) => void;
-  onSelectOption: (fieldKey: string, options: string[], label: string) => void;
+  onSelectLocation: () => void;
 };
 
-// ── Section Header ───────────────────────────────────────────────
 function SectionHeader({ title }: { title: string }) {
   const theme = useTheme();
   return (
     <ThemedText
-      type="smallBold"
-      style={{
-        fontSize: 16,
-        marginBottom: 12,
-        marginTop: 20,
-        paddingBottom: 8,
-        borderBottomWidth: 1,
-        borderBottomColor: theme.border,
-      }}
+      className="text-base font-bold mb-3 mt-5 pb-2"
+      style={{ borderBottomWidth: 1, borderBottomColor: theme.border }}
     >
       {title}
     </ThemedText>
   );
 }
 
-// ── Text Input Field ─────────────────────────────────────────────
 export function FormInput({
   label,
   value,
@@ -73,22 +65,20 @@ export function FormInput({
 }) {
   const theme = useTheme();
   return (
-    <View style={{ marginBottom: 14 }}>
-      <ThemedText type="smallBold" style={{ fontSize: 14, marginBottom: 6 }}>
+    <View className="mb-4">
+      <ThemedText className="text-sm font-semibold mb-1.5">
         {label}
         {required && <ThemedText style={{ color: theme.error }}> *</ThemedText>}
       </ThemedText>
       <ThemedView
         type="backgroundElement"
+        className="rounded-xl px-3 flex-row"
         style={{
-          borderRadius: 12,
           borderWidth: 1,
           borderColor: error ? theme.borderError : theme.border,
-          paddingHorizontal: 14,
           paddingVertical: multiline ? 10 : 0,
-          flexDirection: "row",
-          alignItems: multiline ? "flex-start" : "center",
           minHeight: multiline ? 110 : 50,
+          alignItems: multiline ? "flex-start" : "center",
         }}
       >
         <TextInput
@@ -114,19 +104,22 @@ export function FormInput({
           </ThemedText>
         )}
       </ThemedView>
-      {error ? (
+      {error && (
         <ThemedText
-          themeColor="error"
-          style={{ fontSize: 12, marginTop: 4, marginLeft: 4 }}
+          style={{
+            fontSize: 12,
+            color: theme.error,
+            marginTop: 4,
+            marginLeft: 4,
+          }}
         >
           {error}
         </ThemedText>
-      ) : null}
+      )}
     </View>
   );
 }
 
-// ── Select Field ─────────────────────────────────────────────────
 export function FormSelect({
   label,
   value,
@@ -144,23 +137,18 @@ export function FormSelect({
 }) {
   const theme = useTheme();
   return (
-    <View style={{ marginBottom: 14 }}>
-      <ThemedText type="smallBold" style={{ fontSize: 14, marginBottom: 6 }}>
+    <View className="mb-4">
+      <ThemedText className="text-sm font-semibold mb-1.5">
         {label}
         {required && <ThemedText style={{ color: theme.error }}> *</ThemedText>}
       </ThemedText>
       <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
         <ThemedView
           type="backgroundElement"
+          className="rounded-xl px-3 py-3 flex-row items-center justify-between"
           style={{
-            borderRadius: 12,
             borderWidth: 1,
             borderColor: error ? theme.borderError : theme.border,
-            paddingHorizontal: 14,
-            paddingVertical: 14,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
             minHeight: 50,
           }}
         >
@@ -181,92 +169,38 @@ export function FormSelect({
           />
         </ThemedView>
       </TouchableOpacity>
-      {error ? (
+      {error && (
         <ThemedText
-          themeColor="error"
-          style={{ fontSize: 12, marginTop: 4, marginLeft: 4 }}
+          style={{
+            fontSize: 12,
+            color: theme.error,
+            marginTop: 4,
+            marginLeft: 4,
+          }}
         >
           {error}
         </ThemedText>
-      ) : null}
+      )}
     </View>
   );
 }
 
-// ── Main Component ───────────────────────────────────────────────
 export default function CommonListingForm({
   form,
   dynamicFields,
   errors,
   categoryLabel,
   onChange,
-  onSelectOption,
+  onSelectLocation,
 }: Props) {
   const theme = useTheme();
 
+  function updateDetail(key: string, value: string) {
+    onChange({ details: { ...form.details, [key]: value } });
+  }
+
   return (
     <>
-      {/* ── Ad Details ── */}
-      <SectionHeader title="Ad Details" />
-
-      <FormInput
-        label="Title"
-        value={form.title}
-        placeholder="Enter Ad Title"
-        required
-        onChangeText={(text) => onChange({ title: text })}
-        error={errors.title}
-      />
-
-      <FormInput
-        label="Description"
-        value={form.description}
-        placeholder="Describe the item you are selling"
-        onChangeText={(text) => onChange({ description: text })}
-        error={errors.description}
-        multiline
-      />
-
-      <FormInput
-        label="Price"
-        value={form.price}
-        placeholder="Enter price"
-        required
-        onChangeText={(text) => onChange({ price: text })}
-        error={errors.price}
-        keyboardType="numeric"
-        rightText="Rs"
-      />
-
-      <FormSelect
-        label="Location"
-        value={form.location}
-        placeholder="Choose location"
-        required
-        onPress={() =>
-          onSelectOption(
-            "location",
-            [
-              "Karachi",
-              "Lahore",
-              "Islamabad",
-              "Rawalpindi",
-              "Faisalabad",
-              "Multan",
-              "Peshawar",
-              "Quetta",
-              "Sialkot",
-              "Gujranwala",
-              "Hyderabad",
-              "Other",
-            ],
-            "Location",
-          )
-        }
-        error={errors.location}
-      />
-
-      {/* ── Category Specific Fields ── */}
       {dynamicFields.length > 0 && (
         <>
           <SectionHeader title={categoryLabel} />
@@ -274,17 +208,36 @@ export default function CommonListingForm({
             const value = form.details[field.key] || "";
             const error = errors[`details_${field.key}`];
 
-            if (field.type === "select") {
+            if (field.type === "brand-model") {
+              const brand = form.details["brand"] || "";
+              const model = form.details["model"] || "";
               return (
-                <FormSelect
+                <BrandModelPicker
+                  key={field.key}
+                  brand={brand}
+                  model={model}
+                  onBrandChange={(b) => {
+                    onChange({
+                      details: { ...form.details, brand: b, model: "" },
+                    });
+                  }}
+                  onModelChange={(m) => updateDetail("model", m)}
+                  error={errors["details_brand_model"]}
+                  required={field.required}
+                />
+              );
+            }
+
+            if (field.type === "chips") {
+              return (
+                <ChipsField
                   key={field.key}
                   label={field.label}
-                  value={value}
-                  required={field.required}
-                  onPress={() =>
-                    onSelectOption(field.key, field.options || [], field.label)
-                  }
+                  options={field.options || []}
+                  selected={value}
+                  onSelect={(val) => updateDetail(field.key, val)}
                   error={error}
+                  required={field.required}
                 />
               );
             }
@@ -297,11 +250,7 @@ export default function CommonListingForm({
                 placeholder={field.placeholder}
                 required={field.required}
                 keyboardType={field.type === "number" ? "numeric" : "default"}
-                onChangeText={(text) =>
-                  onChange({
-                    details: { ...form.details, [field.key]: text },
-                  })
-                }
+                onChangeText={(text) => updateDetail(field.key, text)}
                 error={error}
               />
             );
@@ -309,7 +258,43 @@ export default function CommonListingForm({
         </>
       )}
 
-      {/* ── Contact Info ── */}
+      <SectionHeader title="Ad Details" />
+
+      <FormInput
+        label="Title"
+        value={form.title}
+        placeholder="Enter Ad Title"
+        required
+        onChangeText={(text) => onChange({ title: text })}
+        error={errors.title}
+      />
+      <FormInput
+        label="Description"
+        value={form.description}
+        placeholder="Describe the item you are selling"
+        onChangeText={(text) => onChange({ description: text })}
+        error={errors.description}
+        multiline
+      />
+      <FormInput
+        label="Price"
+        value={form.price}
+        placeholder="Enter price"
+        required
+        onChangeText={(text) => onChange({ price: text })}
+        error={errors.price}
+        keyboardType="numeric"
+        rightText="Rs"
+      />
+      <FormSelect
+        label="Location"
+        value={form.location}
+        placeholder="Choose location"
+        required
+        onPress={onSelectLocation}
+        error={errors.location}
+      />
+
       <SectionHeader title="Contact Info" />
 
       <FormInput
@@ -321,20 +306,16 @@ export default function CommonListingForm({
         error={errors.contactName}
       />
 
-      {/* Phone with +92 */}
-      <View style={{ marginBottom: 14 }}>
-        <ThemedText type="smallBold" style={{ fontSize: 14, marginBottom: 6 }}>
+      <View className="mb-4">
+        <ThemedText className="text-sm font-semibold mb-1.5">
           Phone Number <ThemedText style={{ color: theme.error }}>*</ThemedText>
         </ThemedText>
         <ThemedView
           type="backgroundElement"
+          className="rounded-xl px-3 flex-row items-center"
           style={{
-            borderRadius: 12,
             borderWidth: 1,
             borderColor: errors.contactPhone ? theme.borderError : theme.border,
-            paddingHorizontal: 14,
-            flexDirection: "row",
-            alignItems: "center",
             height: 50,
           }}
         >
@@ -366,24 +347,21 @@ export default function CommonListingForm({
         </ThemedView>
         {errors.contactPhone && (
           <ThemedText
-            themeColor="error"
-            style={{ fontSize: 12, marginTop: 4, marginLeft: 4 }}
+            style={{
+              fontSize: 12,
+              color: theme.error,
+              marginTop: 4,
+              marginLeft: 4,
+            }}
           >
             {errors.contactPhone}
           </ThemedText>
         )}
       </View>
 
-      {/* Hide Phone Toggle */}
       <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingVertical: 14,
-          borderTopWidth: 1,
-          borderTopColor: theme.border,
-        }}
+        className="flex-row items-center justify-between py-3"
+        style={{ borderTopWidth: 1, borderTopColor: theme.border }}
       >
         <ThemedText style={{ fontSize: 15 }}>Hide my phone number</ThemedText>
         <Switch
