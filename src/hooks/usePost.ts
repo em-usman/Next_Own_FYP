@@ -1,4 +1,14 @@
-import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  collectionGroup,
+  documentId,
+  getDocs,
+  limit,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { useState } from "react";
 import Toast from "react-native-toast-message";
 import { auth, db } from "../../firebaseConfig";
@@ -40,6 +50,16 @@ export const usePost = (): UsePostReturn => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const uid = auth.currentUser?.uid;
 
+  async function getPostDocRef(postId: string) {
+    const groupedPosts = query(
+      collectionGroup(db, "posts"),
+      where(documentId(), "==", postId),
+      limit(1),
+    );
+    const snapshot = await getDocs(groupedPosts);
+    return snapshot.docs[0]?.ref ?? null;
+  }
+
   async function createPost(data: CreatePostData): Promise<boolean> {
     if (!uid) {
       Toast.show({
@@ -53,7 +73,7 @@ export const usePost = (): UsePostReturn => {
 
     try {
       setIsSubmitting(true);
-      await addDoc(collection(db, "posts"), {
+      await addDoc(collection(db, "categories", data.categoryId, "posts"), {
         ...data,
         userId: uid,
         status: "active",
@@ -86,7 +106,18 @@ export const usePost = (): UsePostReturn => {
 
   async function markAsSold(postId: string): Promise<void> {
     try {
-      await updateDoc(doc(db, "posts", postId), { status: "sold" });
+      const postRef = await getPostDocRef(postId);
+      if (!postRef) {
+        Toast.show({
+          type: "error",
+          text1: "Post not found",
+          text2: "Unable to mark this post as sold.",
+          position: "bottom",
+        });
+        return;
+      }
+
+      await updateDoc(postRef, { status: "sold" });
       Toast.show({
         type: "success",
         text1: "Marked as Sold",
@@ -99,7 +130,18 @@ export const usePost = (): UsePostReturn => {
 
   async function deletePost(postId: string): Promise<void> {
     try {
-      await updateDoc(doc(db, "posts", postId), { status: "deleted" });
+      const postRef = await getPostDocRef(postId);
+      if (!postRef) {
+        Toast.show({
+          type: "error",
+          text1: "Post not found",
+          text2: "Unable to delete this post.",
+          position: "bottom",
+        });
+        return;
+      }
+
+      await updateDoc(postRef, { status: "deleted" });
       Toast.show({
         type: "success",
         text1: "Deleted",
