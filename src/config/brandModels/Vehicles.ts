@@ -1,4 +1,4 @@
-export const CAR_BRAND_MODELS: Record<string, string[]> = {
+export const VEHICLE_BRAND_MODELS: Record<string, string[]> = {
   Toyota: ["Corolla", "Yaris", "Camry", "Fortuner", "Hilux"],
   Honda: ["Civic", "City", "BR-V", "HR-V", "Accord"],
   Suzuki: ["Alto", "Cultus", "Wagon R", "Swift", "Bolan"],

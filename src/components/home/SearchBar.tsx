@@ -2,11 +2,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-       FlatList,
-       Pressable,
-       TextInput,
-       TouchableOpacity,
-       View,
+  FlatList,
+  Pressable,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
@@ -15,10 +15,9 @@ import { useTheme } from "@/hooks/use-theme";
 
 const RECENT_SEARCHES = [
   "Mobile Phones",
-  "Cars",
+  "Vehicles",
   "Houses for Rent",
   "Laptops",
-  "Bikes",
   "Jobs",
 ];
 

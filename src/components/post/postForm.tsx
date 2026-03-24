@@ -1,10 +1,12 @@
 import { AppIcon } from "@/components/Icons/AppIcon";
 import BrandModelPicker from "@/components/post/brandModelPicker";
 import ChipsField from "@/components/post/chipsField";
+import MultiSelectPicker from "@/components/post/multiSelectPicker";
+import SelectPicker from "@/components/post/selectPicker";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { getBrandModelConfig } from "@/config/brandModels";
-import { getChipsFieldOptions } from "@/config/chipsOptions";
+import { getChipsFieldOptions, getFieldOptions } from "@/config/chipsOptions";
 import type { Field } from "@/config/postFields";
 import { useTheme } from "@/hooks/use-theme";
 import React from "react";
@@ -253,6 +255,53 @@ export default function CommonListingForm({
                   onSelect={(val) => updateDetail(field.key, val)}
                   error={error}
                   required={field.required}
+                />
+              );
+            }
+
+            if (field.type === "select") {
+              const options = getFieldOptions(
+                categoryId,
+                subCategoryId,
+                field.key,
+              );
+
+              return (
+                <SelectPicker
+                  key={field.key}
+                  label={field.label}
+                  options={options}
+                  selected={value}
+                  onSelect={(val) => updateDetail(field.key, val)}
+                  error={error}
+                  required={field.required}
+                  placeholder={`Select ${field.label}`}
+                />
+              );
+            }
+
+            if (field.type === "multi-select") {
+              const options = getFieldOptions(
+                categoryId,
+                subCategoryId,
+                field.key,
+              );
+              const selectedValues = value
+                ? value.split("|").filter(Boolean)
+                : [];
+
+              return (
+                <MultiSelectPicker
+                  key={field.key}
+                  label={field.label}
+                  options={options}
+                  selectedValues={selectedValues}
+                  onChange={(values) =>
+                    updateDetail(field.key, values.join("|"))
+                  }
+                  error={error}
+                  required={field.required}
+                  placeholder={`Select ${field.label}`}
                 />
               );
             }

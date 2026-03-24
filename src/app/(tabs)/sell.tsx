@@ -17,12 +17,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 // ✅ Local assets — assets/categories/ folder se
 const CATEGORY_IMAGES: Record<string, any> = {
   mobiles: require("@/assets/categories/mobile.png"),
-  bikes: require("@/assets/categories/mobile.png"),
-  cars: require("@/assets/categories/mobile.png"),
-  electronics: require("@/assets/categories/mobile.png"),
+  vehicles: require("@/assets/categories/mobile.png"),
 };
 
-const POPULAR_IDS = ["mobiles", "cars", "electronics", "bikes"];
+const POPULAR_IDS = ["mobiles", "vehicles"];
 
 export default function Sell() {
   const theme = useTheme();

@@ -88,7 +88,7 @@ const MOBILE_LISTINGS: Listing[] = [
   },
 ];
 
-const CAR_LISTINGS: Listing[] = [
+const VEHICLE_LISTINGS: Listing[] = [
   {
     id: "c1",
     title: "Google Pixel 6 Pro",
@@ -227,9 +227,9 @@ export default function HomeScreen() {
           listings={MOBILE_LISTINGS}
         />
         <CategorySection
-          title="Cars"
+          title="Vehicles"
           categoryHref="/category/vehicles"
-          listings={CAR_LISTINGS}
+          listings={VEHICLE_LISTINGS}
         />
       </Animated.ScrollView>
     </ThemedView>

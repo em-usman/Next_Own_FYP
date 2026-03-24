@@ -1,3 +1,5 @@
-export { getChipsFieldOptions } from "@/config/chipsOptions/resolver";
+export {
+  getChipsFieldOptions,
+  getFieldOptions,
+} from "@/config/chipsOptions/resolver";
 export type { ChipsFieldOptionsMap } from "@/config/chipsOptions/types";
-
