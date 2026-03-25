@@ -19,12 +19,14 @@ export const VEHICLE_POST_FIELDS_BY_SUBCATEGORY: Record<string, Field[]> = {
       label: "KM Driven",
       type: "number",
       required: true,
+      placeholder: "e.g. 85000",
     },
     {
       key: "year",
       label: "Year",
       type: "number",
       required: true,
+      placeholder: "e.g. 2020",
     },
     {
       key: "fuel",
@@ -50,6 +52,7 @@ export const VEHICLE_POST_FIELDS_BY_SUBCATEGORY: Record<string, Field[]> = {
       key: "seats",
       label: "Number of Seats",
       type: "number",
+      placeholder: "e.g. 5",
     },
     {
       key: "features",
@@ -60,6 +63,7 @@ export const VEHICLE_POST_FIELDS_BY_SUBCATEGORY: Record<string, Field[]> = {
       key: "owners",
       label: "Number of Owners",
       type: "number",
+      placeholder: "e.g. 2",
     },
     {
       key: "registration_city",
@@ -84,12 +88,14 @@ export const VEHICLE_POST_FIELDS_BY_SUBCATEGORY: Record<string, Field[]> = {
       label: "Year",
       type: "number",
       required: true,
+      placeholder: "e.g. 2018",
     },
     {
       key: "km_driven",
       label: "KM Driven",
       type: "number",
       required: true,
+      placeholder: "e.g. 120000",
     },
     {
       key: "condition",
@@ -105,12 +111,14 @@ export const VEHICLE_POST_FIELDS_BY_SUBCATEGORY: Record<string, Field[]> = {
       label: "Year",
       type: "number",
       required: true,
+      placeholder: "e.g. 2021",
     },
     {
       key: "km_driven",
       label: "KM Driven",
       type: "number",
       required: true,
+      placeholder: "e.g. 25000",
     },
     {
       key: "condition",
@@ -126,12 +134,14 @@ export const VEHICLE_POST_FIELDS_BY_SUBCATEGORY: Record<string, Field[]> = {
       label: "Year",
       type: "number",
       required: true,
+      placeholder: "e.g. 2019",
     },
     {
       key: "km_driven",
       label: "KM Driven",
       type: "number",
       required: true,
+      placeholder: "e.g. 60000",
     },
     {
       key: "condition",
@@ -153,6 +163,7 @@ export const VEHICLE_POST_FIELDS_BY_SUBCATEGORY: Record<string, Field[]> = {
       label: "Year",
       type: "number",
       required: true,
+      placeholder: "e.g. 2022",
     },
     {
       key: "condition",
@@ -174,16 +185,19 @@ export const VEHICLE_POST_FIELDS_BY_SUBCATEGORY: Record<string, Field[]> = {
       key: "down_payment",
       label: "Down Payment",
       type: "number",
+      placeholder: "e.g. 500000",
     },
     {
       key: "monthly_payment",
       label: "Monthly Payment",
       type: "number",
+      placeholder: "e.g. 45000",
     },
     {
       key: "installment_plan",
       label: "Installment Plan",
       type: "text",
+      placeholder: "e.g. 3 years (36 months)",
     },
     {
       key: "fuel",
@@ -204,6 +218,7 @@ export const VEHICLE_POST_FIELDS_BY_SUBCATEGORY: Record<string, Field[]> = {
       key: "seats",
       label: "Number of Seats",
       type: "number",
+      placeholder: "e.g. 5",
     },
     {
       key: "registration_city",
@@ -232,11 +247,13 @@ export const VEHICLE_POST_FIELDS_BY_SUBCATEGORY: Record<string, Field[]> = {
       key: "title",
       label: "Title",
       type: "text",
+      placeholder: "e.g. Loader Rickshaw for sale",
     },
     {
       key: "description",
       label: "Description",
       type: "textarea",
+      placeholder: "Provide details about the vehicle",
     },
     {
       key: "condition",
@@ -247,6 +264,7 @@ export const VEHICLE_POST_FIELDS_BY_SUBCATEGORY: Record<string, Field[]> = {
       key: "price",
       label: "Price",
       type: "number",
+      placeholder: "e.g. 950000",
     },
   ],
 
@@ -255,11 +273,13 @@ export const VEHICLE_POST_FIELDS_BY_SUBCATEGORY: Record<string, Field[]> = {
       key: "type",
       label: "Boat Type",
       type: "text",
+      placeholder: "e.g. Fishing Boat",
     },
     {
       key: "year",
       label: "Year",
       type: "number",
+      placeholder: "e.g. 2017",
     },
     {
       key: "condition",
@@ -270,16 +290,19 @@ export const VEHICLE_POST_FIELDS_BY_SUBCATEGORY: Record<string, Field[]> = {
       key: "engine",
       label: "Engine Details",
       type: "text",
+      placeholder: "e.g. 2x 150HP Outboard",
     },
     {
       key: "capacity",
       label: "Passenger Capacity",
       type: "number",
+      placeholder: "e.g. 10",
     },
     {
       key: "description",
       label: "Description",
       type: "textarea",
+      placeholder: "Mention condition, accessories, and usage",
     },
   ],
 };

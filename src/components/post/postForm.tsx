@@ -9,8 +9,15 @@ import { getBrandModelConfig } from "@/config/brandModels";
 import { getChipsFieldOptions, getFieldOptions } from "@/config/chipsOptions";
 import type { Field } from "@/config/postFields";
 import { useTheme } from "@/hooks/use-theme";
-import React from "react";
-import { Switch, TextInput, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import {
+  FlatList,
+  Modal,
+  Switch,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export type CommonFormData = {
   title: string;
@@ -90,7 +97,7 @@ export function FormInput({
         <TextInput
           value={value}
           editable={editable}
-          placeholder={placeholder}
+          placeholder={placeholder || `Enter ${label.toLowerCase()}`}
           placeholderTextColor={theme.textMuted}
           onChangeText={onChangeText}
           keyboardType={keyboardType}
@@ -191,6 +198,210 @@ export function FormSelect({
   );
 }
 
+function AreaWithUnitField({
+  label,
+  value,
+  onChangeText,
+  unitLabel,
+  unitValue,
+  unitOptions,
+  onSelectUnit,
+  error,
+  unitError,
+  required,
+}: {
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  unitLabel: string;
+  unitValue: string;
+  unitOptions: string[];
+  onSelectUnit: (value: string) => void;
+  error?: string;
+  unitError?: string;
+  required?: boolean;
+}) {
+  const theme = useTheme();
+  const [modalVisible, setModalVisible] = useState(false);
+  const hasError = !!error || !!unitError;
+
+  function handleSelect(unit: string) {
+    setModalVisible(false);
+
+    requestAnimationFrame(() => {
+      onSelectUnit(unit);
+    });
+  }
+
+  return (
+    <View className="mb-4">
+      <ThemedText className="text-sm font-semibold mb-1.5">
+        {label}
+        {required && <ThemedText style={{ color: theme.error }}> *</ThemedText>}
+      </ThemedText>
+
+      <ThemedView
+        type="backgroundElement"
+        className="rounded-xl px-3 flex-row items-center"
+        style={{
+          borderWidth: 1,
+          borderColor: hasError ? theme.borderError : theme.border,
+          minHeight: 50,
+        }}
+      >
+        <TextInput
+          value={value}
+          placeholder="Enter area"
+          placeholderTextColor={theme.textMuted}
+          keyboardType="numeric"
+          onChangeText={onChangeText}
+          style={{
+            flex: 1,
+            fontSize: 15,
+            color: theme.text,
+            paddingVertical: 14,
+          }}
+        />
+
+        <View
+          style={{
+            width: 1,
+            height: 24,
+            backgroundColor: theme.border,
+            marginHorizontal: 10,
+          }}
+        />
+
+        <TouchableOpacity
+          onPress={() => setModalVisible(true)}
+          activeOpacity={0.7}
+          className="flex-row items-center justify-between"
+          style={{ minWidth: 120, maxWidth: 150 }}
+        >
+          <ThemedText
+            numberOfLines={1}
+            style={{
+              fontSize: 14,
+              color: unitValue ? theme.text : theme.textMuted,
+              flex: 1,
+            }}
+          >
+            {unitValue || unitLabel}
+          </ThemedText>
+          <AppIcon
+            family="ion"
+            name="chevron-down"
+            size={14}
+            color={theme.textMuted}
+          />
+        </TouchableOpacity>
+      </ThemedView>
+
+      {error && (
+        <ThemedText
+          style={{
+            fontSize: 12,
+            color: theme.error,
+            marginTop: 4,
+            marginLeft: 4,
+          }}
+        >
+          {error}
+        </ThemedText>
+      )}
+      {unitError && (
+        <ThemedText
+          style={{
+            fontSize: 12,
+            color: theme.error,
+            marginTop: 4,
+            marginLeft: 4,
+          }}
+        >
+          {unitError}
+        </ThemedText>
+      )}
+
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableOpacity
+          className="flex-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+          activeOpacity={1}
+          onPress={() => setModalVisible(false)}
+        />
+
+        <ThemedView
+          type="backgroundElement"
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            maxHeight: "60%",
+            paddingBottom: 20,
+          }}
+        >
+          <View
+            className="flex-row items-center justify-between px-5 py-4"
+            style={{ borderBottomWidth: 1, borderBottomColor: theme.border }}
+          >
+            <ThemedText style={{ fontSize: 16, fontWeight: "700" }}>
+              Select {unitLabel}
+            </ThemedText>
+            <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <AppIcon family="ion" name="close" size={22} color={theme.text} />
+            </TouchableOpacity>
+          </View>
+
+          <FlatList
+            data={unitOptions}
+            keyExtractor={(item) => item}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => {
+              const isSelected = unitValue === item;
+              return (
+                <TouchableOpacity
+                  onPress={() => handleSelect(item)}
+                  className="flex-row items-center justify-between px-5 py-4"
+                  style={{
+                    borderBottomWidth: 1,
+                    borderBottomColor: theme.border,
+                  }}
+                >
+                  <ThemedText
+                    style={{
+                      fontSize: 15,
+                      color: isSelected ? theme.primary : theme.text,
+                      fontWeight: isSelected ? "600" : "400",
+                    }}
+                  >
+                    {item}
+                  </ThemedText>
+                  {isSelected && (
+                    <AppIcon
+                      family="ion"
+                      name="checkmark"
+                      size={18}
+                      color={theme.primary}
+                    />
+                  )}
+                </TouchableOpacity>
+              );
+            }}
+          />
+        </ThemedView>
+      </Modal>
+    </View>
+  );
+}
+
 export default function CommonListingForm({
   categoryId,
   subCategoryId,
@@ -203,6 +414,12 @@ export default function CommonListingForm({
 }: Props) {
   const theme = useTheme();
   const brandModelConfig = getBrandModelConfig(categoryId, subCategoryId);
+  const hasAreaField = dynamicFields.some(
+    (dynamicField) => dynamicField.key === "area",
+  );
+  const areaUnitField = dynamicFields.find(
+    (dynamicField) => dynamicField.key === "area_unit",
+  );
 
   function updateDetail(key: string, value: string) {
     onChange({ details: { ...form.details, [key]: value } });
@@ -216,6 +433,36 @@ export default function CommonListingForm({
           {dynamicFields.map((field) => {
             const value = form.details[field.key] || "";
             const error = errors[`details_${field.key}`];
+
+            if (field.key === "area_unit" && hasAreaField) {
+              return null;
+            }
+
+            if (field.key === "area" && areaUnitField) {
+              const unitValue = form.details[areaUnitField.key] || "";
+              const unitError = errors[`details_${areaUnitField.key}`];
+              const unitOptions = getFieldOptions(
+                categoryId,
+                subCategoryId,
+                areaUnitField.key,
+              );
+
+              return (
+                <AreaWithUnitField
+                  key={field.key}
+                  label={field.label}
+                  value={value}
+                  onChangeText={(text) => updateDetail(field.key, text)}
+                  unitLabel={areaUnitField.label}
+                  unitValue={unitValue}
+                  unitOptions={unitOptions}
+                  onSelectUnit={(val) => updateDetail(areaUnitField.key, val)}
+                  error={error}
+                  unitError={unitError}
+                  required={field.required || areaUnitField.required}
+                />
+              );
+            }
 
             if (field.type === "brand-model") {
               const brand = form.details["brand"] || "";
@@ -275,7 +522,7 @@ export default function CommonListingForm({
                   onSelect={(val) => updateDetail(field.key, val)}
                   error={error}
                   required={field.required}
-                  placeholder={`Select ${field.label}`}
+                  placeholder={field.placeholder || `Select ${field.label}`}
                 />
               );
             }
@@ -301,7 +548,7 @@ export default function CommonListingForm({
                   }
                   error={error}
                   required={field.required}
-                  placeholder={`Select ${field.label}`}
+                  placeholder={field.placeholder || `Select ${field.label}`}
                 />
               );
             }

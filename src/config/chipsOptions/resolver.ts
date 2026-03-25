@@ -1,9 +1,11 @@
 import { MOBILE_FIELDS_OPTIONS_BY_SUBCATEGORY } from "@/config/chipsOptions/mobiles";
+import { PROPERTY_SALE_FIELD_OPTIONS_BY_SUBCATEGORY } from "@/config/chipsOptions/property-sale";
 import type { ChipsFieldOptionsMap } from "@/config/chipsOptions/types";
 import { VEHICLE_FIELD_OPTIONS_BY_SUBCATEGORY } from "@/config/chipsOptions/vehicles";
 
 const CHIPS_BY_SUBCATEGORY: Record<string, ChipsFieldOptionsMap> = {
   ...MOBILE_FIELDS_OPTIONS_BY_SUBCATEGORY,
+  ...PROPERTY_SALE_FIELD_OPTIONS_BY_SUBCATEGORY,
   ...VEHICLE_FIELD_OPTIONS_BY_SUBCATEGORY,
 };
 

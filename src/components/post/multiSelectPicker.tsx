@@ -4,11 +4,12 @@ import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
 import React, { useMemo, useState } from "react";
 import {
-       FlatList,
-       Modal,
-       TextInput,
-       TouchableOpacity,
-       View,
+    FlatList,
+    Keyboard,
+    Modal,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 type Props = {
@@ -41,6 +42,12 @@ export default function MultiSelectPicker({
       ),
     [options, search],
   );
+
+  function closeModal() {
+    Keyboard.dismiss();
+    setSearch("");
+    setModalVisible(false);
+  }
 
   function toggleValue(option: string) {
     if (selectedValues.includes(option)) {
@@ -115,13 +122,13 @@ export default function MultiSelectPicker({
         visible={modalVisible}
         transparent
         animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={closeModal}
       >
         <TouchableOpacity
           className="flex-1"
           style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
           activeOpacity={1}
-          onPress={() => setModalVisible(false)}
+          onPress={closeModal}
         />
 
         <ThemedView
@@ -144,7 +151,7 @@ export default function MultiSelectPicker({
             <ThemedText style={{ fontSize: 16, fontWeight: "700" }}>
               Select {label}
             </ThemedText>
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
+            <TouchableOpacity onPress={closeModal}>
               <AppIcon family="ion" name="close" size={22} color={theme.text} />
             </TouchableOpacity>
           </View>
@@ -177,7 +184,6 @@ export default function MultiSelectPicker({
                   color: theme.text,
                   paddingVertical: 0,
                 }}
-                autoFocus
               />
               {search.length > 0 && (
                 <TouchableOpacity onPress={() => setSearch("")}>
@@ -230,7 +236,7 @@ export default function MultiSelectPicker({
 
           <View className="px-4 pt-3">
             <TouchableOpacity
-              onPress={() => setModalVisible(false)}
+              onPress={closeModal}
               activeOpacity={0.8}
               className="rounded-xl py-3 items-center"
               style={{ backgroundColor: theme.primary }}

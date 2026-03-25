@@ -82,4 +82,36 @@ export const CATEGORIES: CategoryData[] = [
       },
     ],
   },
+  {
+    id: "property-for-sale",
+    label: "Property for Sale",
+    icon: "home-outline",
+    subCategories: [
+      {
+        id: "land-plots",
+        label: "Land & Plots",
+        icon: "map-outline",
+      },
+      {
+        id: "houses",
+        label: "Houses",
+        icon: "home-outline",
+      },
+      {
+        id: "apartments-flats",
+        label: "Apartments & Flats",
+        icon: "business-outline",
+      },
+      {
+        id: "shops-offices-commercial-space",
+        label: "Shops - Offices - Commercial Space",
+        icon: "storefront-outline",
+      },
+      {
+        id: "portions-floors",
+        label: "Portions & Floors",
+        icon: "layers-outline",
+      },
+    ],
+  },
 ];
