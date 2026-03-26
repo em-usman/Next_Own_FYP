@@ -427,4 +427,63 @@ export const CATEGORIES: CategoryData[] = [
       },
     ],
   },
+  {
+    id: "furniture-home-decor",
+    label: "Furniture & Home Decor",
+    icon: "home-outline",
+    subCategories: [
+      {
+        id: "other-household-items",
+        label: "Other Household Items",
+        icon: "apps-outline",
+      },
+      {
+        id: "home-diy-renovation",
+        label: "Home DIY & Renovation",
+        icon: "build-outline",
+      },
+    ],
+  },
+  {
+    id: "fashion-beauty",
+    label: "Fashion & Beauty",
+    icon: "shirt-outline",
+    subCategories: [
+      {
+        id: "watches",
+        label: "Watches",
+        icon: "watch-outline",
+      },
+      {
+        id: "footwear",
+        label: "Footwear",
+        icon: "footsteps-outline",
+      },
+      {
+        id: "jewellery",
+        label: "Jewellery",
+        icon: "diamond-outline",
+      },
+      {
+        id: "bags",
+        label: "Bags",
+        icon: "briefcase-outline",
+      },
+      {
+        id: "fragrance",
+        label: "Fragrance",
+        icon: "flower-outline",
+      },
+      {
+        id: "other-fashion",
+        label: "Other Fashion",
+        icon: "apps-outline",
+      },
+      {
+        id: "diy-jewellery",
+        label: "DIY Jewellery",
+        icon: "construct-outline",
+      },
+    ],
+  },
 ];

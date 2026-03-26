@@ -2,6 +2,7 @@ import { ANIMAL_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/animals";
 import { BIKE_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/bike";
 import { BUSINESS_INDUSTRIES_AGRICULTURE_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/business-industries-agriculture";
 import { ELECTRONICS_HOME_APPLIANCES_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/electronics-home-appliances";
+import { FURNITURE_HOME_DECOR_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/furniture-home-decor";
 import { JOB_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/jobs";
 import { MOBILE_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/mobiles";
 import { PROPERTY_RENT_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/property-rent";
@@ -23,6 +24,7 @@ const POST_FIELDS_BY_MAIN_CATEGORY: Record<string, Record<string, Field[]>> = {
   "property-for-sale": PROPERTY_SALE_POST_FIELDS_BY_SUBCATEGORY,
   services: SERVICE_POST_FIELDS_BY_SUBCATEGORY,
   vehicles: VEHICLE_POST_FIELDS_BY_SUBCATEGORY,
+  "furniture-home-decor": FURNITURE_HOME_DECOR_POST_FIELDS_BY_SUBCATEGORY,
 };
 
 export function getPostFields(

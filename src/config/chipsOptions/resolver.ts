@@ -2,6 +2,7 @@ import { ANIMAL_FIELD_OPTIONS_BY_SUBCATEGORY } from "@/config/chipsOptions/anima
 import { BIKE_FIELD_OPTIONS_BY_SUBCATEGORY } from "@/config/chipsOptions/bike";
 import { BUSINESS_INDUSTRIES_AGRICULTURE_FIELD_OPTIONS_BY_SUBCATEGORY } from "@/config/chipsOptions/business-industries-agriculture";
 import { ELECTRONICS_HOME_APPLIANCES_FIELD_OPTIONS_BY_SUBCATEGORY } from "@/config/chipsOptions/electronics-home-appliances";
+import { FURNITURE_HOME_DECOR_FIELD_OPTIONS_BY_SUBCATEGORY } from "@/config/chipsOptions/furniture-home-decor";
 import { JOB_FIELD_OPTIONS_BY_SUBCATEGORY } from "@/config/chipsOptions/jobs";
 import { MOBILE_FIELDS_OPTIONS_BY_SUBCATEGORY } from "@/config/chipsOptions/mobiles";
 import { PROPERTY_RENT_FIELD_OPTIONS_BY_SUBCATEGORY } from "@/config/chipsOptions/property-rent";
@@ -21,6 +22,7 @@ const CHIPS_BY_SUBCATEGORY: Record<string, ChipsFieldOptionsMap> = {
   ...PROPERTY_SALE_FIELD_OPTIONS_BY_SUBCATEGORY,
   ...SERVICE_FIELD_OPTIONS_BY_SUBCATEGORY,
   ...VEHICLE_FIELD_OPTIONS_BY_SUBCATEGORY,
+  ...FURNITURE_HOME_DECOR_FIELD_OPTIONS_BY_SUBCATEGORY,
 };
 
 export function getFieldOptions(
