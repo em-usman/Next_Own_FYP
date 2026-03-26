@@ -1,11 +1,27 @@
+import { ANIMAL_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/animals";
+import { BIKE_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/bike";
+import { BUSINESS_INDUSTRIES_AGRICULTURE_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/business-industries-agriculture";
+import { ELECTRONICS_HOME_APPLIANCES_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/electronics-home-appliances";
+import { JOB_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/jobs";
 import { MOBILE_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/mobiles";
+import { PROPERTY_RENT_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/property-rent";
 import { PROPERTY_SALE_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/property-sale";
+import { SERVICE_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/services";
 import type { Field } from "@/config/postFields/types";
 import { VEHICLE_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/vehicles";
 
 const POST_FIELDS_BY_MAIN_CATEGORY: Record<string, Record<string, Field[]>> = {
+  animals: ANIMAL_POST_FIELDS_BY_SUBCATEGORY,
+  bike: BIKE_POST_FIELDS_BY_SUBCATEGORY,
+  "business-industries-agriculture":
+    BUSINESS_INDUSTRIES_AGRICULTURE_POST_FIELDS_BY_SUBCATEGORY,
+  "electronics-home-appliances":
+    ELECTRONICS_HOME_APPLIANCES_POST_FIELDS_BY_SUBCATEGORY,
+  jobs: JOB_POST_FIELDS_BY_SUBCATEGORY,
   mobiles: MOBILE_POST_FIELDS_BY_SUBCATEGORY,
+  "property-for-rent": PROPERTY_RENT_POST_FIELDS_BY_SUBCATEGORY,
   "property-for-sale": PROPERTY_SALE_POST_FIELDS_BY_SUBCATEGORY,
+  services: SERVICE_POST_FIELDS_BY_SUBCATEGORY,
   vehicles: VEHICLE_POST_FIELDS_BY_SUBCATEGORY,
 };
 
