@@ -486,4 +486,63 @@ export const CATEGORIES: CategoryData[] = [
       },
     ],
   },
+  {
+    id: "books-sports-hobbies",
+    label: "Books, Sports & Hobbies",
+    icon: "book-outline",
+    subCategories: [
+      {
+        id: "gym-fitness",
+        label: "Gym & Fitness",
+        icon: "barbell-outline",
+      },
+      {
+        id: "sports-equipment",
+        label: "Sports Equipment",
+        icon: "football-outline",
+      },
+      {
+        id: "other-hobbies",
+        label: "Other Hobbies",
+        icon: "apps-outline",
+      },
+      {
+        id: "calendars",
+        label: "Calendars",
+        icon: "calendar-outline",
+      },
+    ],
+  },
+  {
+    id: "kids",
+    label: "Kids",
+    icon: "heart-outline",
+    subCategories: [
+      {
+        id: "toys",
+        label: "Toys",
+        icon: "balloon-outline",
+      },
+      {
+        id: "swing-slides",
+        label: "Swing & Slides",
+        icon: "golf-outline",
+      },
+      {
+        id: "kids-accessories",
+        label: "Kids Accessories",
+        icon: "bag-outline",
+      },
+      {
+        id: "kids-furniture",
+        label: "Kids Furniture",
+        icon: "home-outline",
+      },
+      {
+        id: "bath-diapers",
+        label: "Bath & Diapers",
+        icon: "water-outline",
+      },
+    ],
+  },
 ];
