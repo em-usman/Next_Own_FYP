@@ -46,6 +46,40 @@ function findSubCategoryLabel(categoryId: string, subCategoryId: string) {
   return search(category.subCategories) ?? "";
 }
 
+function findNestedLabels(
+  categoryId: string,
+  subCategoryId: string,
+  subSubCategoryId?: string,
+) {
+  const category = CATEGORIES.find((c) => c.id === categoryId);
+  if (!category) return { subCategoryLabel: "", subSubCategoryLabel: "" };
+
+  type Item = (typeof category.subCategories)[number];
+  function search(items: Item[]): Item | null {
+    for (const item of items) {
+      if (item.id === subCategoryId) return item;
+      if (item.children?.length) {
+        const found = search(item.children);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  const matched = search(category.subCategories);
+  const subCategoryLabel = matched?.label || "";
+
+  if (!subSubCategoryId || !matched?.children?.length) {
+    return { subCategoryLabel, subSubCategoryLabel: "" };
+  }
+
+  const subSubCategoryLabel =
+    matched.children.find((child) => child.id === subSubCategoryId)?.label ||
+    "";
+
+  return { subCategoryLabel, subSubCategoryLabel };
+}
+
 const LOCATIONS = [
   "Karachi",
   "Lahore",
@@ -75,9 +109,21 @@ export default function PostFormScreen() {
   const subCategoryId = Array.isArray(params.subCategoryId)
     ? params.subCategoryId[0]
     : (params.subCategoryId as string) || "";
+  const subSubCategoryId = Array.isArray(params.subSubCategoryId)
+    ? params.subSubCategoryId[0]
+    : (params.subSubCategoryId as string) || "";
 
-  const dynamicFields = getPostFields(categoryId, subCategoryId);
-  const subCategoryLabel = findSubCategoryLabel(categoryId, subCategoryId);
+  const dynamicFields = getPostFields(
+    categoryId,
+    subCategoryId,
+    subSubCategoryId,
+  );
+  const { subCategoryLabel, subSubCategoryLabel } = findNestedLabels(
+    categoryId,
+    subCategoryId,
+    subSubCategoryId,
+  );
+  const selectedLabel = subSubCategoryLabel || subCategoryLabel;
 
   const [images, setImages] = useState<string[]>([]);
   const [locationModal, setLocationModal] = useState(false);
@@ -227,7 +273,7 @@ export default function PostFormScreen() {
                   fontWeight: "700",
                 }}
               >
-                {subCategoryLabel}
+                {selectedLabel}
               </ThemedText>
             </ThemedText>
           ),
@@ -351,10 +397,11 @@ export default function PostFormScreen() {
           <CommonListingForm
             categoryId={categoryId}
             subCategoryId={subCategoryId}
+            subSubCategoryId={subSubCategoryId}
             form={form}
             dynamicFields={dynamicFields}
             errors={errors}
-            categoryLabel={subCategoryLabel}
+            categoryLabel={selectedLabel}
             onChange={handleFormChange}
             onSelectLocation={() => setLocationModal(true)}
           />

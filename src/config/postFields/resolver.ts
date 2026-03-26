@@ -13,6 +13,7 @@ import { PROPERTY_SALE_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/pr
 import { SERVICE_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/services";
 import type { Field } from "@/config/postFields/types";
 import { VEHICLE_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/vehicles";
+import { VEHICLES_ACCESSORIES_POST_FIELDS_BY_SUBCATEGORY } from "@/config/postFields/vehicles-accessories";
 
 const POST_FIELDS_BY_MAIN_CATEGORY: Record<string, Record<string, Field[]>> = {
   animals: ANIMAL_POST_FIELDS_BY_SUBCATEGORY,
@@ -29,21 +30,34 @@ const POST_FIELDS_BY_MAIN_CATEGORY: Record<string, Record<string, Field[]>> = {
   "property-for-rent": PROPERTY_RENT_POST_FIELDS_BY_SUBCATEGORY,
   "property-for-sale": PROPERTY_SALE_POST_FIELDS_BY_SUBCATEGORY,
   services: SERVICE_POST_FIELDS_BY_SUBCATEGORY,
-  vehicles: VEHICLE_POST_FIELDS_BY_SUBCATEGORY,
+  vehicles: {
+    ...VEHICLE_POST_FIELDS_BY_SUBCATEGORY,
+    ...VEHICLES_ACCESSORIES_POST_FIELDS_BY_SUBCATEGORY,
+  },
   "furniture-home-decor": FURNITURE_HOME_DECOR_POST_FIELDS_BY_SUBCATEGORY,
 };
 
 export function getPostFields(
   categoryId: string,
   subCategoryId: string,
+  subSubCategoryId?: string,
 ): Field[] {
   const normalizedCategoryId = categoryId?.toLowerCase().trim();
   const normalizedSubCategoryId = subCategoryId?.toLowerCase().trim();
+  const normalizedSubSubCategoryId = subSubCategoryId?.toLowerCase().trim();
 
   const categoryFieldConfig =
     POST_FIELDS_BY_MAIN_CATEGORY[normalizedCategoryId];
   if (!categoryFieldConfig) {
     return [];
+  }
+
+  if (normalizedSubSubCategoryId) {
+    return (
+      categoryFieldConfig[normalizedSubSubCategoryId] ||
+      categoryFieldConfig[normalizedSubCategoryId] ||
+      []
+    );
   }
 
   return categoryFieldConfig[normalizedSubCategoryId] || [];

@@ -13,6 +13,7 @@ import { PROPERTY_SALE_FIELD_OPTIONS_BY_SUBCATEGORY } from "@/config/chipsOption
 import { SERVICE_FIELD_OPTIONS_BY_SUBCATEGORY } from "@/config/chipsOptions/services";
 import type { ChipsFieldOptionsMap } from "@/config/chipsOptions/types";
 import { VEHICLE_FIELD_OPTIONS_BY_SUBCATEGORY } from "@/config/chipsOptions/vehicles";
+import { VEHICLES_ACCESSORIES_FIELD_OPTIONS_BY_SUBCATEGORY } from "@/config/chipsOptions/vehicles-accessories";
 
 const CHIPS_BY_SUBCATEGORY: Record<string, ChipsFieldOptionsMap> = {
   ...ANIMAL_FIELD_OPTIONS_BY_SUBCATEGORY,
@@ -28,6 +29,7 @@ const CHIPS_BY_SUBCATEGORY: Record<string, ChipsFieldOptionsMap> = {
   ...PROPERTY_SALE_FIELD_OPTIONS_BY_SUBCATEGORY,
   ...SERVICE_FIELD_OPTIONS_BY_SUBCATEGORY,
   ...VEHICLE_FIELD_OPTIONS_BY_SUBCATEGORY,
+  ...VEHICLES_ACCESSORIES_FIELD_OPTIONS_BY_SUBCATEGORY,
   ...FURNITURE_HOME_DECOR_FIELD_OPTIONS_BY_SUBCATEGORY,
 };
 
@@ -35,9 +37,21 @@ export function getFieldOptions(
   _categoryId: string,
   subCategoryId: string,
   fieldKey: string,
+  subSubCategoryId?: string,
 ): string[] {
+  const normalizedSubSubCategoryId = subSubCategoryId?.toLowerCase().trim();
   const normalizedSubCategoryId = subCategoryId?.toLowerCase().trim();
 
+  // Try sub-subcategory first if provided
+  if (normalizedSubSubCategoryId) {
+    const subSubCategoryOptions =
+      CHIPS_BY_SUBCATEGORY[normalizedSubSubCategoryId];
+    if (subSubCategoryOptions?.[fieldKey]) {
+      return subSubCategoryOptions[fieldKey];
+    }
+  }
+
+  // Fall back to subcategory
   const subCategoryOptions = CHIPS_BY_SUBCATEGORY[normalizedSubCategoryId];
   if (subCategoryOptions?.[fieldKey]) {
     return subCategoryOptions[fieldKey];
@@ -50,6 +64,7 @@ export function getChipsFieldOptions(
   categoryId: string,
   subCategoryId: string,
   fieldKey: string,
+  subSubCategoryId?: string,
 ): string[] {
-  return getFieldOptions(categoryId, subCategoryId, fieldKey);
+  return getFieldOptions(categoryId, subCategoryId, fieldKey, subSubCategoryId);
 }

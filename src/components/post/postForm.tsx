@@ -33,6 +33,7 @@ export type CommonFormData = {
 type Props = {
   categoryId: string;
   subCategoryId: string;
+  subSubCategoryId?: string;
   form: CommonFormData;
   dynamicFields: Field[];
   errors: Record<string, string>;
@@ -405,6 +406,7 @@ function AreaWithUnitField({
 export default function CommonListingForm({
   categoryId,
   subCategoryId,
+  subSubCategoryId,
   form,
   dynamicFields,
   errors,
@@ -445,6 +447,7 @@ export default function CommonListingForm({
                 categoryId,
                 subCategoryId,
                 areaUnitField.key,
+                subSubCategoryId,
               );
 
               return (
@@ -491,6 +494,7 @@ export default function CommonListingForm({
                 categoryId,
                 subCategoryId,
                 field.key,
+                subSubCategoryId,
               );
 
               return (
@@ -511,6 +515,7 @@ export default function CommonListingForm({
                 categoryId,
                 subCategoryId,
                 field.key,
+                subSubCategoryId,
               );
 
               return (
@@ -532,6 +537,7 @@ export default function CommonListingForm({
                 categoryId,
                 subCategoryId,
                 field.key,
+                subSubCategoryId,
               );
               const selectedValues = value
                 ? value.split("|").filter(Boolean)

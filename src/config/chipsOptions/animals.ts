@@ -1,155 +1,282 @@
 import type { ChipsFieldOptionsMap } from "@/config/chipsOptions/types";
 
-const COMMON_GENDER = ["Male", "Female", "Pair", "Unknown"];
-const COMMON_HEALTH = ["Healthy", "Under Treatment", "Special Care Needed"];
-const YES_NO = ["Yes", "No"];
-
-const COMMON_FEATURES = [
-  "Trained",
-  "Friendly",
-  "With Cage",
-  "With Accessories",
-  "Imported",
-  "Breeding Pair",
-  "Home Raised",
-];
-
 export const ANIMAL_FIELD_OPTIONS_BY_SUBCATEGORY: Record<
   string,
   ChipsFieldOptionsMap
 > = {
-  hens: {
-    type: ["Aseel", "Desi", "Layer", "Broiler", "Silkie", "Brahma"],
-    gender: COMMON_GENDER,
-    health: COMMON_HEALTH,
-    vaccinated: YES_NO,
-    features: COMMON_FEATURES,
+  // Pet Food & Accessories
+  "cat-accessories": {
+    material: ["Plastic", "Metal", "Rubber", "Wood", "Fabric"],
+    condition: ["New", "Used", "Like New"],
   },
-  cats: {
-    type: ["Persian", "Siamese", "Maine Coon", "Turkish Angora", "Mixed"],
-    gender: COMMON_GENDER,
-    health: COMMON_HEALTH,
-    vaccinated: YES_NO,
-    features: [
-      "Litter Trained",
-      "Playful",
-      "Indoor Cat",
-      "Vaccination Card",
-      "Pedigree",
-    ],
+  "dog-accessories": {
+    size: ["Small", "Medium", "Large", "Extra Large"],
+    condition: ["New", "Used", "Like New"],
   },
-  parrots: {
-    type: ["African Grey", "Cockatiel", "Budgie", "Macaw", "Love Bird"],
-    gender: COMMON_GENDER,
-    health: COMMON_HEALTH,
-    vaccinated: YES_NO,
-    features: ["Talking", "Tamed", "Hand Fed", "Breeding Pair", "With Cage"],
+  "beds-mats-houses": {
+    type: ["Bed", "Mat", "House", "Tent"],
+    size: ["Small", "Medium", "Large", "Extra Large"],
+    material: ["Fabric", "Memory Foam", "Orthopedic", "Waterproof"],
+    condition: ["New", "Used", "Like New"],
   },
-  dogs: {
-    type: ["German Shepherd", "Labrador", "Pug", "Rottweiler", "Mixed"],
-    gender: COMMON_GENDER,
-    health: COMMON_HEALTH,
-    vaccinated: YES_NO,
-    features: [
-      "Guard Dog",
-      "Friendly",
-      "House Trained",
-      "Pedigree",
-      "Obedience Trained",
-    ],
+  "dog-food": {
+    type: ["Dry Food", "Wet Food", "Semi-Wet"],
+    age_group: ["Puppy", "Adult", "Senior", "All Ages"],
+    condition: ["New", "Unopened"],
   },
-  pigeons: {
-    type: ["Kabootar", "Tippler", "Highflyer", "Tumbler", "Fancy"],
-    gender: COMMON_GENDER,
-    health: COMMON_HEALTH,
-    vaccinated: YES_NO,
-    features: ["Flying Trained", "Breeding Pair", "Fancy", "With Cage"],
+  brooders: {
+    capacity: ["300 Chicks", "500 Chicks", "1000 Chicks", "2000 Chicks"],
+    type: ["Electric", "Gas", "Solar"],
+    condition: ["New", "Used", "Refurbished"],
   },
-  rabbits: {
-    type: ["Angora", "Dutch", "Lionhead", "New Zealand", "Mixed"],
-    gender: COMMON_GENDER,
-    health: COMMON_HEALTH,
-    vaccinated: YES_NO,
-    features: ["Friendly", "Breeding Pair", "Indoor Raised", "With Cage"],
-  },
-  finches: {
-    type: ["Zebra Finch", "Society Finch", "Gouldian Finch", "Star Finch"],
-    gender: COMMON_GENDER,
-    health: COMMON_HEALTH,
-    vaccinated: YES_NO,
-    features: ["Breeding Pair", "Color Variant", "With Cage"],
-  },
-  fish: {
-    type: ["Goldfish", "Koi", "Arowana", "Betta", "Flowerhorn", "Guppy"],
-    size: ["Small", "Medium", "Large", "Jumbo"],
-    water_type: ["Freshwater", "Saltwater"],
-    features: ["Imported", "Pair", "Tank Setup Available", "Healthy"],
-  },
-  "fertile-eggs": {
-    type: ["Chicken Eggs", "Duck Eggs", "Parrot Eggs", "Quail Eggs"],
-    fertility_rate: ["60%+", "70%+", "80%+", "90%+"],
-  },
-  "other-birds": {
+  medicines: {
     type: [
-      "Falcon",
-      "Batair (Quail)",
-      "Eagle",
-      "Owl",
-      "Canary",
-      "Mynah",
-      "Sparrow",
-      "Other",
+      "Antibiotics",
+      "Anti-inflammatory",
+      "Vitamins",
+      "Digestive",
+      "Parasitic",
     ],
-    gender: COMMON_GENDER,
-    health: COMMON_HEALTH,
-    features: ["Tamed", "With Cage", "Breeding Pair", "Imported"],
+    condition: ["New", "Unopened"],
   },
-  ducks: {
-    type: ["Desi Duck", "Pekin", "Muscovy", "Runner"],
-    gender: COMMON_GENDER,
-    health: COMMON_HEALTH,
-    vaccinated: YES_NO,
-    features: COMMON_FEATURES,
+  "pet-scratchers-furniture": {
+    type: ["Scratcher", "Climbing Tree", "Perch", "Bed"],
+    material: ["Sisal", "Carpet", "Wood", "Paper"],
+    size: ["Small", "Medium", "Large"],
+    condition: ["New", "Used", "Like New"],
   },
-  "other-animals": {
-    type: [
-      "Goat",
-      "Sheep",
-      "Cow",
-      "Buffalo",
-      "Donkey",
-      "Camel",
-      "Falcon",
-      "Batair (Quail)",
-      "Other",
+  "cat-toys": {
+    toy_type: ["Ball", "Feather", "String", "Interactive", "Catnip Toy"],
+    material: ["Plastic", "Rubber", "Fabric", "Feather"],
+    condition: ["New", "Used"],
+  },
+  "bowls-feeders": {
+    type: ["Water Bowl", "Food Bowl", "Double Bowl", "Automatic Feeder"],
+    material: ["Ceramic", "Plastic", "Stainless Steel", "Glass"],
+    condition: ["New", "Used", "Like New"],
+  },
+  "carriers-travel": {
+    carrier_type: ["Hard Shell", "Soft Shell", "Backpack", "Rolling Carrier"],
+    size: ["Small", "Medium", "Large"],
+    material: ["Plastic", "Metal", "Fabric"],
+    condition: ["New", "Used", "Like New"],
+  },
+  "clothing-shoes-accessories": {
+    item_type: ["Sweater", "Jacket", "Boot", "Collar", "Leash"],
+    size: ["XS", "S", "M", "L", "XL"],
+    material: ["Cotton", "Wool", "Synthetic", "Leather"],
+    condition: ["New", "Used", "Like New"],
+  },
+  "fish-food": {
+    type: ["Flakes", "Pellets", "Frozen", "Live", "Tablets"],
+    condition: ["New", "Unopened"],
+  },
+  "litter-cleanup-sanitation": {
+    product_type: ["Litter", "Waste Bags", "Deodorizer", "Cleaner", "Scoop"],
+    condition: ["New", "Used"],
+  },
+  "dental-healthcare": {
+    product_type: ["Toothbrush", "Toothpaste", "Dental Treats", "Mouthwash"],
+    condition: ["New"],
+  },
+  "dog-toys": {
+    toy_type: ["Ball", "Rope", "Chew Toy", "Interactive", "Plush"],
+    material: ["Rubber", "Rope", "Plastic", "Fabric", "Plush"],
+    size: ["Small", "Medium", "Large"],
+    condition: ["New", "Used"],
+  },
+  "training-aids": {
+    aid_type: [
+      "Training Clicker",
+      "Training Treats",
+      "Training Collar",
+      "Leash",
     ],
-    gender: COMMON_GENDER,
-    health: COMMON_HEALTH,
-    features: ["Healthy", "Breeding", "Imported", "Farm Raised", "Trained"],
+    condition: ["New", "Used"],
   },
-  doves: {
-    type: ["Ringneck Dove", "White Dove", "Collared Dove", "Fancy Dove"],
-    gender: COMMON_GENDER,
-    health: COMMON_HEALTH,
-    vaccinated: YES_NO,
-    features: ["Pair", "Fancy", "Breeding Pair", "With Cage"],
+  technology: {
+    device_type: ["GPS Tracker", "Smart Collar", "Camera", "Water Bowl Feeder"],
+    condition: ["New", "Used", "Refurbished"],
   },
-  peacocks: {
-    type: ["Indian Peafowl", "White Peafowl", "Green Peafowl"],
-    gender: COMMON_GENDER,
-    health: COMMON_HEALTH,
-    vaccinated: YES_NO,
-    features: ["Adult", "Juvenile", "Breeding Pair", "Healthy"],
+  "cages-crates-doors": {
+    cage_type: ["Metal Cage", "Plastic Cage", "Wood Crate", "Wire Pen"],
+    size: ["Small", "Medium", "Large", "Extra Large"],
+    material: ["Metal", "Plastic", "Wood", "Wire"],
+    condition: ["New", "Used", "Like New"],
+  },
+  "hen-cages": {
+    capacity: ["10 Birds", "20 Birds", "50 Birds", "100+ Birds"],
+    size: ["Small", "Medium", "Large", "Extra Large"],
+    material: ["Metal", "Wood", "Plastic", "Mixed"],
+    condition: ["New", "Used", "Refurbished"],
+  },
+  incubators: {
+    capacity: ["48 Eggs", "96 Eggs", "192 Eggs", "Large Capacity"],
+    type: ["Automatic", "Manual", "Semi-Automatic"],
+    condition: ["New", "Used", "Refurbished"],
+  },
+  aquariums: {
+    size: ["10L", "25L", "50L", "75L", "100L+"],
+    type: ["Freshwater", "Saltwater", "Planted"],
+    material: ["Glass", "Acrylic"],
+    condition: ["New", "Used", "Like New"],
+  },
+  "birds-accessories": {
+    accessory_type: ["Perch", "Mirror", "Swing", "Toy", "Food Bowl"],
+    material: ["Wood", "Plastic", "Metal", "Natural"],
+    size: ["Small", "Medium", "Large"],
+    condition: ["New", "Used"],
+  },
+  "pet-grooming": {
+    condition: ["New"],
+  },
+  "birds-food": {
+    type: ["Seeds", "Pellets", "Mix", "Organic"],
+    condition: ["New", "Unopened"],
+  },
+  "cat-food": {
+    type: ["Dry Food", "Wet Food", "Semi-Wet"],
+    age_group: ["Kitten", "Adult", "Senior", "All Ages"],
+    condition: ["New", "Unopened"],
+  },
+
+  // Livestock
+  goats: {
+    gender: ["Male", "Female", "Mixed"],
+    health_status: ["Healthy", "Good Health", "Fair Health"],
+    vaccination_status: [
+      "Fully Vaccinated",
+      "Partially Vaccinated",
+      "Not Vaccinated",
+    ],
+    origin: ["Local", "Imported", "Cross-breed"],
+    condition: ["Excellent", "Good", "Fair"],
+  },
+  cows: {
+    gender: ["Male", "Female"],
+    health_status: ["Healthy", "Good Health", "Fair Health"],
+    vaccination_status: [
+      "Fully Vaccinated",
+      "Partially Vaccinated",
+      "Not Vaccinated",
+    ],
+    origin: ["Local Desi", "Imported Holstein", "Cross-breed"],
+    condition: ["Excellent", "Good", "Fair"],
+  },
+  sheep: {
+    gender: ["Male", "Female", "Mixed"],
+    wool_quality: ["Fine", "Medium", "Coarse", "Mixed"],
+    health_status: ["Healthy", "Good Health", "Fair Health"],
+    vaccination_status: [
+      "Fully Vaccinated",
+      "Partially Vaccinated",
+      "Not Vaccinated",
+    ],
+    origin: ["Local", "Imported"],
+    condition: ["Excellent", "Good", "Fair"],
+  },
+  bulls: {
+    health_status: ["Healthy", "Good Health", "Fair Health"],
+    vaccination_status: [
+      "Fully Vaccinated",
+      "Partially Vaccinated",
+      "Not Vaccinated",
+    ],
+    origin: ["Local", "Imported"],
+    condition: ["Excellent", "Good", "Fair"],
+  },
+  buffalos: {
+    gender: ["Male", "Female"],
+    health_status: ["Healthy", "Good Health", "Fair Health"],
+    vaccination_status: [
+      "Fully Vaccinated",
+      "Partially Vaccinated",
+      "Not Vaccinated",
+    ],
+    origin: ["Local", "Imported"],
+    condition: ["Excellent", "Good", "Fair"],
+  },
+  camels: {
+    gender: ["Male", "Female", "Mixed"],
+    health_status: ["Healthy", "Good Health", "Fair Health"],
+    vaccination_status: [
+      "Fully Vaccinated",
+      "Partially Vaccinated",
+      "Not Vaccinated",
+    ],
+    origin: ["Local Desert", "Imported"],
+    condition: ["Excellent", "Good", "Fair"],
   },
   horses: {
-    type: ["Arabian", "Thoroughbred", "Sindhi", "Balochi", "Mixed"],
-    gender: COMMON_GENDER,
-    features: [
-      "Riding Trained",
-      "Race Trained",
-      "Healthy",
-      "Vaccinated",
-      "Calm Temperament",
+    color: ["Bay", "Black", "Chestnut", "Gray", "Palomino", "Mixed"],
+    health_status: ["Healthy", "Good Health", "Fair Health"],
+    vaccination_status: [
+      "Fully Vaccinated",
+      "Partially Vaccinated",
+      "Not Vaccinated",
     ],
+    origin: ["Local", "Imported Arabian", "Imported Thoroughbred"],
+    condition: ["Excellent", "Good", "Fair"],
+  },
+  donkeys: {
+    gender: ["Male", "Female", "Mixed"],
+    health_status: ["Healthy", "Good Health", "Fair Health"],
+    vaccination_status: [
+      "Fully Vaccinated",
+      "Partially Vaccinated",
+      "Not Vaccinated",
+    ],
+    origin: ["Local", "Imported"],
+    condition: ["Excellent", "Good", "Fair"],
+  },
+  pigs: {
+    gender: ["Male", "Female", "Mixed"],
+    health_status: ["Healthy", "Good Health", "Fair Health"],
+    vaccination_status: [
+      "Fully Vaccinated",
+      "Partially Vaccinated",
+      "Not Vaccinated",
+    ],
+    origin: ["Local", "Imported"],
+    condition: ["Excellent", "Good", "Fair"],
+  },
+  poultry: {
+    bird_type: ["Chicken", "Duck", "Turkey", "Guinea Fowl", "Quail"],
+    health_status: ["Healthy", "Good Health", "Fair Health"],
+    vaccination_status: [
+      "Fully Vaccinated",
+      "Partially Vaccinated",
+      "Not Vaccinated",
+    ],
+    origin: ["Local", "Imported Breed"],
+    condition: ["Excellent", "Good", "Fair"],
+  },
+  rabbits: {
+    gender: ["Male", "Female", "Mixed"],
+    color: ["White", "Black", "Brown", "Gray", "Mixed"],
+    health_status: ["Healthy", "Good Health", "Fair Health"],
+    vaccination_status: [
+      "Fully Vaccinated",
+      "Partially Vaccinated",
+      "Not Vaccinated",
+    ],
+    condition: ["Excellent", "Good", "Fair"],
+  },
+  alpacas: {
+    gender: ["Male", "Female"],
+    fiber_quality: ["Premium", "Good", "Fair"],
+    health_status: ["Healthy", "Good Health", "Fair Health"],
+    vaccination_status: [
+      "Fully Vaccinated",
+      "Partially Vaccinated",
+      "Not Vaccinated",
+    ],
+    origin: ["Local Bred", "Imported"],
+    condition: ["Excellent", "Good", "Fair"],
+  },
+  others: {
+    health_status: ["Healthy", "Good Health", "Fair Health"],
+    origin: ["Local", "Imported"],
+    condition: ["Excellent", "Good", "Fair"],
   },
 };

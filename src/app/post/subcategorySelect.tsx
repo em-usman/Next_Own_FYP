@@ -86,9 +86,17 @@ export default function SubCategoryScreen() {
         params: { categoryId, subCategoryId: item.id },
       });
     } else {
+      const baseSubCategoryId = subCategoryId || item.id;
+      const selectedSubSubCategoryId = subCategoryId ? item.id : "";
       router.push({
         pathname: "/post/form" as any,
-        params: { categoryId, subCategoryId: item.id },
+        params: {
+          categoryId,
+          subCategoryId: baseSubCategoryId,
+          ...(selectedSubSubCategoryId
+            ? { subSubCategoryId: selectedSubSubCategoryId }
+            : {}),
+        },
       });
     }
   }
@@ -193,23 +201,16 @@ export default function SubCategoryScreen() {
                     <ThemedText style={{ fontSize: 15 }}>
                       {item.label}
                     </ThemedText>
-                    {hasChildren && (
-                      <ThemedText
-                        type="small"
-                        themeColor="textMuted"
-                        style={{ fontSize: 12, marginTop: 2 }}
-                      >
-                        {item.children!.length} subcategories
-                      </ThemedText>
-                    )}
                   </View>
 
-                  <AppIcon
-                    family="ion"
-                    name="chevron-forward"
-                    size={16}
-                    color={theme.textMuted}
-                  />
+                  {hasChildren && (
+                    <AppIcon
+                      family="ion"
+                      name="chevron-forward"
+                      size={16}
+                      color={theme.textMuted}
+                    />
+                  )}
                 </TouchableOpacity>
               );
             })}
