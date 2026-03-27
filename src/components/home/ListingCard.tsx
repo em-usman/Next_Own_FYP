@@ -11,12 +11,29 @@ export function ListingCard({ listing }: { listing: Listing }) {
   const theme = useTheme();
 
   function handlePress() {
-    const { image, images, ...serializableData } = listing;
+    const imageUri =
+      typeof listing.image === "object" && listing.image?.uri
+        ? String(listing.image.uri)
+        : "";
+    const imageUrls = (listing.images || [])
+      .map((item) => {
+        if (typeof item === "string") return item;
+        if (typeof item === "object" && item?.uri) return String(item.uri);
+        return "";
+      })
+      .filter(Boolean);
+
+    const payload = {
+      ...listing,
+      imageUri,
+      imageUrls,
+    };
+
     router.push({
       pathname: "/listing/[id]",
       params: {
         id: String(listing.id),
-        data: encodeURIComponent(JSON.stringify(serializableData)),
+        data: encodeURIComponent(JSON.stringify(payload)),
       },
     });
   }

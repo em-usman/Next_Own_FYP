@@ -94,6 +94,7 @@ function toListing(
     model: details.model || "",
     color: details.color || "",
     condition: details.condition as Listing["condition"],
+    details,
   };
 }
 

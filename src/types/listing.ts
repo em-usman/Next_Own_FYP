@@ -20,4 +20,5 @@ export type Listing = {
   sellerName?: string;
   sellerPhone?: string;
   images?: any[];
+  details?: Record<string, string>;
 };
