@@ -8,12 +8,18 @@ import { ListingCard } from "./ListingCard";
 
 type Props = {
   title: string;
-  categoryHref: string;
+  categoryHref?: string;
   listings: Listing[];
+  maxItems?: number;
 };
 
-export function CategorySection({ title, categoryHref, listings }: Props) {
-  const latest = listings.slice(0, 4);
+export function CategorySection({
+  title,
+  categoryHref,
+  listings,
+  maxItems = 5,
+}: Props) {
+  const latest = listings.slice(0, maxItems);
 
   return (
     <View className="gap-3 mb-6">
@@ -22,18 +28,20 @@ export function CategorySection({ title, categoryHref, listings }: Props) {
         <ThemedText type="subtitle" style={{ fontSize: 20 }}>
           {title}
         </ThemedText>
-        <TouchableOpacity
-          className="flex-row items-center gap-0.5"
-          onPress={() => router.push(categoryHref as any)}
-        >
-          <ThemedText type="small" themeColor="primary">
-            See All
-          </ThemedText>
-          <ThemedText type="small" themeColor="primary">
-            {" "}
-            ›
-          </ThemedText>
-        </TouchableOpacity>
+        {categoryHref ? (
+          <TouchableOpacity
+            className="flex-row items-center gap-0.5"
+            onPress={() => router.push(categoryHref as any)}
+          >
+            <ThemedText type="small" themeColor="primary">
+              See All
+            </ThemedText>
+            <ThemedText type="small" themeColor="primary">
+              {" "}
+              ›
+            </ThemedText>
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       {/* Cards */}

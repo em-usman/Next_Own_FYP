@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -9,157 +9,10 @@ import Animated, {
 import { CategorySection } from "@/components/home/CategorySection";
 import { CategorySlider } from "@/components/home/CategorySlider";
 import { SearchBar } from "@/components/home/SearchBar";
+import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
-import type { Listing } from "@/types/listing";
-
-const mobileCategoryImage = require("../../../assets/categories/mobile.png");
-
-const MOBILE_LISTINGS: Listing[] = [
-  {
-    id: "m1",
-    title: "Honor 400 Pro 12GB 512GB",
-    price: "Rs 1.6 Lacs",
-    location: "Baizo Kharki, Malakand",
-    timeAgo: "1 day ago",
-    description:
-      "Brand new Honor 400 Pro in excellent condition. Box packed with all accessories included. Serious buyers only.",
-    brand: "Honor",
-    model: "400 Pro",
-    color: "Silver",
-    condition: "New",
-    category: "Mobiles",
-    sellerName: "Ali Khan",
-    sellerPhone: "+92 300 1234567",
-    image: mobileCategoryImage,
-    isFeatured: true,
-  },
-  {
-    id: "m2",
-    title: "Honor 400 Pro 12GB 512GB",
-    price: "Rs 1.6 Lacs",
-    location: "Baizo Kharki, Malakand",
-    timeAgo: "1 day ago",
-    description:
-      "Brand new Honor 400 Pro in excellent condition. Box packed with all accessories included. Serious buyers only.",
-    brand: "Honor",
-    model: "400 Pro",
-    color: "Silver",
-    condition: "New",
-    category: "Mobiles",
-    sellerName: "Ali Khan",
-    sellerPhone: "+92 300 1234567",
-    image: mobileCategoryImage,
-    isFeatured: true,
-  },
-  {
-    id: "m3",
-    title: "Honor 400 Pro 12GB 512GB",
-    price: "Rs 1.6 Lacs",
-    location: "Baizo Kharki, Malakand",
-    timeAgo: "1 day ago",
-    description:
-      "Brand new Honor 400 Pro in excellent condition. Box packed with all accessories included. Serious buyers only.",
-    brand: "Honor",
-    model: "400 Pro",
-    color: "Silver",
-    condition: "New",
-    category: "Mobiles",
-    sellerName: "Ali Khan",
-    sellerPhone: "+92 300 1234567",
-    image: mobileCategoryImage,
-  },
-  {
-    id: "m4",
-    title: "Honor 400 Pro 12GB 512GB",
-    price: "Rs 1.6 Lacs",
-    location: "Baizo Kharki, Malakand",
-    timeAgo: "1 day ago",
-    description:
-      "Brand new Honor 400 Pro in excellent condition. Box packed with all accessories included. Serious buyers only.",
-    brand: "Honor",
-    model: "400 Pro",
-    color: "Silver",
-    condition: "New",
-    category: "Mobiles",
-    sellerName: "Ali Khan",
-    sellerPhone: "+92 300 1234567",
-    image: mobileCategoryImage,
-  },
-];
-
-const VEHICLE_LISTINGS: Listing[] = [
-  {
-    id: "c1",
-    title: "Google Pixel 6 Pro",
-    price: "Rs 54,000",
-    location: "Federal B Area, Karachi",
-    timeAgo: "1 day ago",
-    description:
-      "Used Google Pixel 6 Pro in good condition. Minor scratches on back. All functions working perfectly.",
-    brand: "Google",
-    model: "Pixel 6 Pro",
-    color: "Black",
-    condition: "Used",
-    category: "Mobiles",
-    sellerName: "Usman Raza",
-    sellerPhone: "+92 311 9876543",
-    image: mobileCategoryImage,
-    isFeatured: true,
-  },
-  {
-    id: "c2",
-    title: "Google Pixel 6 Pro",
-    price: "Rs 54,000",
-    location: "Federal B Area, Karachi",
-    timeAgo: "1 day ago",
-    description:
-      "Used Google Pixel 6 Pro in good condition. Minor scratches on back. All functions working perfectly.",
-    brand: "Google",
-    model: "Pixel 6 Pro",
-    color: "Black",
-    condition: "Used",
-    category: "Mobiles",
-    sellerName: "Usman Raza",
-    sellerPhone: "+92 311 9876543",
-    image: mobileCategoryImage,
-    isFeatured: true,
-  },
-  {
-    id: "c3",
-    title: "Google Pixel 6 Pro",
-    price: "Rs 54,000",
-    location: "Federal B Area, Karachi",
-    timeAgo: "1 day ago",
-    description:
-      "Used Google Pixel 6 Pro in good condition. Minor scratches on back. All functions working perfectly.",
-    brand: "Google",
-    model: "Pixel 6 Pro",
-    color: "Black",
-    condition: "Used",
-    category: "Mobiles",
-    sellerName: "Usman Raza",
-    sellerPhone: "+92 311 9876543",
-    image: mobileCategoryImage,
-  },
-  {
-    id: "c4",
-    title: "Google Pixel 6 Pro",
-    price: "Rs 54,000",
-    location: "Federal B Area, Karachi",
-    timeAgo: "1 day ago",
-    description:
-      "Used Google Pixel 6 Pro in good condition. Minor scratches on back. All functions working perfectly.",
-    brand: "Google",
-    model: "Pixel 6 Pro",
-    color: "Black",
-    condition: "Used",
-    category: "Mobiles",
-    sellerName: "Usman Raza",
-    sellerPhone: "+92 311 9876543",
-    image: mobileCategoryImage,
-  },
-];
+import { useHomeCategorySections } from "@/hooks/useHomeCategorySections";
 
 // function getDevMenuHint() {
 //   if (Platform.OS === "web") {
@@ -182,6 +35,7 @@ const VEHICLE_LISTINGS: Listing[] = [
 
 export default function HomeScreen() {
   const theme = useTheme();
+  const { sections, isLoading, errorMessage } = useHomeCategorySections(5);
   const scrollY = useSharedValue(0);
 
   const scrollHandler = useAnimatedScrollHandler((event) => {
@@ -221,16 +75,39 @@ export default function HomeScreen() {
       >
         <CategorySlider />
         <View className="h-4" />
-        <CategorySection
-          title="Mobile Phones"
-          categoryHref="/category/mobiles"
-          listings={MOBILE_LISTINGS}
-        />
-        <CategorySection
-          title="Vehicles"
-          categoryHref="/category/vehicles"
-          listings={VEHICLE_LISTINGS}
-        />
+        {isLoading && (
+          <View
+            className="items-center justify-center"
+            style={{ minHeight: 220 }}
+          >
+            <ActivityIndicator size="large" color={theme.primary} />
+          </View>
+        )}
+
+        {!isLoading && !!errorMessage && (
+          <View className="px-4 py-2">
+            <ThemedText type="small" style={{ color: theme.error }}>
+              {errorMessage}
+            </ThemedText>
+          </View>
+        )}
+
+        {!isLoading && !errorMessage && sections.length === 0 && (
+          <View className="px-4 py-6 gap-2">
+            <ThemedText type="subtitle">No active posts yet</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              New ads will appear here by category when users post them.
+            </ThemedText>
+          </View>
+        )}
+
+        {sections.map((section) => (
+          <CategorySection
+            key={section.categoryId}
+            title={section.title}
+            listings={section.listings}
+          />
+        ))}
       </Animated.ScrollView>
     </ThemedView>
   );
