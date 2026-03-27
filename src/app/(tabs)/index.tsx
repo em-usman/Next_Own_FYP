@@ -104,6 +104,7 @@ export default function HomeScreen() {
         {sections.map((section) => (
           <CategorySection
             key={section.categoryId}
+            categoryId={section.categoryId}
             title={section.title}
             listings={section.listings}
           />
