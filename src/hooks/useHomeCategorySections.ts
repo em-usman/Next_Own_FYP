@@ -22,6 +22,7 @@ type FirestorePost = {
   description?: string;
   contactName?: string;
   contactPhone?: string;
+  hidePhone?: boolean;
   details?: Record<string, string>;
 };
 
@@ -90,6 +91,7 @@ function toListing(
     category: categoryLabel,
     sellerName: post.contactName || "",
     sellerPhone: post.contactPhone || "",
+    hidePhone: post.hidePhone || false,
     brand: details.brand || "",
     model: details.model || "",
     color: details.color || "",

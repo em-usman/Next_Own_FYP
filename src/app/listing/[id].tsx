@@ -33,6 +33,7 @@ type ListingDetailsPayload = {
   condition?: string;
   sellerName?: string;
   sellerPhone?: string;
+  hidePhone?: boolean;
   isFeatured?: boolean;
   details?: Record<string, string>;
   imageUri?: string;
@@ -105,6 +106,34 @@ export default function ListingDetailScreen() {
     if (!listing?.sellerPhone) return;
     Linking.openURL(`tel:${listing.sellerPhone}`).catch((error) => {
       console.error("Call launch error:", error);
+    });
+  }
+
+  function handleWhatsAppPress() {
+    if (!listing?.sellerPhone) return;
+    let phoneNumber = listing.sellerPhone.trim();
+
+    // Remove spaces, hyphens, and parentheses but keep +
+    phoneNumber = phoneNumber.replace(/[\s\-\(\)]/g, "");
+
+    // If phone doesn't start with +, assume it's Pakistan (+92)
+    if (!phoneNumber.startsWith("+")) {
+      // If starts with 0, remove it and add +92
+      if (phoneNumber.startsWith("0")) {
+        phoneNumber = "+92" + phoneNumber.slice(1);
+      } else {
+        phoneNumber = "+92" + phoneNumber;
+      }
+    }
+
+    // WhatsApp URL scheme: whatsapp://send?phone=<phone_number>
+    const whatsappUrl = `whatsapp://send?phone=${phoneNumber}`;
+    Linking.openURL(whatsappUrl).catch((error) => {
+      console.error("WhatsApp launch error:", error);
+      // Fallback: open web version if app not installed
+      Linking.openURL(`https://wa.me/${phoneNumber}`).catch((err) => {
+        console.error("Fallback error:", err);
+      });
     });
   }
 
@@ -353,14 +382,16 @@ export default function ListingDetailScreen() {
             </ThemedText>
           </TouchableOpacity>
 
-          {/* Chat Button */}
+          {/* WhatsApp Button */}
           <TouchableOpacity
             className="flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-full"
             style={{ backgroundColor: theme.black }}
+            onPress={handleWhatsAppPress}
+            disabled={!listing.sellerPhone}
           >
             <AppIcon name="chatbubble-outline" size={18} color={theme.white} />
             <ThemedText type="smallBold" style={{ color: theme.white }}>
-              Chat
+              WhatsApp
             </ThemedText>
           </TouchableOpacity>
         </ThemedView>

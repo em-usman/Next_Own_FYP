@@ -11,12 +11,11 @@ import type { Field } from "@/config/postFields";
 import { useTheme } from "@/hooks/use-theme";
 import React, { useState } from "react";
 import {
-  FlatList,
-  Modal,
-  Switch,
-  TextInput,
-  TouchableOpacity,
-  View,
+    FlatList,
+    Modal,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 export type CommonFormData = {
@@ -676,6 +675,7 @@ export default function CommonListingForm({
         )}
       </View>
 
+      {/*
       <View
         className="flex-row items-center justify-between py-3"
         style={{ borderTopWidth: 1, borderTopColor: theme.border }}
@@ -688,6 +688,7 @@ export default function CommonListingForm({
           thumbColor="#fff"
         />
       </View>
+      */}
     </>
   );
 }

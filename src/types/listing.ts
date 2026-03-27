@@ -19,6 +19,7 @@ export type Listing = {
   category?: string;
   sellerName?: string;
   sellerPhone?: string;
+  hidePhone?: boolean;
   images?: any[];
   details?: Record<string, string>;
 };
