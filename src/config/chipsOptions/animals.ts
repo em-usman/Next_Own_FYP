@@ -6,10 +6,26 @@ export const ANIMAL_FIELD_OPTIONS_BY_SUBCATEGORY: Record<
 > = {
   // Pet Food & Accessories
   "cat-accessories": {
+    accessory_type: [
+      "Collar",
+      "Leash",
+      "Harness",
+      "Litter Tray",
+      "Carrier",
+      "Scratcher",
+    ],
     material: ["Plastic", "Metal", "Rubber", "Wood", "Fabric"],
     condition: ["New", "Used", "Like New"],
   },
   "dog-accessories": {
+    accessory_type: [
+      "Collar",
+      "Leash",
+      "Harness",
+      "Muzzle",
+      "Carrier",
+      "Seat Belt",
+    ],
     size: ["Small", "Medium", "Large", "Extra Large"],
     condition: ["New", "Used", "Like New"],
   },
@@ -20,6 +36,16 @@ export const ANIMAL_FIELD_OPTIONS_BY_SUBCATEGORY: Record<
     condition: ["New", "Used", "Like New"],
   },
   "dog-food": {
+    brand: [
+      "Pedigree",
+      "Royal Canin",
+      "Reflex",
+      "Bonacibo",
+      "Pro Plan",
+      "Josera",
+      "Drools",
+      "SmartHeart",
+    ],
     type: ["Dry Food", "Wet Food", "Semi-Wet"],
     age_group: ["Puppy", "Adult", "Senior", "All Ages"],
     condition: ["New", "Unopened"],
@@ -68,6 +94,7 @@ export const ANIMAL_FIELD_OPTIONS_BY_SUBCATEGORY: Record<
     condition: ["New", "Used", "Like New"],
   },
   "fish-food": {
+    brand: ["Tetra", "Sera", "Hikari", "Taiyo", "Aqua One", "Generic"],
     type: ["Flakes", "Pellets", "Frozen", "Live", "Tablets"],
     condition: ["New", "Unopened"],
   },
@@ -131,10 +158,28 @@ export const ANIMAL_FIELD_OPTIONS_BY_SUBCATEGORY: Record<
     condition: ["New"],
   },
   "birds-food": {
+    brand: [
+      "Versele-Laga",
+      "Vitakraft",
+      "Kaytee",
+      "Tropican",
+      "Polo",
+      "Generic",
+    ],
     type: ["Seeds", "Pellets", "Mix", "Organic"],
     condition: ["New", "Unopened"],
   },
   "cat-food": {
+    brand: [
+      "Whiskas",
+      "Royal Canin",
+      "Me-O",
+      "Reflex",
+      "Purina",
+      "Bonacibo",
+      "Pro Plan",
+      "Josera",
+    ],
     type: ["Dry Food", "Wet Food", "Semi-Wet"],
     age_group: ["Kitten", "Adult", "Senior", "All Ages"],
     condition: ["New", "Unopened"],
@@ -277,6 +322,51 @@ export const ANIMAL_FIELD_OPTIONS_BY_SUBCATEGORY: Record<
   others: {
     health_status: ["Healthy", "Good Health", "Fair Health"],
     origin: ["Local", "Imported"],
+    condition: ["Excellent", "Good", "Fair"],
+  },
+  "other-animals": {
+    animal_group: [
+      "Mammal",
+      "Reptile",
+      "Amphibian",
+      "Farm Animal",
+      "Exotic",
+      "Pet Animal",
+      "Other",
+    ],
+    gender: ["Male", "Female", "Mixed", "Unknown"],
+    health_status: ["Healthy", "Good Health", "Fair Health"],
+    vaccination_status: [
+      "Fully Vaccinated",
+      "Partially Vaccinated",
+      "Not Vaccinated",
+    ],
+    origin: ["Local", "Imported", "Cross-breed"],
+    condition: ["Excellent", "Good", "Fair"],
+  },
+  "other-birds": {
+    bird_type: [
+      "Parrot",
+      "Canary",
+      "Finch",
+      "Lovebird",
+      "Cockatiel",
+      "Macaw",
+      "Falcon",
+      "Owl",
+      "Pigeon",
+      "Other",
+    ],
+    gender: ["Male", "Female", "Pair", "Unknown"],
+    color: ["White", "Black", "Green", "Mixed"],
+    health_status: ["Healthy", "Good Health", "Fair Health"],
+    vaccination_status: [
+      "Fully Vaccinated",
+      "Partially Vaccinated",
+      "Not Vaccinated",
+    ],
+    origin: ["Local", "Imported", "Bred in Captivity"],
+    cage_included: ["Yes", "No"],
     condition: ["Excellent", "Good", "Fair"],
   },
 };
