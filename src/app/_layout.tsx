@@ -63,6 +63,7 @@ export default function RootLayout() {
         <Stack initialRouteName="(auth)">
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="my-ads" options={{ headerShown: false }} />
           <Stack.Screen name="profile" options={{ headerShown: false }} />
           <Stack.Screen name="feedback" options={{ headerShown: false }} />
           <Stack.Screen name="listing" options={{ headerShown: false }} />

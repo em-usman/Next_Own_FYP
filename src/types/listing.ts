@@ -1,4 +1,5 @@
 export type Condition = "New" | "Used" | "Refurbished";
+export type ListingStatus = "active" | "deactivated" | "sold";
 
 export type Listing = {
   // Required fields (every listing must have these)
@@ -20,6 +21,7 @@ export type Listing = {
   sellerName?: string;
   sellerPhone?: string;
   hidePhone?: boolean;
+  status?: ListingStatus;
   images?: any[];
   details?: Record<string, string>;
 };

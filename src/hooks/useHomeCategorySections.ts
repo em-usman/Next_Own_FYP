@@ -41,6 +41,15 @@ type UseHomeCategorySectionsResult = {
 
 const FALLBACK_IMAGE = require("../../assets/categories/mobile.png");
 
+function normalizeStatus(status?: string): NonNullable<Listing["status"]> {
+  const normalized = (status || "").toLowerCase().trim();
+  if (normalized === "sold") return "sold";
+  if (normalized === "deactivated" || normalized === "deactivate") {
+    return "deactivated";
+  }
+  return "active";
+}
+
 function formatPrice(price?: number): string {
   if (typeof price !== "number" || Number.isNaN(price)) return "Price not set";
   return `Rs ${price.toLocaleString("en-PK")}`;
@@ -92,6 +101,7 @@ function toListing(
     sellerName: post.contactName || "",
     sellerPhone: post.contactPhone || "",
     hidePhone: post.hidePhone || false,
+    status: normalizeStatus(post.status),
     brand: details.brand || "",
     model: details.model || "",
     color: details.color || "",
@@ -141,7 +151,7 @@ export function useHomeCategorySections(
         (snap) => {
           const activeListings = snap.docs
             .map((doc) => ({ id: doc.id, ...(doc.data() as FirestorePost) }))
-            .filter((doc) => doc.status === "active")
+            .filter((doc) => normalizeStatus(doc.status) === "active")
             .slice(0, postsPerCategory)
             .map((doc) => toListing(doc.id, doc, category.label));
 

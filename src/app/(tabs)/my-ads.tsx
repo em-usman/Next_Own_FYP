@@ -1,200 +1,345 @@
-import { Image } from "expo-image";
-import { SymbolView } from "expo-symbols";
-import React from "react";
-import { Platform, Pressable, ScrollView, StyleSheet } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import React, { useMemo, useState } from "react";
+import {
+    ActivityIndicator,
+    Alert,
+    Image,
+    ScrollView,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
-import { ExternalLink } from "@/components/external-link";
+import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Collapsible } from "@/components/ui/collapsible";
-import { WebBadge } from "@/components/web-badge";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { useMyAds, type MyAd, type MyAdStatus } from "@/hooks/useMyAds";
+import { usePost, type ManagedPostStatus } from "@/hooks/usePost";
 
-export default function MyAds() {
-  const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
+const FALLBACK_IMAGE = require("@/assets/categories/mobile.png");
+
+type StatusFilter = "all" | ManagedPostStatus;
+
+function formatPrice(price: number): string {
+  if (!Number.isFinite(price)) return "Price not set";
+  return `Rs ${price.toLocaleString("en-PK")}`;
+}
+
+function toTimeAgo(createdAt?: string): string {
+  if (!createdAt) return "Just now";
+
+  const created = new Date(createdAt);
+  if (Number.isNaN(created.getTime())) return "Just now";
+
+  const diffMs = Date.now() - created.getTime();
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+
+  if (diffMs < minute) return "Just now";
+  if (diffMs < hour)
+    return `${Math.max(1, Math.floor(diffMs / minute))} min ago`;
+  if (diffMs < day) return `${Math.max(1, Math.floor(diffMs / hour))} hr ago`;
+
+  const days = Math.max(1, Math.floor(diffMs / day));
+  return `${days} day${days > 1 ? "s" : ""} ago`;
+}
+
+function statusMeta(status: MyAdStatus, theme: ReturnType<typeof useTheme>) {
+  if (status === "sold") {
+    return {
+      label: "Sold",
+      bg: "#16A34A22",
+      text: "#16A34A",
+    };
+  }
+
+  if (status === "deactivated") {
+    return {
+      label: "Deactivated",
+      bg: `${theme.textMuted}22`,
+      text: theme.textMuted,
+    };
+  }
+
+  return {
+    label: "Active",
+    bg: `${theme.primary}22`,
+    text: theme.primary,
   };
+}
+
+function StatusActionButton({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
   const theme = useTheme();
 
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
-  });
-
   return (
-    <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}
+    <TouchableOpacity
+      onPress={onPress}
+      className="px-3 py-1.5 rounded-full"
+      style={{
+        borderWidth: 1,
+        borderColor: selected ? theme.primary : theme.border,
+        backgroundColor: selected ? `${theme.primary}1A` : "transparent",
+      }}
     >
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="subtitle">Explore</ThemedText>
-          <ThemedText style={styles.centerText} themeColor="textSecondary">
-            This starter app includes example{"\n"}code to help you get started.
-          </ThemedText>
-
-          <ExternalLink href="https://docs.expo.dev" asChild>
-            <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedView type="backgroundElement" style={styles.linkButton}>
-                <ThemedText type="link">Expo documentation</ThemedText>
-                <SymbolView
-                  tintColor={theme.text}
-                  name={{
-                    ios: "arrow.up.right.square",
-                    android: "link",
-                    web: "link",
-                  }}
-                  size={12}
-                />
-              </ThemedView>
-            </Pressable>
-          </ExternalLink>
-        </ThemedView>
-
-        <ThemedView style={styles.sectionsWrapper}>
-          <Collapsible title="File-based routing">
-            <ThemedText type="small">
-              This app has two screens:{" "}
-              <ThemedText type="code">src/app/index.tsx</ThemedText> and{" "}
-              <ThemedText type="code">src/app/explore.tsx</ThemedText>
-            </ThemedText>
-            <ThemedText type="small">
-              The layout file in{" "}
-              <ThemedText type="code">src/app/_layout.tsx</ThemedText> sets up
-              the tab navigator.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/router/introduction">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Android, iOS, and web support">
-            <ThemedView
-              type="backgroundElement"
-              style={styles.collapsibleContent}
-            >
-              <ThemedText type="small">
-                You can open this project on Android, iOS, and the web. To open
-                the web version, press{" "}
-                <ThemedText type="smallBold">w</ThemedText> in the terminal
-                running this project.
-              </ThemedText>
-              <Image
-                source={require("@/assets/images/tutorial-web.png")}
-                style={styles.imageTutorial}
-              />
-            </ThemedView>
-          </Collapsible>
-
-          <Collapsible title="Images">
-            <ThemedText type="small">
-              For static images, you can use the{" "}
-              <ThemedText type="code">@2x</ThemedText> and{" "}
-              <ThemedText type="code">@3x</ThemedText> suffixes to provide files
-              for different screen densities.
-            </ThemedText>
-            <Image
-              source={require("@/assets/images/react-logo.png")}
-              style={styles.imageReact}
-            />
-            <ExternalLink href="https://reactnative.dev/docs/images">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Light and dark mode components">
-            <ThemedText type="small">
-              This template has light and dark mode support. The{" "}
-              <ThemedText type="code">useColorScheme()</ThemedText> hook lets
-              you inspect what the user&apos;s current color scheme is, and so
-              you can adjust UI colors accordingly.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Animations">
-            <ThemedText type="small">
-              This template includes an example of an animated component. The{" "}
-              <ThemedText type="code">
-                src/components/ui/collapsible.tsx
-              </ThemedText>{" "}
-              component uses the powerful{" "}
-              <ThemedText type="code">react-native-reanimated</ThemedText>{" "}
-              library to animate opening this hint.
-            </ThemedText>
-          </Collapsible>
-        </ThemedView>
-        {Platform.OS === "web" && <WebBadge />}
-      </ThemedView>
-    </ScrollView>
+      <ThemedText
+        type="small"
+        style={{ color: selected ? theme.primary : theme.textSecondary }}
+      >
+        {label}
+      </ThemedText>
+    </TouchableOpacity>
   );
 }
 
-const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-  },
-  container: {
-    maxWidth: MaxContentWidth,
-    flexGrow: 1,
-  },
-  titleContainer: {
-    gap: Spacing.three,
-    alignItems: "center",
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.six,
-  },
-  centerText: {
-    textAlign: "center",
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  linkButton: {
-    flexDirection: "row",
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
-    justifyContent: "center",
-    gap: Spacing.one,
-    alignItems: "center",
-  },
-  sectionsWrapper: {
-    gap: Spacing.five,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
-  },
-  collapsibleContent: {
-    alignItems: "center",
-  },
-  imageTutorial: {
-    width: "100%",
-    aspectRatio: 296 / 171,
-    borderRadius: Spacing.three,
-    marginTop: Spacing.two,
-  },
-  imageReact: {
-    width: 100,
-    height: 100,
-    alignSelf: "center",
-  },
-});
+function AdCard({
+  ad,
+  onChangeStatus,
+  onDelete,
+  pending,
+}: {
+  ad: MyAd;
+  onChangeStatus: (status: ManagedPostStatus) => void;
+  onDelete: () => void;
+  pending: boolean;
+}) {
+  const theme = useTheme();
+  const meta = statusMeta(ad.status, theme);
+  const imageUri = ad.coverImage || ad.images?.[0] || "";
+
+  return (
+    <ThemedView
+      type="backgroundElement"
+      className="rounded-2xl border p-3 gap-3"
+      style={{ borderColor: theme.border }}
+    >
+      <View className="flex-row gap-3">
+        <Image
+          source={imageUri ? { uri: imageUri } : FALLBACK_IMAGE}
+          style={{ width: 92, height: 92, borderRadius: 12 }}
+          resizeMode="cover"
+        />
+
+        <View className="flex-1 gap-1">
+          <View className="flex-row items-center justify-between">
+            <ThemedText
+              type="smallBold"
+              style={{ fontSize: 15, flex: 1 }}
+              numberOfLines={1}
+            >
+              {ad.title}
+            </ThemedText>
+            <View
+              className="px-2 py-1 rounded-full"
+              style={{ backgroundColor: meta.bg }}
+            >
+              <ThemedText
+                type="smallBold"
+                style={{ color: meta.text, fontSize: 11 }}
+              >
+                {meta.label}
+              </ThemedText>
+            </View>
+          </View>
+
+          <ThemedText type="smallBold">{formatPrice(ad.price)}</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+            {ad.location || "Location not set"}
+          </ThemedText>
+          <ThemedText type="small" themeColor="textMuted">
+            {toTimeAgo(ad.createdAt)}
+          </ThemedText>
+        </View>
+      </View>
+
+      <View className="flex-row gap-2">
+        <TouchableOpacity
+          className="rounded-xl py-2.5 items-center border"
+          style={{ borderColor: theme.border, flex: 1 }}
+          onPress={() =>
+            router.push({ pathname: "/my-ads/[id]", params: { id: ad.id } })
+          }
+        >
+          <ThemedText type="smallBold">View</ThemedText>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="rounded-xl py-2.5 items-center border"
+          style={{ borderColor: theme.border, flex: 1 }}
+          onPress={() =>
+            router.push({
+              pathname: "/my-ads/edit/[id]",
+              params: { id: ad.id },
+            })
+          }
+        >
+          <ThemedText type="smallBold">Edit</ThemedText>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="rounded-xl py-2.5 items-center border"
+          style={{ borderColor: theme.error, flex: 1 }}
+          onPress={onDelete}
+        >
+          <ThemedText type="smallBold" style={{ color: theme.error }}>
+            Delete
+          </ThemedText>
+        </TouchableOpacity>
+      </View>
+
+      <View className="flex-row gap-2">
+        <StatusActionButton
+          label="Active"
+          selected={ad.status === "active"}
+          onPress={() => onChangeStatus("active")}
+        />
+        <StatusActionButton
+          label="Deactivate"
+          selected={ad.status === "deactivated"}
+          onPress={() => onChangeStatus("deactivated")}
+        />
+        <StatusActionButton
+          label="Sold"
+          selected={ad.status === "sold"}
+          onPress={() => onChangeStatus("sold")}
+        />
+        {pending && <ActivityIndicator size="small" color={theme.primary} />}
+      </View>
+    </ThemedView>
+  );
+}
+
+export default function MyAdsScreen() {
+  const theme = useTheme();
+  const { ads, isLoading, errorMessage } = useMyAds();
+  const { updatePostStatus, deletePost } = usePost();
+  const [filter, setFilter] = useState<StatusFilter>("all");
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const filteredAds = useMemo(() => {
+    if (filter === "all") return ads;
+    return ads.filter((ad) => ad.status === filter);
+  }, [ads, filter]);
+
+  async function handleStatusChange(adId: string, status: ManagedPostStatus) {
+    setUpdatingId(adId);
+    await updatePostStatus(adId, status);
+    setUpdatingId(null);
+  }
+
+  function handleDelete(adId: string) {
+    Alert.alert("Delete Ad", "Are you sure you want to delete this ad?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          setUpdatingId(adId);
+          await deletePost(adId);
+          setUpdatingId(null);
+        },
+      },
+    ]);
+  }
+
+  return (
+    <ThemedView
+      className="flex-1"
+      style={{ backgroundColor: theme.background }}
+    >
+      <ScrollView
+        contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 100 }}
+      >
+        <View className="gap-1">
+          <ThemedText type="subtitle" style={{ fontSize: 24 }}>
+            My Ads
+          </ThemedText>
+        </View>
+
+        <View className="flex-row gap-2">
+          <StatusActionButton
+            label={`All (${ads.length})`}
+            selected={filter === "all"}
+            onPress={() => setFilter("all")}
+          />
+          <StatusActionButton
+            label="Active"
+            selected={filter === "active"}
+            onPress={() => setFilter("active")}
+          />
+          <StatusActionButton
+            label="Deactivated"
+            selected={filter === "deactivated"}
+            onPress={() => setFilter("deactivated")}
+          />
+          <StatusActionButton
+            label="Sold"
+            selected={filter === "sold"}
+            onPress={() => setFilter("sold")}
+          />
+        </View>
+
+        {isLoading && (
+          <View className="py-16 items-center gap-3">
+            <ActivityIndicator size="large" color={theme.primary} />
+            <ThemedText type="small" themeColor="textSecondary">
+              Loading your ads...
+            </ThemedText>
+          </View>
+        )}
+
+        {!isLoading && !!errorMessage && (
+          <ThemedView
+            type="backgroundElement"
+            className="rounded-2xl p-4 border"
+            style={{ borderColor: theme.border }}
+          >
+            <ThemedText type="small" themeColor="textSecondary">
+              {errorMessage}
+            </ThemedText>
+          </ThemedView>
+        )}
+
+        {!isLoading && !errorMessage && filteredAds.length === 0 && (
+          <ThemedView
+            type="backgroundElement"
+            className="rounded-2xl p-5 border items-center"
+            style={{ borderColor: theme.border }}
+          >
+            <AppIcon name="albums-outline" size={24} color={theme.textMuted} />
+            <ThemedText type="smallBold" className="mt-2">
+              No ads found
+            </ThemedText>
+            <ThemedText
+              type="small"
+              themeColor="textSecondary"
+              style={{ textAlign: "center" }}
+            >
+              Post your first ad or switch filter to see other statuses.
+            </ThemedText>
+          </ThemedView>
+        )}
+
+        {!isLoading &&
+          !errorMessage &&
+          filteredAds.map((ad) => (
+            <AdCard
+              key={ad.id}
+              ad={ad}
+              pending={updatingId === ad.id}
+              onDelete={() => handleDelete(ad.id)}
+              onChangeStatus={(status) => handleStatusChange(ad.id, status)}
+            />
+          ))}
+      </ScrollView>
+    </ThemedView>
+  );
+}

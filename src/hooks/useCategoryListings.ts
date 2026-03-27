@@ -11,6 +11,8 @@ import { CATEGORIES } from "@/config/categoryConfig";
 import type { Listing } from "@/types/listing";
 import { db } from "../../firebaseConfig";
 
+type StatusFilter = "all" | NonNullable<Listing["status"]>;
+
 type FirestorePost = {
   title?: string;
   price?: number;
@@ -34,9 +36,20 @@ type UseCategoryListingsResult = {
   errorMessage: string;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  statusFilter: StatusFilter;
+  setStatusFilter: (status: StatusFilter) => void;
 };
 
 const FALLBACK_IMAGE = require("../../assets/categories/mobile.png");
+
+function normalizeStatus(status?: string): NonNullable<Listing["status"]> {
+  const normalized = (status || "").toLowerCase().trim();
+  if (normalized === "sold") return "sold";
+  if (normalized === "deactivated" || normalized === "deactivate") {
+    return "deactivated";
+  }
+  return "active";
+}
 
 function formatPrice(price?: number): string {
   if (typeof price !== "number" || Number.isNaN(price)) return "Price not set";
@@ -89,6 +102,7 @@ function toListing(
     sellerName: post.contactName || "",
     sellerPhone: post.contactPhone || "",
     hidePhone: post.hidePhone || false,
+    status: normalizeStatus(post.status),
     brand: details.brand || "",
     model: details.model || "",
     color: details.color || "",
@@ -104,6 +118,7 @@ export function useCategoryListings(
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("active");
 
   const categoryLabel = useMemo(() => {
     const category = CATEGORIES.find((c) => c.id === categoryId);
@@ -120,12 +135,12 @@ export function useCategoryListings(
     const unsubscribe = onSnapshot(
       postsQuery,
       (snap) => {
-        const activeListings = snap.docs
+        const mappedListings = snap.docs
           .map((doc) => ({ id: doc.id, ...(doc.data() as FirestorePost) }))
-          .filter((doc) => doc.status === "active")
+          .filter((doc) => normalizeStatus(doc.status) !== "deactivated")
           .map((doc) => toListing(doc.id, doc, categoryLabel));
 
-        setListings(activeListings);
+        setListings(mappedListings);
         setIsLoading(false);
       },
       (error) => {
@@ -141,10 +156,15 @@ export function useCategoryListings(
   }, [categoryId, categoryLabel]);
 
   const filteredListings = useMemo(() => {
-    if (!searchQuery.trim()) return listings;
+    const byStatus =
+      statusFilter === "all"
+        ? listings
+        : listings.filter((listing) => listing.status === statusFilter);
+
+    if (!searchQuery.trim()) return byStatus;
 
     const query = searchQuery.toLowerCase().trim();
-    return listings.filter(
+    return byStatus.filter(
       (listing) =>
         listing.title.toLowerCase().includes(query) ||
         listing.location.toLowerCase().includes(query) ||
@@ -152,7 +172,7 @@ export function useCategoryListings(
         (listing.brand || "").toLowerCase().includes(query) ||
         (listing.model || "").toLowerCase().includes(query),
     );
-  }, [listings, searchQuery]);
+  }, [listings, searchQuery, statusFilter]);
 
   return {
     listings,
@@ -162,5 +182,7 @@ export function useCategoryListings(
     errorMessage,
     searchQuery,
     setSearchQuery,
+    statusFilter,
+    setStatusFilter,
   };
 }

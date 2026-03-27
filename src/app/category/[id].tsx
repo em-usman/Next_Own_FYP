@@ -15,6 +15,38 @@ import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
 import { useCategoryListings } from "@/hooks/useCategoryListings";
 
+function StatusFilterChip({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const theme = useTheme();
+
+  return (
+    <TouchableOpacity
+      className="px-3 py-2 rounded-full border"
+      style={{
+        borderColor: selected ? theme.primary : theme.border,
+        backgroundColor: selected
+          ? `${theme.primary}1A`
+          : theme.backgroundElement,
+      }}
+      onPress={onPress}
+    >
+      <ThemedText
+        type="small"
+        style={{ color: selected ? theme.primary : theme.textSecondary }}
+      >
+        {label}
+      </ThemedText>
+    </TouchableOpacity>
+  );
+}
+
 export default function CategoryListingScreen() {
   const theme = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -27,6 +59,8 @@ export default function CategoryListingScreen() {
     errorMessage,
     searchQuery,
     setSearchQuery,
+    statusFilter,
+    setStatusFilter,
   } = useCategoryListings(categoryId);
 
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
@@ -48,6 +82,8 @@ export default function CategoryListingScreen() {
           headerStyle: { backgroundColor: theme.background },
           headerTintColor: theme.text,
           headerShadowVisible: false,
+          headerBackButtonDisplayMode: "minimal",
+          headerTitleStyle: { fontSize: 18, fontWeight: "700" },
         }}
       />
 
@@ -103,6 +139,24 @@ export default function CategoryListingScreen() {
               </ThemedText>
             </TouchableOpacity>
           </View>
+
+          <View className="flex-row gap-2">
+            <StatusFilterChip
+              label="Active"
+              selected={statusFilter === "active"}
+              onPress={() => setStatusFilter("active")}
+            />
+            <StatusFilterChip
+              label="Sold"
+              selected={statusFilter === "sold"}
+              onPress={() => setStatusFilter("sold")}
+            />
+            <StatusFilterChip
+              label="All"
+              selected={statusFilter === "all"}
+              onPress={() => setStatusFilter("all")}
+            />
+          </View>
         </View>
 
         {/* Content */}
@@ -129,7 +183,7 @@ export default function CategoryListingScreen() {
             <ThemedText type="small" themeColor="textSecondary">
               {searchQuery
                 ? "Try adjusting your search."
-                : `No active posts in ${categoryLabel}.`}
+                : `No ${statusFilter === "all" ? "matching" : statusFilter} posts in ${categoryLabel}.`}
             </ThemedText>
           </View>
         )}

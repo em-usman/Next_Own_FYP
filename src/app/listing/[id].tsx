@@ -1,13 +1,13 @@
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
-  Dimensions,
-  FlatList,
-  Image,
-  Linking,
-  ScrollView,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    FlatList,
+    Image,
+    Linking,
+    ScrollView,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 import { AppIcon } from "@/components/Icons/AppIcon";
@@ -168,6 +168,8 @@ export default function ListingDetailScreen() {
           headerStyle: { backgroundColor: theme.background },
           headerTintColor: theme.text,
           headerShadowVisible: false,
+          headerBackButtonDisplayMode: "minimal",
+          headerTitleStyle: { fontSize: 18, fontWeight: "700" },
         }}
       />
 
