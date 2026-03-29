@@ -10,6 +10,7 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Modal,
   Platform,
   TextInput,
   TouchableOpacity,
@@ -53,6 +54,7 @@ export default function ProfileScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isAvatarPreviewVisible, setIsAvatarPreviewVisible] = useState(false);
   const [form, setForm] = useState({
     displayName: "",
     email: "",
@@ -60,6 +62,8 @@ export default function ProfileScreen() {
     address: "",
     dateOfBirth: "",
   });
+
+  const avatarUri = userData?.imageUri || "https://i.pravatar.cc/150?img=12";
 
   // ✅ +92 hata ke sirf 10 digits show karo
   function stripPhonePrefix(phone: string): string {
@@ -196,20 +200,22 @@ export default function ProfileScreen() {
             {/* Avatar + Name + Edit Button */}
             <View className="items-center mb-8">
               <View style={{ position: "relative", marginBottom: 4 }}>
-                <Image
-                  source={{
-                    uri:
-                      userData.imageUri || "https://i.pravatar.cc/150?img=12",
-                  }}
-                  style={{
-                    width: 96,
-                    height: 96,
-                    borderRadius: 48,
-                    borderWidth: 3,
-                    borderColor: theme.primary,
-                    opacity: isUploading ? 0.6 : 1,
-                  }}
-                />
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => setIsAvatarPreviewVisible(true)}
+                >
+                  <Image
+                    source={{ uri: avatarUri }}
+                    style={{
+                      width: 96,
+                      height: 96,
+                      borderRadius: 48,
+                      borderWidth: 3,
+                      borderColor: theme.primary,
+                      opacity: isUploading ? 0.6 : 1,
+                    }}
+                  />
+                </TouchableOpacity>
                 <TouchableOpacity
                   onPress={pickAndUploadAvatar}
                   disabled={isUploading}
@@ -608,6 +614,37 @@ export default function ProfileScreen() {
               ) : null}
             </ThemedView>
           </KeyboardAwareScrollView>
+
+          <Modal
+            visible={isAvatarPreviewVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setIsAvatarPreviewVisible(false)}
+          >
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: "rgba(0,0,0,0.92)",
+                justifyContent: "center",
+                alignItems: "center",
+                paddingHorizontal: 20,
+              }}
+            >
+              <TouchableOpacity
+                className="absolute top-14 right-6 w-10 h-10 rounded-full items-center justify-center"
+                style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
+                onPress={() => setIsAvatarPreviewVisible(false)}
+              >
+                <AppIcon family="ion" name="close" size={22} color="#fff" />
+              </TouchableOpacity>
+
+              <Image
+                source={{ uri: avatarUri }}
+                style={{ width: "100%", height: "70%", borderRadius: 18 }}
+                resizeMode="contain"
+              />
+            </View>
+          </Modal>
         </ThemedView>
       )}
     </>
