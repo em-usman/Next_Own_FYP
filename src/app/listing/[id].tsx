@@ -15,6 +15,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
 import { useCart } from "@/hooks/useCart";
+import { useFavourites } from "@/hooks/useFavourites";
 
 const { width } = Dimensions.get("window");
 
@@ -70,6 +71,12 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 export default function ListingDetailScreen() {
   const theme = useTheme();
   const { addToCart, removeFromCart, isInCart, isUpdating } = useCart();
+  const {
+    addToFavourites,
+    removeFromFavourites,
+    isFavourite,
+    isUpdating: isFavouritesUpdating,
+  } = useFavourites();
   const { data } = useLocalSearchParams<{ data?: string | string[] }>();
   const rawData = Array.isArray(data) ? data[0] : data;
   let listing: ListingDetailsPayload | null = null;
@@ -86,7 +93,6 @@ export default function ListingDetailScreen() {
     listing?.imageUrls?.filter((item) => !!item) ||
     (listing?.imageUri ? [listing.imageUri] : []);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isWishlisted, setIsWishlisted] = useState(false);
 
   const renderedFixedDetailKeys = new Set([
     "category",
@@ -174,6 +180,40 @@ export default function ListingDetailScreen() {
     });
   }
 
+  async function handleFavouritePress() {
+    if (!listing) return;
+    const alreadyFavourite = isFavourite(listing.id);
+
+    if (alreadyFavourite) {
+      await removeFromFavourites(listing.id);
+      return;
+    }
+
+    const imageUri = imageUrls[0] || "";
+
+    await addToFavourites({
+      postId: listing.id,
+      title: listing.title,
+      price: listing.price,
+      location: listing.location,
+      imageUri,
+      imageUrls,
+      timeAgo: listing.timeAgo,
+      description: listing.description,
+      category: listing.category,
+      brand: listing.brand,
+      model: listing.model,
+      color: listing.color,
+      condition: listing.condition,
+      sellerName: listing.sellerName,
+      sellerPhone: listing.sellerPhone,
+      hidePhone: listing.hidePhone,
+      isFeatured: listing.isFeatured,
+      details: listing.details,
+      status: listing.status,
+    });
+  }
+
   if (!listing) {
     return (
       <ThemedView className="flex-1 items-center justify-center px-6">
@@ -197,6 +237,7 @@ export default function ListingDetailScreen() {
   }
 
   const cartHasItem = isInCart(listing.id);
+  const isWishlisted = isFavourite(listing.id);
 
   return (
     <>
@@ -243,7 +284,8 @@ export default function ListingDetailScreen() {
             <TouchableOpacity
               className="absolute top-12 right-4 w-10 h-10 rounded-full items-center justify-center"
               style={{ backgroundColor: theme.background }}
-              onPress={() => setIsWishlisted((prev) => !prev)}
+              onPress={handleFavouritePress}
+              disabled={isFavouritesUpdating}
             >
               <AppIcon
                 name={isWishlisted ? "heart" : "heart-outline"}

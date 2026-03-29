@@ -5,12 +5,15 @@ import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
+import { useFavourites } from "@/hooks/useFavourites";
 import type { Listing } from "@/types/listing";
 
 const placeholderImage = require("../../../assets/categories/mobile.png");
 
 export function CategoryListItem({ listing }: { listing: Listing }) {
   const theme = useTheme();
+  const { addToFavourites, removeFromFavourites, isFavourite, isUpdating } =
+    useFavourites();
 
   function handlePress() {
     const imageUri =
@@ -39,6 +42,50 @@ export function CategoryListItem({ listing }: { listing: Listing }) {
       },
     });
   }
+
+  async function handleFavouritePress() {
+    const postId = String(listing.id);
+    const imageUri =
+      typeof listing.image === "object" && listing.image?.uri
+        ? String(listing.image.uri)
+        : "";
+    const imageUrls = (listing.images || [])
+      .map((item) => {
+        if (typeof item === "string") return item;
+        if (typeof item === "object" && item?.uri) return String(item.uri);
+        return "";
+      })
+      .filter(Boolean);
+
+    if (isFavourite(postId)) {
+      await removeFromFavourites(postId);
+      return;
+    }
+
+    await addToFavourites({
+      postId,
+      title: listing.title,
+      price: listing.price,
+      location: listing.location,
+      imageUri,
+      imageUrls,
+      timeAgo: listing.timeAgo,
+      description: listing.description,
+      category: listing.category,
+      brand: listing.brand,
+      model: listing.model,
+      color: listing.color,
+      condition: listing.condition,
+      sellerName: listing.sellerName,
+      sellerPhone: listing.sellerPhone,
+      hidePhone: listing.hidePhone,
+      isFeatured: listing.isFeatured,
+      details: listing.details,
+      status: listing.status,
+    });
+  }
+
+  const liked = isFavourite(String(listing.id));
 
   return (
     <TouchableOpacity onPress={handlePress}>
@@ -116,8 +163,14 @@ export function CategoryListItem({ listing }: { listing: Listing }) {
           <TouchableOpacity
             className="w-6 h-6 rounded-full items-center justify-center"
             style={{ backgroundColor: theme.backgroundElement }}
+            onPress={handleFavouritePress}
+            disabled={isUpdating}
           >
-            <AppIcon name="heart-outline" size={14} color={theme.icon} />
+            <AppIcon
+              name={liked ? "heart" : "heart-outline"}
+              size={14}
+              color={liked ? "#EF4444" : theme.icon}
+            />
           </TouchableOpacity>
         </View>
       </ThemedView>

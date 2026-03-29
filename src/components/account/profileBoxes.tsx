@@ -7,6 +7,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
 import { useCart } from "@/hooks/useCart";
+import { useFavourites } from "@/hooks/useFavourites";
 
 const BUTTONS = [
   {
@@ -36,6 +37,7 @@ export default function ProfileBoxes() {
   const router = useRouter();
   const theme = useTheme();
   const { cartCount } = useCart();
+  const { favouriteCount } = useFavourites();
 
   return (
     <ThemedView style={{ marginTop: 24, paddingHorizontal: 16 }}>
@@ -63,6 +65,19 @@ export default function ProfileBoxes() {
                 color={theme.primary}
                 size={26}
               />
+              {btn.id === "favourites" && favouriteCount > 0 && (
+                <View
+                  className="absolute -top-2 -right-3 min-w-[18px] h-[18px] rounded-full items-center justify-center px-1"
+                  style={{ backgroundColor: theme.primary }}
+                >
+                  <ThemedText
+                    type="smallBold"
+                    style={{ color: theme.white, fontSize: 10 }}
+                  >
+                    {favouriteCount > 99 ? "99+" : String(favouriteCount)}
+                  </ThemedText>
+                </View>
+              )}
               {btn.id === "cart" && cartCount > 0 && (
                 <View
                   className="absolute -top-2 -right-3 min-w-[18px] h-[18px] rounded-full items-center justify-center px-1"
