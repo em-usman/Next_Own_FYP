@@ -114,9 +114,12 @@ export default function FavouritesScreen() {
                 onPress={handleClearFavourites}
                 disabled={isUpdating}
               >
-                <ThemedText type="small" style={{ color: theme.error }}>
-                  Clear
-                </ThemedText>
+                <AppIcon
+                  family="material-community"
+                  name="trash-can-outline"
+                  size={16}
+                  color={theme.error}
+                />
               </TouchableOpacity>
             </View>
 
@@ -213,9 +216,12 @@ export default function FavouritesScreen() {
                       onPress={() => removeFromFavourites(item.postId)}
                       disabled={isUpdating}
                     >
-                      <ThemedText type="small" style={{ color: theme.error }}>
-                        Remove
-                      </ThemedText>
+                      <AppIcon
+                        family="material-community"
+                        name="trash-can-outline"
+                        size={16}
+                        color={theme.error}
+                      />
                     </TouchableOpacity>
                   </View>
                 </ThemedView>

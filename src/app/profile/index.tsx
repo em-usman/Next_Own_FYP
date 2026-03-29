@@ -256,12 +256,11 @@ export default function ProfileScreen() {
                 onPress={isEditing ? handleCancel : handleEdit}
                 style={{
                   marginTop: 12,
-                  flexDirection: "row",
                   alignItems: "center",
-                  gap: 4,
-                  paddingHorizontal: 16,
-                  paddingVertical: 6,
-                  borderRadius: 20,
+                  justifyContent: "center",
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
                   borderWidth: 1,
                   borderColor: isEditing ? theme.error : theme.primary,
                   backgroundColor: isEditing
@@ -273,17 +272,8 @@ export default function ProfileScreen() {
                   family="material-community"
                   name={isEditing ? "close" : "pencil-outline"}
                   color={isEditing ? theme.error : theme.primary}
-                  size={16}
+                  size={18}
                 />
-                <ThemedText
-                  type="small"
-                  style={{
-                    color: isEditing ? theme.error : theme.primary,
-                    fontSize: 13,
-                  }}
-                >
-                  {isEditing ? "Cancel Editing" : "Edit Profile"}
-                </ThemedText>
               </TouchableOpacity>
             </View>
 

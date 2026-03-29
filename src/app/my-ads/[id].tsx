@@ -1,3 +1,4 @@
+import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { CATEGORIES } from "@/config/categoryConfig";
@@ -357,7 +358,12 @@ export default function MyAdDetailScreen() {
                     })
                   }
                 >
-                  <ThemedText type="smallBold">Edit</ThemedText>
+                  <AppIcon
+                    family="material-community"
+                    name="pencil-outline"
+                    size={18}
+                    color={theme.text}
+                  />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -421,9 +427,12 @@ export default function MyAdDetailScreen() {
                   style={{ borderColor: theme.error }}
                   onPress={handleDelete}
                 >
-                  <ThemedText type="small" style={{ color: theme.error }}>
-                    Delete
-                  </ThemedText>
+                  <AppIcon
+                    family="material-community"
+                    name="trash-can-outline"
+                    size={18}
+                    color={theme.error}
+                  />
                 </TouchableOpacity>
                 {statusSaving ? (
                   <ActivityIndicator size="small" color={theme.primary} />
