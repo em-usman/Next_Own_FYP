@@ -1,19 +1,20 @@
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
-    Dimensions,
-    FlatList,
-    Image,
-    Linking,
-    ScrollView,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  FlatList,
+  Image,
+  Linking,
+  ScrollView,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
+import { useCart } from "@/hooks/useCart";
 
 const { width } = Dimensions.get("window");
 
@@ -34,6 +35,7 @@ type ListingDetailsPayload = {
   sellerName?: string;
   sellerPhone?: string;
   hidePhone?: boolean;
+  status?: "active" | "deactivated" | "sold";
   isFeatured?: boolean;
   details?: Record<string, string>;
   imageUri?: string;
@@ -67,6 +69,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 
 export default function ListingDetailScreen() {
   const theme = useTheme();
+  const { addToCart, removeFromCart, isInCart, isUpdating } = useCart();
   const { data } = useLocalSearchParams<{ data?: string | string[] }>();
   const rawData = Array.isArray(data) ? data[0] : data;
   let listing: ListingDetailsPayload | null = null;
@@ -137,6 +140,40 @@ export default function ListingDetailScreen() {
     });
   }
 
+  async function handleAddToCartPress() {
+    if (!listing) return;
+    const cartHasItem = isInCart(listing.id);
+
+    if (cartHasItem) {
+      await removeFromCart(listing.id);
+      return;
+    }
+
+    const imageUri = imageUrls[0] || "";
+
+    await addToCart({
+      postId: listing.id,
+      title: listing.title,
+      price: listing.price,
+      location: listing.location,
+      imageUri,
+      imageUrls,
+      timeAgo: listing.timeAgo,
+      description: listing.description,
+      category: listing.category,
+      brand: listing.brand,
+      model: listing.model,
+      color: listing.color,
+      condition: listing.condition,
+      sellerName: listing.sellerName,
+      sellerPhone: listing.sellerPhone,
+      hidePhone: listing.hidePhone,
+      isFeatured: listing.isFeatured,
+      details: listing.details,
+      status: listing.status,
+    });
+  }
+
   if (!listing) {
     return (
       <ThemedView className="flex-1 items-center justify-center px-6">
@@ -158,6 +195,8 @@ export default function ListingDetailScreen() {
       </ThemedView>
     );
   }
+
+  const cartHasItem = isInCart(listing.id);
 
   return (
     <>
@@ -368,7 +407,7 @@ export default function ListingDetailScreen() {
 
         {/* Bottom CTA */}
         <ThemedView
-          className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-3 flex-row gap-3"
+          className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-3 flex-row gap-2"
           style={{ borderTopWidth: 1, borderTopColor: theme.border }}
         >
           {/* Call Button */}
@@ -381,6 +420,30 @@ export default function ListingDetailScreen() {
             <AppIcon name="call-outline" size={18} color={theme.primary} />
             <ThemedText type="smallBold" themeColor="primary">
               Call
+            </ThemedText>
+          </TouchableOpacity>
+
+          {/* Add to Cart Button */}
+          <TouchableOpacity
+            className="flex-1 flex-row items-center justify-center gap-1.5 py-3.5 rounded-full"
+            style={{
+              backgroundColor: cartHasItem ? theme.error : theme.primary,
+            }}
+            onPress={handleAddToCartPress}
+            disabled={
+              isUpdating ||
+              (!cartHasItem &&
+                listing.status !== undefined &&
+                listing.status !== "active")
+            }
+          >
+            <AppIcon
+              name={cartHasItem ? "trash-outline" : "cart-outline"}
+              size={17}
+              color={theme.white}
+            />
+            <ThemedText type="smallBold" style={{ color: theme.white }}>
+              {cartHasItem ? "Remove" : "Add Cart"}
             </ThemedText>
           </TouchableOpacity>
 

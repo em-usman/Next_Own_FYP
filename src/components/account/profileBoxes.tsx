@@ -6,6 +6,7 @@ import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
+import { useCart } from "@/hooks/useCart";
 
 const BUTTONS = [
   {
@@ -34,6 +35,7 @@ const BUTTONS = [
 export default function ProfileBoxes() {
   const router = useRouter();
   const theme = useTheme();
+  const { cartCount } = useCart();
 
   return (
     <ThemedView style={{ marginTop: 24, paddingHorizontal: 16 }}>
@@ -54,12 +56,27 @@ export default function ProfileBoxes() {
               borderColor: theme.border,
             }}
           >
-            <AppIcon
-              family={btn.icon.family}
-              name={btn.icon.name}
-              color={theme.primary}
-              size={26}
-            />
+            <View style={{ position: "relative" }}>
+              <AppIcon
+                family={btn.icon.family}
+                name={btn.icon.name}
+                color={theme.primary}
+                size={26}
+              />
+              {btn.id === "cart" && cartCount > 0 && (
+                <View
+                  className="absolute -top-2 -right-3 min-w-[18px] h-[18px] rounded-full items-center justify-center px-1"
+                  style={{ backgroundColor: theme.primary }}
+                >
+                  <ThemedText
+                    type="smallBold"
+                    style={{ color: theme.white, fontSize: 10 }}
+                  >
+                    {cartCount > 99 ? "99+" : String(cartCount)}
+                  </ThemedText>
+                </View>
+              )}
+            </View>
             <ThemedText type="small" themeColor="textSecondary">
               {btn.label}
             </ThemedText>
