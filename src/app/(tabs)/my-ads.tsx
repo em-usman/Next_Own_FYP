@@ -168,7 +168,12 @@ function AdCard({
             router.push({ pathname: "/my-ads/[id]", params: { id: ad.id } })
           }
         >
-          <ThemedText type="smallBold">View</ThemedText>
+          <AppIcon
+            family="ion"
+            name="eye-outline"
+            size={18}
+            color={theme.text}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -181,7 +186,12 @@ function AdCard({
             })
           }
         >
-          <ThemedText type="smallBold">Edit</ThemedText>
+          <AppIcon
+            family="material-community"
+            name="pencil-outline"
+            size={18}
+            color={theme.text}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -189,9 +199,12 @@ function AdCard({
           style={{ borderColor: theme.error, flex: 1 }}
           onPress={onDelete}
         >
-          <ThemedText type="smallBold" style={{ color: theme.error }}>
-            Delete
-          </ThemedText>
+          <AppIcon
+            family="material-community"
+            name="trash-can-outline"
+            size={18}
+            color={theme.error}
+          />
         </TouchableOpacity>
       </View>
 

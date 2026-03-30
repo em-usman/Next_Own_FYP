@@ -1,12 +1,12 @@
 import { router, Stack } from "expo-router";
 import { useEffect } from "react";
 import {
-       ActivityIndicator,
-       Alert,
-       Image,
-       ScrollView,
-       TouchableOpacity,
-       View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { AppIcon } from "@/components/Icons/AppIcon";
@@ -207,7 +207,12 @@ export default function FavouritesScreen() {
                         })
                       }
                     >
-                      <ThemedText type="small">View</ThemedText>
+                      <AppIcon
+                        family="ion"
+                        name="eye-outline"
+                        size={16}
+                        color={theme.text}
+                      />
                     </TouchableOpacity>
 
                     <TouchableOpacity
