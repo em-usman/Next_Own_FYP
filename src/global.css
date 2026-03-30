@@ -13,10 +13,10 @@
   outline: none;
 }
 
-/* Keep keyboard focus accessible, but avoid OS accent (often green) by using our brand blue. */
+/* Keep keyboard focus accessible with the app accent color. */
 #app-tabs-tablist a:focus-visible,
 #app-tabs-tablist button:focus-visible {
-  outline: 2px solid rgba(10, 102, 217, 0.55);
+  outline: 2px solid rgba(3, 186, 187, 0.55);
   outline-offset: 2px;
 }
 
@@ -33,31 +33,31 @@
   --font-serif: Georgia, "Times New Roman", serif;
 
   /* Primary Colors */
-  --color-primary: #0a66d9;
-  --color-primary-light: #5b9eff;
-  --color-primary-dark: #0052b8;
+  --color-primary: #03babb;
+  --color-primary-light: #7bf7cf;
+  --color-primary-dark: #141414;
 
   /* Neutral Colors */
   --color-text-primary: #000000;
-  --color-text-secondary: #60646c;
-  --color-text-light: #999999;
+  --color-text-secondary: #141414;
+  --color-text-light: #141414;
 
   /* Background Colors */
   --color-background: #ffffff;
-  --color-background-secondary: #f0f0f3;
-  --color-background-tertiary: #e8e8eb;
+  --color-background-secondary: #ffffff;
+  --color-background-tertiary: #7bf7cf;
 
   /* Border Colors */
-  --color-border: #d1d1d6;
-  --color-border-light: #e8e8eb;
+  --color-border: #141414;
+  --color-border-light: #7bf7cf;
 
   /* Status Colors */
-  --color-error: #ff3b30;
-  --color-error-light: #ffe5e1;
-  --color-success: #34c759;
-  --color-success-light: #e8f6e8;
+  --color-error: #ff3b59;
+  --color-error-light: #ff5e77;
+  --color-success: #03babb;
+  --color-success-light: #7bf7cf;
 
   /* Icon Colors */
-  --color-icon-primary: #0a66d9;
-  --color-icon-secondary: #60646c;
+  --color-icon-primary: #03babb;
+  --color-icon-secondary: #141414;
 }

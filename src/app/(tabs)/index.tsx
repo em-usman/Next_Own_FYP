@@ -56,7 +56,7 @@ export default function HomeScreen() {
           {
             zIndex: 10,
             backgroundColor: theme.background,
-            shadowColor: "#000",
+            shadowColor: "#000000",
             shadowOffset: { width: 0, height: 2 },
             shadowRadius: 6,
             paddingTop: 52,

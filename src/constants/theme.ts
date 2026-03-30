@@ -3,77 +3,63 @@ import { Platform } from "react-native";
 
 export const Colors = {
   light: {
-    // Base
-    text: "#111827", // gray-900
-    textSecondary: "#6B7280", // gray-500
-    textMuted: "#9CA3AF", // gray-400
-    textInverse: "#FFFFFF", // white text on dark bg
+    text: "#141414",
+    textSecondary: "#141414CC",
+    textMuted: "#14141488",
+    textInverse: "#FFFFFF",
 
-    // Backgrounds
-    background: "#FFFFFF", // main screen bg
-    backgroundHeader: "#000000", // top black header
-    backgroundElement: "#F9FAFB", // gray-50 — inputs, buttons
-    backgroundSelected: "#E5E7EB", // gray-200 — dividers, pressed
+    background: "#FFFFFF",
+    backgroundHeader: "#000000",
+    backgroundElement: "#FFFFFF",
+    backgroundSelected: "#7BF7CF33",
 
-    // Primary / Accent
-    primary: "#2563EB", // blue-600
-    primaryForeground: "#FFFFFF", // text on primary
+    primary: "#03BABB",
+    primaryForeground: "#FFFFFF",
 
-    // Borders
-    border: "#E5E7EB", // gray-200 — default borders
-    borderStrong: "#D1D5DB", // gray-300 — checkbox border
-    borderError: "#F87171", // red-400 — error field border
+    border: "#14141422",
+    borderStrong: "#14141444",
+    borderError: "#FF5E77",
 
-    // Error
-    error: "#EF4444", // red-500
-    errorBackground: "#FEE2E2",
+    error: "#FF3B59",
+    errorBackground: "#FF5E7722",
 
-    // Divider
-    divider: "#E5E7EB", // gray-200
+    divider: "#14141422",
 
-    // Misc
-    icon: "#60646C", // icon color used in inputs
+    icon: "#141414CC",
     black: "#000000",
     white: "#FFFFFF",
 
-    tabActive: "#2563EB",
+    tabActive: "#03BABB",
   },
 
   dark: {
-    // Base
-    text: "#F9FAFB", // near white
-    textSecondary: "#9CA3AF", // muted
-    textMuted: "#6B7280",
-    textInverse: "#FFFFFF", // dark text on light surface
+    text: "#FFFFFF",
+    textSecondary: "#FFFFFFCC",
+    textMuted: "#7BF7CF",
+    textInverse: "#141414",
 
-    // Backgrounds
-    background: "#111827", // dark screen bg
-    backgroundHeader: "#000000", // keep header pure black
-    backgroundElement: "#1F2937", // elevated surfaces, inputs
-    backgroundSelected: "#374151", // pressed/selected
+    background: "#141414",
+    backgroundHeader: "#000000",
+    backgroundElement: "#000000",
+    backgroundSelected: "#03BABB22",
 
-    // Primary / Accent
-    primary: "#60A5FA", // blue-400 — readable on dark
-    primaryForeground: "#FFFFFF",
+    primary: "#7BF7CF",
+    primaryForeground: "#141414",
 
-    // Borders
-    border: "#374151", // gray-700
-    borderStrong: "#4B5563", // gray-600
-    borderError: "#F87171", // red-400 stays same
+    border: "#FFFFFF26",
+    borderStrong: "#FFFFFF40",
+    borderError: "#FF5E77",
 
-    // Error
-    error: "#FCA5A5", // red-300 — softer on dark
-    errorBackground: "#7F1D1D",
+    error: "#FF5E77",
+    errorBackground: "#FF3B5926",
 
-    // Divider
-    divider: "#374151",
+    divider: "#FFFFFF22",
 
-    // Misc
-    icon: "#9CA3AF",
+    icon: "#7BF7CF",
     black: "#000000",
     white: "#FFFFFF",
 
-    tabActive: "#60A5FA",
+    tabActive: "#7BF7CF",
   },
 } as const;
 

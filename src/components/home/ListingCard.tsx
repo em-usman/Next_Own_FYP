@@ -1,5 +1,6 @@
+import * as ExpoLinking from "expo-linking";
 import { router } from "expo-router";
-import { Image, TouchableOpacity, View } from "react-native";
+import { Image, Share, TouchableOpacity, View } from "react-native";
 
 import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
@@ -39,6 +40,21 @@ export function ListingCard({ listing }: { listing: Listing }) {
         data: encodeURIComponent(JSON.stringify(payload)),
       },
     });
+  }
+
+  async function handleSharePress() {
+    const productUrl = ExpoLinking.createURL(`/listing/${listing.id}`, {
+      queryParams: { ref: "share" },
+    });
+
+    try {
+      await Share.share({
+        title: listing.title,
+        message: `${listing.title}\n${listing.price}\n${productUrl}\nAd ID: ${listing.id}`,
+      });
+    } catch (error) {
+      console.error("Share launch error:", error);
+    }
   }
 
   async function handleFavouritePress() {
@@ -99,13 +115,20 @@ export function ListingCard({ listing }: { listing: Listing }) {
             className="w-full h-36"
             resizeMode="cover"
           />
+          <TouchableOpacity
+            className="absolute top-2 right-2 rounded-full p-1.5"
+            style={{ backgroundColor: theme.background }}
+            onPress={handleSharePress}
+          >
+            <AppIcon name="share-social-outline" size={15} color={theme.icon} />
+          </TouchableOpacity>
           {listing.isFeatured && (
             <View
               className="absolute top-2 left-2 px-2 py-0.5 rounded-md"
-              style={{ backgroundColor: "#FBBC05" }}
+              style={{ backgroundColor: "#7BF7CF" }}
             >
               <ThemedText
-                style={{ fontSize: 11, fontWeight: "700", color: "#000" }}
+                style={{ fontSize: 11, fontWeight: "700", color: "#141414" }}
               >
                 Featured
               </ThemedText>
@@ -120,7 +143,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
             <AppIcon
               name={liked ? "heart" : "heart-outline"}
               size={16}
-              color={liked ? "#EF4444" : theme.icon}
+              color={liked ? "#FF3B59" : theme.icon}
             />
           </TouchableOpacity>
         </View>

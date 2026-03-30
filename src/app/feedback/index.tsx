@@ -111,7 +111,7 @@ export default function FeedbackScreen() {
                     family="ion"
                     name={activeRating >= star ? "star" : "star-outline"}
                     size={36}
-                    color={activeRating >= star ? "#F59E0B" : theme.textMuted}
+                    color={activeRating >= star ? "#FF5E77" : theme.textMuted}
                   />
                 </TouchableOpacity>
               ))}
@@ -122,7 +122,7 @@ export default function FeedbackScreen() {
               type="small"
               style={{
                 fontSize: 13,
-                color: rating > 0 ? "#F59E0B" : theme.textMuted,
+                color: rating > 0 ? "#FF5E77" : theme.textMuted,
                 fontWeight: rating > 0 ? "600" : "400",
                 minHeight: 18,
               }}

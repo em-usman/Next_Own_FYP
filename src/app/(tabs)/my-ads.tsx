@@ -49,8 +49,8 @@ function statusMeta(status: MyAdStatus, theme: ReturnType<typeof useTheme>) {
   if (status === "sold") {
     return {
       label: "Sold",
-      bg: "#16A34A22",
-      text: "#16A34A",
+      bg: "#7BF7CF44",
+      text: "#03BABB",
     };
   }
 

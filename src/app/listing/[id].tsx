@@ -1,11 +1,15 @@
+import * as ExpoLinking from "expo-linking";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   Image,
   Linking,
   ScrollView,
+  Share,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -13,9 +17,11 @@ import {
 import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { CATEGORIES } from "@/config/categoryConfig";
 import { useTheme } from "@/hooks/use-theme";
 import { useCart } from "@/hooks/useCart";
 import { useFavourites } from "@/hooks/useFavourites";
+import { db } from "../../../firebaseConfig";
 
 const { width } = Dimensions.get("window");
 
@@ -77,17 +83,123 @@ export default function ListingDetailScreen() {
     isFavourite,
     isUpdating: isFavouritesUpdating,
   } = useFavourites();
-  const { data } = useLocalSearchParams<{ data?: string | string[] }>();
+  const { id, data } = useLocalSearchParams<{
+    id?: string | string[];
+    data?: string | string[];
+  }>();
+  const routeId = Array.isArray(id) ? id[0] : id;
   const rawData = Array.isArray(data) ? data[0] : data;
-  let listing: ListingDetailsPayload | null = null;
+  const parsedListing = useMemo(() => {
+    try {
+      return rawData
+        ? (JSON.parse(decodeURIComponent(rawData)) as ListingDetailsPayload)
+        : null;
+    } catch {
+      return null;
+    }
+  }, [rawData]);
 
-  try {
-    listing = rawData
-      ? (JSON.parse(decodeURIComponent(rawData)) as ListingDetailsPayload)
-      : null;
-  } catch {
-    listing = null;
-  }
+  const [fetchedListing, setFetchedListing] =
+    useState<ListingDetailsPayload | null>(null);
+  const [isResolvingById, setIsResolvingById] = useState(false);
+
+  const listing = parsedListing || fetchedListing;
+
+  useEffect(() => {
+    if (parsedListing) {
+      setFetchedListing(null);
+      setIsResolvingById(false);
+      return;
+    }
+
+    if (!routeId) {
+      setFetchedListing(null);
+      setIsResolvingById(false);
+      return;
+    }
+
+    const listingId = routeId;
+
+    let cancelled = false;
+
+    async function resolveListingById() {
+      setIsResolvingById(true);
+
+      for (const category of CATEGORIES) {
+        const postRef = doc(db, "categories", category.id, "posts", listingId);
+        const snap = await getDoc(postRef);
+        if (!snap.exists()) continue;
+
+        const data = snap.data() as Record<string, any>;
+        const images = Array.isArray(data.images)
+          ? data.images.filter(
+              (item): item is string => typeof item === "string",
+            )
+          : [];
+        const imageUri =
+          typeof data.coverImage === "string" && data.coverImage
+            ? data.coverImage
+            : images[0] || "";
+
+        const resolved: ListingDetailsPayload = {
+          id: snap.id,
+          title:
+            typeof data.title === "string" && data.title.trim().length > 0
+              ? data.title
+              : "Untitled listing",
+          price:
+            typeof data.price === "number" && Number.isFinite(data.price)
+              ? `Rs ${data.price.toLocaleString("en-PK")}`
+              : String(data.price || "Price not set"),
+          location:
+            typeof data.location === "string" && data.location
+              ? data.location
+              : "Location not set",
+          timeAgo: "Just now",
+          description: String(data.description || ""),
+          category: category.label,
+          brand: String(data.brand || ""),
+          model: String(data.model || ""),
+          color: String(data.color || ""),
+          condition: String(data.condition || ""),
+          sellerName: String(data.contactName || data.sellerName || ""),
+          sellerPhone: String(data.contactPhone || data.sellerPhone || ""),
+          hidePhone: Boolean(data.hidePhone),
+          status: data.status,
+          isFeatured: Boolean(data.isFeatured),
+          details:
+            data.details && typeof data.details === "object"
+              ? (data.details as Record<string, string>)
+              : {},
+          imageUri,
+          imageUrls: images.length > 0 ? images : imageUri ? [imageUri] : [],
+        };
+
+        if (!cancelled) {
+          setFetchedListing(resolved);
+          setIsResolvingById(false);
+        }
+        return;
+      }
+
+      if (!cancelled) {
+        setFetchedListing(null);
+        setIsResolvingById(false);
+      }
+    }
+
+    resolveListingById().catch((error) => {
+      console.error("Resolve listing by ID error:", error);
+      if (!cancelled) {
+        setFetchedListing(null);
+        setIsResolvingById(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [parsedListing, routeId]);
 
   const imageUrls =
     listing?.imageUrls?.filter((item) => !!item) ||
@@ -135,15 +247,42 @@ export default function ListingDetailScreen() {
       }
     }
 
-    // WhatsApp URL scheme: whatsapp://send?phone=<phone_number>
-    const whatsappUrl = `whatsapp://send?phone=${phoneNumber}`;
+    const productUrl = ExpoLinking.createURL(`/listing/${listing.id}`, {
+      queryParams: { ref: "whatsapp" },
+    });
+    const message = encodeURIComponent(
+      `Hi, I am interested in this ad: ${listing.title}\n${productUrl}\nAd ID: ${listing.id}`,
+    );
+    const waPhone = phoneNumber.replace(/[^\d]/g, "");
+
+    // WhatsApp URL scheme with prefilled product context.
+    const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${message}`;
     Linking.openURL(whatsappUrl).catch((error) => {
       console.error("WhatsApp launch error:", error);
       // Fallback: open web version if app not installed
-      Linking.openURL(`https://wa.me/${phoneNumber}`).catch((err) => {
-        console.error("Fallback error:", err);
-      });
+      Linking.openURL(`https://wa.me/${waPhone}?text=${message}`).catch(
+        (err) => {
+          console.error("Fallback error:", err);
+        },
+      );
     });
+  }
+
+  async function handleSharePress() {
+    if (!listing) return;
+
+    const productUrl = ExpoLinking.createURL(`/listing/${listing.id}`, {
+      queryParams: { ref: "share" },
+    });
+
+    try {
+      await Share.share({
+        title: listing.title,
+        message: `${listing.title}\n${listing.price}\n${productUrl}\nAd ID: ${listing.id}`,
+      });
+    } catch (error) {
+      console.error("Share launch error:", error);
+    }
   }
 
   async function handleAddToCartPress() {
@@ -212,6 +351,17 @@ export default function ListingDetailScreen() {
       details: listing.details,
       status: listing.status,
     });
+  }
+
+  if (isResolvingById) {
+    return (
+      <ThemedView className="flex-1 items-center justify-center gap-3">
+        <ActivityIndicator size="large" color={theme.primary} />
+        <ThemedText type="small" themeColor="textSecondary">
+          Opening listing...
+        </ThemedText>
+      </ThemedView>
+    );
   }
 
   if (!listing) {
@@ -290,7 +440,7 @@ export default function ListingDetailScreen() {
               <AppIcon
                 name={isWishlisted ? "heart" : "heart-outline"}
                 size={20}
-                color={isWishlisted ? "#EF4444" : theme.icon}
+                color={isWishlisted ? "#FF3B59" : theme.icon}
               />
             </TouchableOpacity>
 
@@ -298,10 +448,10 @@ export default function ListingDetailScreen() {
             {listing.isFeatured && (
               <View
                 className="absolute bottom-3 left-4 px-3 py-1 rounded-lg"
-                style={{ backgroundColor: "#FBBC05" }}
+                style={{ backgroundColor: "#7BF7CF" }}
               >
                 <ThemedText
-                  style={{ fontSize: 12, fontWeight: "700", color: "#000" }}
+                  style={{ fontSize: 12, fontWeight: "700", color: "#141414" }}
                 >
                   Featured
                 </ThemedText>
@@ -330,11 +480,24 @@ export default function ListingDetailScreen() {
           {/* Content */}
           <View className="px-4 pt-4 gap-4">
             {/* Title + Price */}
-            <View className="gap-1">
-              <ThemedText type="subtitle" style={{ fontSize: 22 }}>
-                {listing.price}
-              </ThemedText>
-              <ThemedText type="default">{listing.title}</ThemedText>
+            <View className="flex-row items-start gap-3">
+              <View className="flex-1 gap-1">
+                <ThemedText type="subtitle" style={{ fontSize: 22 }}>
+                  {listing.price}
+                </ThemedText>
+                <ThemedText type="default">{listing.title}</ThemedText>
+              </View>
+              <TouchableOpacity
+                className="w-10 h-10 rounded-full items-center justify-center"
+                style={{ backgroundColor: theme.backgroundSelected }}
+                onPress={handleSharePress}
+              >
+                <AppIcon
+                  name="share-social-outline"
+                  size={20}
+                  color={theme.icon}
+                />
+              </TouchableOpacity>
             </View>
 
             {/* Location + Time */}

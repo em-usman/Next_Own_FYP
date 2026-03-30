@@ -33,7 +33,7 @@ interface AppIconProps {
 export function AppIcon({
   name,
   size = 24,
-  color = "#000",
+  color = "#141414",
   family = "ion",
 }: AppIconProps) {
   switch (family) {

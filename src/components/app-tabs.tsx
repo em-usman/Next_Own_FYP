@@ -13,7 +13,7 @@ function getReadableTextColor(backgroundHex: string) {
   const green = Number.parseInt(sanitized.slice(2, 4), 16);
   const blue = Number.parseInt(sanitized.slice(4, 6), 16);
   const brightness = (red * 299 + green * 587 + blue * 114) / 1000;
-  return brightness >= 140 ? "#111111" : "#FFFFFF";
+  return brightness >= 140 ? "#141414" : "#FFFFFF";
 }
 
 export default function AppTabs() {

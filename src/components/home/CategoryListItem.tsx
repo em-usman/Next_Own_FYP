@@ -111,10 +111,10 @@ export function CategoryListItem({ listing }: { listing: Listing }) {
           {listing.isFeatured && (
             <View
               className="absolute top-1 left-1 px-1.5 py-0.5 rounded"
-              style={{ backgroundColor: "#FBBC05" }}
+              style={{ backgroundColor: "#7BF7CF" }}
             >
               <ThemedText
-                style={{ fontSize: 9, fontWeight: "700", color: "#000" }}
+                style={{ fontSize: 9, fontWeight: "700", color: "#141414" }}
               >
                 Featured
               </ThemedText>
@@ -169,7 +169,7 @@ export function CategoryListItem({ listing }: { listing: Listing }) {
             <AppIcon
               name={liked ? "heart" : "heart-outline"}
               size={14}
-              color={liked ? "#EF4444" : theme.icon}
+              color={liked ? "#FF3B59" : theme.icon}
             />
           </TouchableOpacity>
         </View>
