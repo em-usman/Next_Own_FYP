@@ -1,5 +1,6 @@
+import * as ExpoLinking from "expo-linking";
 import { router } from "expo-router";
-import { Image, TouchableOpacity, View } from "react-native";
+import { Image, Share, TouchableOpacity, View } from "react-native";
 
 import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
@@ -85,6 +86,21 @@ export function CategoryListItem({ listing }: { listing: Listing }) {
     });
   }
 
+  async function handleSharePress() {
+    const productUrl = ExpoLinking.createURL(`/listing/${listing.id}`, {
+      queryParams: { ref: "share" },
+    });
+
+    try {
+      await Share.share({
+        title: listing.title,
+        message: `${listing.title}\n${listing.price}\n${productUrl}\nAd ID: ${listing.id}`,
+      });
+    } catch (error) {
+      console.error("Share launch error:", error);
+    }
+  }
+
   const liked = isFavourite(String(listing.id));
 
   return (
@@ -158,8 +174,15 @@ export function CategoryListItem({ listing }: { listing: Listing }) {
           </View>
         </View>
 
-        {/* Wishlist */}
-        <View className="justify-start pt-1">
+        {/* Actions */}
+        <View className="justify-start pt-1 gap-2">
+          <TouchableOpacity
+            className="w-6 h-6 rounded-full items-center justify-center"
+            style={{ backgroundColor: theme.backgroundElement }}
+            onPress={handleSharePress}
+          >
+            <AppIcon name="share-social-outline" size={13} color={theme.icon} />
+          </TouchableOpacity>
           <TouchableOpacity
             className="w-6 h-6 rounded-full items-center justify-center"
             style={{ backgroundColor: theme.backgroundElement }}
