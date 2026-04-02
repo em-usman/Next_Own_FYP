@@ -9,8 +9,8 @@ import {
   where,
 } from "firebase/firestore";
 import { useState } from "react";
-import { Platform } from "react-native";
-import Toast from "react-native-toast-message";
+import { Alert, Platform } from "react-native";
+import Toast, { ToastShowParams } from "react-native-toast-message";
 import { auth, db } from "../../firebaseConfig";
 
 export type FeedbackCategory = "general" | "bug" | "suggestion" | "complaint";
@@ -24,6 +24,22 @@ type FeedbackPayload = {
 type UseFeedbackReturn = {
   isSubmitting: boolean;
   submitFeedback: (payload: FeedbackPayload) => Promise<boolean>;
+};
+
+// Safely show toast or fallback to Alert
+const showNotification = (options: ToastShowParams) => {
+  try {
+    if (Toast && typeof Toast.show === "function") {
+      Toast.show(options);
+    } else {
+      // Fallback to Alert if Toast is not available
+      Alert.alert(options.text1 || "Notification", options.text2 || "");
+    }
+  } catch (error) {
+    console.error("Toast notification error:", error);
+    // Final fallback to Alert
+    Alert.alert(options.text1 || "Notification", options.text2 || "");
+  }
 };
 
 export const useFeedback = (): UseFeedbackReturn => {
@@ -49,7 +65,7 @@ export const useFeedback = (): UseFeedbackReturn => {
     const uid = auth.currentUser?.uid;
 
     if (!uid) {
-      Toast.show({
+      showNotification({
         type: "error",
         text1: "Error",
         text2: "Please login to submit feedback.",
@@ -59,7 +75,7 @@ export const useFeedback = (): UseFeedbackReturn => {
     }
 
     if (!payload.message.trim()) {
-      Toast.show({
+      showNotification({
         type: "error",
         text1: "Empty Message",
         text2: "Please write something before submitting.",
@@ -69,7 +85,7 @@ export const useFeedback = (): UseFeedbackReturn => {
     }
 
     if (payload.rating === 0) {
-      Toast.show({
+      showNotification({
         type: "error",
         text1: "Rating Required",
         text2: "Please select a star rating.",
@@ -83,7 +99,7 @@ export const useFeedback = (): UseFeedbackReturn => {
 
       const canSubmit = await checkCanSubmit(uid);
       if (!canSubmit) {
-        Toast.show({
+        showNotification({
           type: "error",
           text1: "Too Soon",
           text2: "You can submit feedback once every 24 hours.",
@@ -103,7 +119,7 @@ export const useFeedback = (): UseFeedbackReturn => {
         createdAt: new Date().toISOString(),
       });
 
-      Toast.show({
+      showNotification({
         type: "success",
         text1: "Thank you!",
         text2: "Your feedback has been submitted.",
@@ -121,7 +137,7 @@ export const useFeedback = (): UseFeedbackReturn => {
         message = "Access denied. Please login again.";
       }
 
-      Toast.show({
+      showNotification({
         type: "error",
         text1: "Error",
         text2: message,

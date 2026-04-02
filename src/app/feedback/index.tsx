@@ -36,11 +36,15 @@ export default function FeedbackScreen() {
   const STAR_LABELS = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
 
   async function handleSubmit() {
-    const success = await submitFeedback({ rating, message, category });
-    if (success) {
-      setRating(0);
-      setMessage("");
-      setCategory("general");
+    try {
+      const success = await submitFeedback({ rating, message, category });
+      if (success) {
+        setRating(0);
+        setMessage("");
+        setCategory("general");
+      }
+    } catch (error) {
+      console.error("Feedback submission error:", error);
     }
   }
 
