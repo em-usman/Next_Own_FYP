@@ -1,12 +1,12 @@
 import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    ScrollView,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { AppIcon } from "@/components/Icons/AppIcon";
@@ -15,8 +15,6 @@ import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
 import { useMyAds, type MyAd, type MyAdStatus } from "@/hooks/useMyAds";
 import { usePost, type ManagedPostStatus } from "@/hooks/usePost";
-
-const FALLBACK_IMAGE = require("@/assets/categories/mobile.png");
 
 type StatusFilter = "all" | ManagedPostStatus;
 
@@ -123,7 +121,7 @@ function AdCard({
     >
       <View className="flex-row gap-3">
         <Image
-          source={imageUri ? { uri: imageUri } : FALLBACK_IMAGE}
+          source={imageUri ? { uri: imageUri } : undefined}
           style={{ width: 92, height: 92, borderRadius: 12 }}
           resizeMode="cover"
         />

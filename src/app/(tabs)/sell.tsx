@@ -14,10 +14,21 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// ✅ Local assets — assets/categories/ folder se
 const CATEGORY_IMAGES: Record<string, any> = {
-  mobiles: require("@/assets/categories/mobile.png"),
-  vehicles: require("@/assets/categories/mobile.png"),
+  mobiles: require("../../../assets/categories/mobileIcon.webp"),
+  vehicles: require("../../../assets/categories/vehicleIcon.webp"),
+  "property-for-rent": require("../../../assets/categories/rentPropertyIcon.webp"),
+  "property-for-sale": require("../../../assets/categories/salePropertyIcon.webp"),
+  services: require("../../../assets/categories/serviceIcon.webp"),
+  "electronics-home-appliances": require("../../../assets/categories/electronicsIcon.webp"),
+  "business-industries-agriculture": require("../../../assets/categories/businessIcon.webp"),
+  bike: require("../../../assets/categories/bikeIcon.webp"),
+  jobs: require("../../../assets/categories/jobIcon.webp"),
+  "furniture-home-decor": require("../../../assets/categories/furnitureIcon.webp"),
+  "fashion-beauty": require("../../../assets/categories/fashionBeautyIcon.webp"),
+  "books-sports-hobbies": require("../../../assets/categories/booksIcon.webp"),
+  kids: require("../../../assets/categories/kidIcon.webp"),
+  animals: require("../../../assets/categories/animalIcon.webp"),
 };
 
 const POPULAR_IDS = ["mobiles", "vehicles"];
@@ -82,15 +93,11 @@ export default function Sell() {
             alignItems: "center",
           }}
         >
-          {CATEGORY_IMAGES[id] ? (
-            <Image
-              source={CATEGORY_IMAGES[id]}
-              style={{ width: 46, height: 46 }}
-              resizeMode="cover"
-            />
-          ) : (
-            <AppIcon family="ion" name={icon} size={22} color={theme.primary} />
-          )}
+          <Image
+            source={CATEGORY_IMAGES[id]}
+            style={{ width: 46, height: 46 }}
+            resizeMode="cover"
+          />
         </View>
 
         <ThemedText type="smallBold" style={{ flex: 1, fontSize: 15 }}>

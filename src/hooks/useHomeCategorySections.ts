@@ -1,11 +1,11 @@
 import { CATEGORIES } from "@/config/categoryConfig";
 import type { Listing } from "@/types/listing";
 import {
-       collection,
-       limit,
-       onSnapshot,
-       orderBy,
-       query,
+  collection,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
 } from "firebase/firestore";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -38,8 +38,6 @@ type UseHomeCategorySectionsResult = {
   errorMessage: string;
   refresh: () => void;
 };
-
-const FALLBACK_IMAGE = require("../../assets/categories/mobile.png");
 
 function normalizeStatus(status?: string): NonNullable<Listing["status"]> {
   const normalized = (status || "").toLowerCase().trim();
@@ -94,7 +92,7 @@ function toListing(
     price: formatPrice(post.price),
     location: post.location || "Location not set",
     timeAgo: toTimeAgo(post.createdAt),
-    image: coverUrl ? { uri: coverUrl } : FALLBACK_IMAGE,
+    image: coverUrl ? { uri: coverUrl } : null,
     images: post.images?.map((url) => ({ uri: url })) || [],
     description: post.description || "",
     category: categoryLabel,
