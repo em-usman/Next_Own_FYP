@@ -2,23 +2,23 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-       FlatList,
-       Pressable,
-       TextInput,
-       TouchableOpacity,
-       View,
+  FlatList,
+  Pressable,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
+import { useCart } from "@/hooks/useCart";
 
 const RECENT_SEARCHES = [
   "Mobile Phones",
-  "Cars",
+  "Vehicles",
   "Houses for Rent",
   "Laptops",
-  "Bikes",
   "Jobs",
 ];
 
@@ -27,6 +27,7 @@ const COUNTRY = "Pakistan";
 export function SearchBar() {
   const theme = useTheme();
   const [query, setQuery] = useState("");
+  const { cartCount } = useCart();
 
   return (
     <ThemedView className="px-4 py-3 gap-3">
@@ -48,16 +49,29 @@ export function SearchBar() {
           />
         </ThemedView>
 
-        {/* Heart */}
+        {/* Cart */}
         <TouchableOpacity
-          onPress={() => router.push("/wishlist" as any)}
+          onPress={() => router.push("/profile/cart" as any)}
           className="w-10 h-10 rounded-full items-center justify-center border"
           style={{
             backgroundColor: theme.backgroundElement,
             borderColor: theme.border,
           }}
         >
-          <Ionicons name="heart-outline" size={20} color={theme.icon} />
+          <Ionicons name="cart-outline" size={20} color={theme.icon} />
+          {cartCount > 0 && (
+            <View
+              className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full items-center justify-center px-1"
+              style={{ backgroundColor: theme.primary }}
+            >
+              <ThemedText
+                type="smallBold"
+                style={{ color: theme.white, fontSize: 10 }}
+              >
+                {cartCount > 99 ? "99+" : String(cartCount)}
+              </ThemedText>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 

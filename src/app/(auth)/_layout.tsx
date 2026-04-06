@@ -31,7 +31,7 @@ export default function AuthLayout() {
   if (isCheckingAuth) {
     return (
       <View className="flex-1 justify-center items-center bg-black">
-        <ActivityIndicator size="large" color="#32CACD" />
+        <ActivityIndicator size="large" color="#03BABB" />
       </View>
     );
   }

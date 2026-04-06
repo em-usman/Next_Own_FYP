@@ -8,12 +8,24 @@ import { ListingCard } from "./ListingCard";
 
 type Props = {
   title: string;
-  categoryHref: string;
+  categoryId: string;
+  categoryHref?: string;
   listings: Listing[];
+  maxItems?: number;
 };
 
-export function CategorySection({ title, categoryHref, listings }: Props) {
-  const latest = listings.slice(0, 4);
+export function CategorySection({
+  title,
+  categoryId,
+  categoryHref,
+  listings,
+  maxItems = 5,
+}: Props) {
+  const latest = listings.slice(0, maxItems);
+
+  function handleSeeAll() {
+    router.push(`/category/${categoryId}` as any);
+  }
 
   return (
     <View className="gap-3 mb-6">
@@ -23,8 +35,8 @@ export function CategorySection({ title, categoryHref, listings }: Props) {
           {title}
         </ThemedText>
         <TouchableOpacity
+          onPress={handleSeeAll}
           className="flex-row items-center gap-0.5"
-          onPress={() => router.push(categoryHref as any)}
         >
           <ThemedText type="small" themeColor="primary">
             See All

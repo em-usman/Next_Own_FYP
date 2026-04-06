@@ -376,7 +376,7 @@ export default function Index() {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#4285F4" size="small" />
+                <ActivityIndicator color="#03BABB" size="small" />
               ) : (
                 <>
                   <Image

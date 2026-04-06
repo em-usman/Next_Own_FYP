@@ -58,6 +58,8 @@ const useGoogleSignIn = () => {
         displayName: user.displayName || "",
         phoneNumber: user.phoneNumber || "",
         imageUri: user.photoURL || "",
+        address: user.address || "",
+        dateOfBirth: user.dateOfBirth || "",
         expoPushToken: expoPushToken?.data || null,
         createdAt: new Date().toISOString(),
       };

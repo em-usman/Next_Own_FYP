@@ -2,20 +2,20 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-    Image,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const screens = [
   {
     id: 1,
-    title: "Welcome to Navigo Ride",
+    title: "Welcome to Next Own",
     //     image: require("../assets/images/NavigoGroupIcon.png"),
     buttonText: "Get Started",
     showDots: false,
@@ -24,8 +24,7 @@ const screens = [
   {
     id: 2,
     title: "Enable Location Access",
-    description:
-      "Allow location to get faster ride requests, real-time routes, and accurate trip tracking.",
+    description: "Allow location to get near",
     //     image: require("../assets/images/img1.png"),
     buttonText: "Allow",
     showDots: true,
@@ -143,7 +142,7 @@ const WelcomeScreen = ({ onComplete }: { onComplete: () => void }) => {
       ]}
     >
       <StatusBar
-        backgroundColor={isStartScreen ? "#0A66D9" : "#FFFFFF"}
+        backgroundColor={isStartScreen ? "#03BABB" : "#FFFFFF"}
         barStyle={isStartScreen ? "light-content" : "dark-content"}
       />
 
@@ -213,7 +212,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   startScreenContainer: {
-    backgroundColor: "#0A66D9",
+    backgroundColor: "#03BABB",
   },
   loaderContainer: {
     flex: 1,
@@ -277,10 +276,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 6,
   },
   activeDot: {
-    backgroundColor: "#0A66D9",
+    backgroundColor: "#03BABB",
   },
   inactiveDot: {
-    backgroundColor: "#D1D1D6",
+    backgroundColor: "#FF5E77",
   },
   textContainer: {
     marginTop: "40%",
@@ -291,13 +290,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#000000",
+    color: "#141414",
     marginBottom: 16,
     lineHeight: 32,
   },
   description: {
     fontSize: 15,
-    color: "#60646C",
+    color: "#141414",
     lineHeight: 24,
   },
   buttonContainer: {
@@ -307,12 +306,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   button: {
-    backgroundColor: "#0A66D9",
+    backgroundColor: "#03BABB",
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#0A66D9",
+    shadowColor: "#03BABB",
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
@@ -326,11 +325,11 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   startScreenButtonText: {
-    color: "#0A66D9",
+    color: "#03BABB",
   },
   skipText: {
     fontSize: 14,
-    color: "#60646C",
+    color: "#141414",
     textAlign: "center",
     marginTop: 8,
     fontWeight: "500",
