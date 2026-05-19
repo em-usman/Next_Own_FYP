@@ -10,7 +10,8 @@ import { useTheme } from "@/hooks/use-theme";
 import { useCloudinary } from "@/hooks/useCloudnary";
 import { usePost } from "@/hooks/usePost";
 import * as ImagePicker from "expo-image-picker";
-import { router, Stack, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { ScreenHeader } from "@/components/ScreenHeader";
 import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import {

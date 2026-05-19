@@ -1,200 +1,278 @@
-import { Image } from "expo-image";
-import { SymbolView } from "expo-symbols";
-import React from "react";
-import { Platform, Pressable, ScrollView, StyleSheet } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router, Stack } from "expo-router";
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-import { ExternalLink } from "@/components/external-link";
+import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Collapsible } from "@/components/ui/collapsible";
-import { WebBadge } from "@/components/web-badge";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { auth } from "../../../firebaseConfig";
+import { type ChatPreview, useChats } from "@/hooks/useChats";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const placeholderImage = require("../../../assets/categories/mobile.png") as number;
 
-export default function Chats() {
-  const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
-  };
+function formatChatTime(isoString: string | null): string {
+  if (!isoString) return "";
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const now = new Date();
+  const todayStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  ).getTime();
+  const msgStart = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+  ).getTime();
+  const diffDays = Math.round((todayStart - msgStart) / (24 * 60 * 60 * 1000));
+
+  if (diffDays === 0) {
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  }
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) {
+    return date.toLocaleDateString("en-US", { weekday: "short" });
+  }
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function ChatItem({ chat }: { chat: ChatPreview }) {
   const theme = useTheme();
+  const uid = auth.currentUser?.uid || "";
+  const otherName =
+    uid === chat.buyerId ? chat.sellerName : chat.buyerName;
+  const hasUnread = chat.unreadCount > 0;
 
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
-  });
+  function handlePress() {
+    const chatInfo = {
+      postId: chat.postId,
+      postTitle: chat.postTitle,
+      postImageUri: chat.postImageUri,
+      buyerId: chat.buyerId,
+      buyerName: chat.buyerName,
+      sellerId: chat.sellerId,
+      sellerName: chat.sellerName,
+    };
+
+    router.push({
+      pathname: "/chat/[id]" as never,
+      params: {
+        id: chat.id,
+        info: encodeURIComponent(JSON.stringify(chatInfo)),
+      },
+    });
+  }
 
   return (
-    <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}
-    >
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="subtitle">Explore</ThemedText>
-          <ThemedText style={styles.centerText} themeColor="textSecondary">
-            This starter app includes example{"\n"}code to help you get started.
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.75}>
+      <ThemedView
+        type="backgroundElement"
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+          gap: 12,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.border,
+        }}
+      >
+        {/* Post thumbnail */}
+        <View style={{ position: "relative" }}>
+          <Image
+            source={
+              chat.postImageUri
+                ? { uri: chat.postImageUri }
+                : placeholderImage
+            }
+            style={{ width: 52, height: 52, borderRadius: 12 }}
+            resizeMode="cover"
+          />
+          {hasUnread && (
+            <View
+              style={{
+                position: "absolute",
+                top: -3,
+                right: -3,
+                width: 18,
+                height: 18,
+                borderRadius: 9,
+                backgroundColor: theme.primary,
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 2,
+                borderColor: theme.background,
+              }}
+            >
+              <ThemedText
+                type="small"
+                style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}
+              >
+                {chat.unreadCount > 9 ? "9+" : String(chat.unreadCount)}
+              </ThemedText>
+            </View>
+          )}
+        </View>
+
+        {/* Content */}
+        <View style={{ flex: 1, gap: 3 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <ThemedText
+              type="smallBold"
+              style={{ fontWeight: hasUnread ? "700" : "600" }}
+              numberOfLines={1}
+            >
+              {otherName || "User"}
+            </ThemedText>
+            <ThemedText
+              type="small"
+              style={{
+                color: hasUnread ? theme.primary : theme.textSecondary,
+                fontSize: 11,
+              }}
+            >
+              {formatChatTime(chat.lastMessageAt)}
+            </ThemedText>
+          </View>
+
+          <ThemedText
+            type="small"
+            themeColor="textSecondary"
+            numberOfLines={1}
+            style={{ fontWeight: hasUnread ? "600" : "400" }}
+          >
+            {chat.postTitle}
           </ThemedText>
 
-          <ExternalLink href="https://docs.expo.dev" asChild>
-            <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedView type="backgroundElement" style={styles.linkButton}>
-                <ThemedText type="link">Expo documentation</ThemedText>
-                <SymbolView
-                  tintColor={theme.text}
-                  name={{
-                    ios: "arrow.up.right.square",
-                    android: "link",
-                    web: "link",
-                  }}
-                  size={12}
-                />
-              </ThemedView>
-            </Pressable>
-          </ExternalLink>
-        </ThemedView>
+          <ThemedText
+            type="small"
+            numberOfLines={1}
+            style={{
+              color: hasUnread ? theme.text : theme.textSecondary,
+              fontWeight: hasUnread ? "500" : "400",
+            }}
+          >
+            {chat.lastMessage || "No messages yet"}
+          </ThemedText>
+        </View>
 
-        <ThemedView style={styles.sectionsWrapper}>
-          <Collapsible title="File-based routing">
-            <ThemedText type="small">
-              This app has two screens:{" "}
-              <ThemedText type="code">src/app/index.tsx</ThemedText> and{" "}
-              <ThemedText type="code">src/app/explore.tsx</ThemedText>
-            </ThemedText>
-            <ThemedText type="small">
-              The layout file in{" "}
-              <ThemedText type="code">src/app/_layout.tsx</ThemedText> sets up
-              the tab navigator.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/router/introduction">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Android, iOS, and web support">
-            <ThemedView
-              type="backgroundElement"
-              style={styles.collapsibleContent}
-            >
-              <ThemedText type="small">
-                You can open this project on Android, iOS, and the web. To open
-                the web version, press{" "}
-                <ThemedText type="smallBold">w</ThemedText> in the terminal
-                running this project.
-              </ThemedText>
-              <Image
-                source={require("@/assets/images/tutorial-web.png")}
-                style={styles.imageTutorial}
-              />
-            </ThemedView>
-          </Collapsible>
-
-          <Collapsible title="Images">
-            <ThemedText type="small">
-              For static images, you can use the{" "}
-              <ThemedText type="code">@2x</ThemedText> and{" "}
-              <ThemedText type="code">@3x</ThemedText> suffixes to provide files
-              for different screen densities.
-            </ThemedText>
-            <Image
-              source={require("@/assets/images/react-logo.png")}
-              style={styles.imageReact}
-            />
-            <ExternalLink href="https://reactnative.dev/docs/images">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Light and dark mode components">
-            <ThemedText type="small">
-              This template has light and dark mode support. The{" "}
-              <ThemedText type="code">useColorScheme()</ThemedText> hook lets
-              you inspect what the user&apos;s current color scheme is, and so
-              you can adjust UI colors accordingly.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Animations">
-            <ThemedText type="small">
-              This template includes an example of an animated component. The{" "}
-              <ThemedText type="code">
-                src/components/ui/collapsible.tsx
-              </ThemedText>{" "}
-              component uses the powerful{" "}
-              <ThemedText type="code">react-native-reanimated</ThemedText>{" "}
-              library to animate opening this hint.
-            </ThemedText>
-          </Collapsible>
-        </ThemedView>
-        {Platform.OS === "web" && <WebBadge />}
+        <AppIcon
+          name="chevron-forward"
+          size={16}
+          color={theme.textSecondary}
+        />
       </ThemedView>
-    </ScrollView>
+    </TouchableOpacity>
   );
 }
 
-const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-  },
-  container: {
-    maxWidth: MaxContentWidth,
-    flexGrow: 1,
-  },
-  titleContainer: {
-    gap: Spacing.three,
-    alignItems: "center",
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.six,
-  },
-  centerText: {
-    textAlign: "center",
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  linkButton: {
-    flexDirection: "row",
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
-    justifyContent: "center",
-    gap: Spacing.one,
-    alignItems: "center",
-  },
-  sectionsWrapper: {
-    gap: Spacing.five,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
-  },
-  collapsibleContent: {
-    alignItems: "center",
-  },
-  imageTutorial: {
-    width: "100%",
-    aspectRatio: 296 / 171,
-    borderRadius: Spacing.three,
-    marginTop: Spacing.two,
-  },
-  imageReact: {
-    width: 100,
-    height: 100,
-    alignSelf: "center",
-  },
-});
+export default function ChatsScreen() {
+  const theme = useTheme();
+  const uid = auth.currentUser?.uid;
+  const { chats, isLoading } = useChats();
+
+  return (
+    <>
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: "Chats",
+          headerStyle: { backgroundColor: theme.background },
+          headerTintColor: theme.text,
+          headerShadowVisible: false,
+          headerTitleStyle: { fontSize: 18, fontWeight: "700" },
+        }}
+      />
+
+      <ThemedView className="flex-1" style={{ backgroundColor: theme.background }}>
+        {!uid ? (
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: 32,
+              gap: 10,
+            }}
+          >
+            <AppIcon
+              family="ion"
+              name="chatbubbles-outline"
+              size={44}
+              color={theme.textMuted}
+            />
+            <ThemedText type="subtitle" style={{ fontSize: 18 }}>
+              Sign in to see chats
+            </ThemedText>
+            <ThemedText
+              type="small"
+              themeColor="textSecondary"
+              style={{ textAlign: "center" }}
+            >
+              Your conversations with sellers will appear here.
+            </ThemedText>
+          </View>
+        ) : isLoading ? (
+          <View
+            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+          >
+            <ActivityIndicator size="large" color={theme.primary} />
+          </View>
+        ) : chats.length === 0 ? (
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: 32,
+              gap: 10,
+            }}
+          >
+            <AppIcon
+              family="ion"
+              name="chatbubbles-outline"
+              size={44}
+              color={theme.textMuted}
+            />
+            <ThemedText type="subtitle" style={{ fontSize: 18 }}>
+              No chats yet
+            </ThemedText>
+            <ThemedText
+              type="small"
+              themeColor="textSecondary"
+              style={{ textAlign: "center" }}
+            >
+              Open a listing and tap Chat to start a conversation with the
+              seller.
+            </ThemedText>
+          </View>
+        ) : (
+          <FlatList
+            data={chats}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => <ChatItem chat={item} />}
+          />
+        )}
+      </ThemedView>
+    </>
+  );
+}

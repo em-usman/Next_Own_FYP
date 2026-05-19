@@ -1,4 +1,5 @@
-import { router, Stack } from "expo-router";
+import { router } from "expo-router";
+import { ScreenHeader } from "@/components/ScreenHeader";
 import { useEffect } from "react";
 import {
   ActivityIndicator,
@@ -58,17 +59,7 @@ export default function FavouritesScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          title: "Favourites",
-          headerStyle: { backgroundColor: theme.background },
-          headerTintColor: theme.text,
-          headerShadowVisible: false,
-          headerBackButtonDisplayMode: "minimal",
-          headerTitleStyle: { fontSize: 18, fontWeight: "700" },
-        }}
-      />
+      <ScreenHeader title="Favourites" />
 
       <ThemedView
         className="flex-1"

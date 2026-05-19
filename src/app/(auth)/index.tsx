@@ -376,7 +376,7 @@ export default function Index() {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#03BABB" size="small" />
+                <ActivityIndicator color={theme.primary} size="small" />
               ) : (
                 <>
                   <Image
@@ -397,21 +397,27 @@ export default function Index() {
 
             {/* Login Button */}
             <TouchableOpacity
-              style={{ backgroundColor: theme.black }}
-              className={`rounded-full py-4 items-center justify-center mt-2 ${
-                isSubmitting ? "opacity-60" : "opacity-100"
-              }`}
+              style={{
+                backgroundColor: theme.primary,
+                borderRadius: 16,
+                paddingVertical: 16,
+                alignItems: "center",
+                justifyContent: "center",
+                marginTop: 4,
+                shadowColor: theme.primary,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 4,
+                opacity: isSubmitting ? 0.7 : 1,
+              }}
               onPress={handleManualLogin}
               disabled={isSubmitting || isResendingVerification}
             >
               {isSubmitting ? (
-                <ActivityIndicator color={theme.white} />
+                <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <ThemedText
-                  type="default"
-                  themeColor="textInverse"
-                  style={{ fontWeight: "700" }}
-                >
+                <ThemedText style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "700" }}>
                   Login
                 </ThemedText>
               )}

@@ -3,63 +3,63 @@ import { Platform } from "react-native";
 
 export const Colors = {
   light: {
-    text: "#141414",
-    textSecondary: "#141414CC",
-    textMuted: "#14141488",
+    text: "#0D1B2A",
+    textSecondary: "#4D6575",
+    textMuted: "#8FA3B3",
     textInverse: "#FFFFFF",
 
     background: "#FFFFFF",
-    backgroundHeader: "#000000",
-    backgroundElement: "#FFFFFF",
-    backgroundSelected: "#7BF7CF33",
+    backgroundHeader: "#0D1B2A",
+    backgroundElement: "#F5FAFB",
+    backgroundSelected: "rgba(0,153,168,0.08)",
 
-    primary: "#03BABB",
+    primary: "#0099A8",
     primaryForeground: "#FFFFFF",
 
-    border: "#14141422",
-    borderStrong: "#14141444",
-    borderError: "#FF5E77",
+    border: "#DDE8ED",
+    borderStrong: "#B8CED8",
+    borderError: "#EF4444",
 
-    error: "#FF3B59",
-    errorBackground: "#FF5E7722",
+    error: "#EF4444",
+    errorBackground: "rgba(239,68,68,0.08)",
 
-    divider: "#14141422",
+    divider: "#EEF4F7",
 
-    icon: "#141414CC",
-    black: "#000000",
+    icon: "#4D6575",
+    black: "#0D1B2A",
     white: "#FFFFFF",
 
-    tabActive: "#03BABB",
+    tabActive: "#0099A8",
   },
 
   dark: {
-    text: "#FFFFFF",
-    textSecondary: "#FFFFFFCC",
-    textMuted: "#7BF7CF",
-    textInverse: "#141414",
+    text: "#EDF4FA",
+    textSecondary: "#7A94AC",
+    textMuted: "#3D5A72",
+    textInverse: "#0A1628",
 
-    background: "#141414",
-    backgroundHeader: "#000000",
-    backgroundElement: "#000000",
-    backgroundSelected: "#03BABB22",
+    background: "#0A1628",
+    backgroundHeader: "#060F1E",
+    backgroundElement: "#112236",
+    backgroundSelected: "rgba(0,207,216,0.1)",
 
-    primary: "#7BF7CF",
-    primaryForeground: "#141414",
+    primary: "#00CFD8",
+    primaryForeground: "#0A1628",
 
-    border: "#FFFFFF26",
-    borderStrong: "#FFFFFF40",
-    borderError: "#FF5E77",
+    border: "#1A2F45",
+    borderStrong: "#2A4560",
+    borderError: "#EF4444",
 
-    error: "#FF5E77",
-    errorBackground: "#FF3B5926",
+    error: "#FF6B6B",
+    errorBackground: "rgba(255,107,107,0.12)",
 
-    divider: "#FFFFFF22",
+    divider: "#122033",
 
-    icon: "#7BF7CF",
-    black: "#000000",
-    white: "#FFFFFF",
+    icon: "#7A94AC",
+    black: "#0A1628",
+    white: "#EDF4FA",
 
-    tabActive: "#7BF7CF",
+    tabActive: "#00CFD8",
   },
 } as const;
 

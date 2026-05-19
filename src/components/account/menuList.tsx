@@ -6,7 +6,6 @@ import { TouchableOpacity, View } from "react-native";
 
 import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
 import { auth } from "../../../firebaseConfig";
 
@@ -26,7 +25,6 @@ interface MenuItem {
   title: string;
   description: string;
   route?: string;
-  disabled?: boolean;
 }
 
 const menuItems: MenuItem[] = [
@@ -51,21 +49,6 @@ const menuItems: MenuItem[] = [
     description: "App preferences and notifications",
     route: "/profile/settings/SettingsHelp",
   },
-  // Payment and Address — disabled for now
-  // {
-  //   id: "payment",
-  //   icon: { family: "material-community", name: "credit-card-outline" },
-  //   title: "Payment Methods",
-  //   description: "Manage your saved payment options",
-  //   route: "/profile/payment",
-  // },
-  // {
-  //   id: "address",
-  //   icon: { family: "material-community", name: "map-marker-outline" },
-  //   title: "Saved Addresses",
-  //   description: "View and manage your addresses",
-  //   route: "/profile/address",
-  // },
 ];
 
 export default function SettingsMenu() {
@@ -83,134 +66,108 @@ export default function SettingsMenu() {
   };
 
   return (
-    <ThemedView style={{ marginTop: 24, paddingHorizontal: 16 }}>
-      {/* Menu Items */}
-      {menuItems.map((item, index) => (
-        <TouchableOpacity
-          key={item.id}
-          onPress={() => {
-            if (item.route) router.push(item.route as any);
-          }}
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            paddingVertical: 14,
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
-          }}
-        >
-          {/* Icon Container */}
-          <View
+    <View style={{ paddingHorizontal: 16 }}>
+      <View
+        style={{
+          borderRadius: 20,
+          overflow: "hidden",
+          borderWidth: 1,
+          borderColor: theme.border,
+          backgroundColor: theme.backgroundElement,
+        }}
+      >
+        {menuItems.map((item, index) => (
+          <TouchableOpacity
+            key={item.id}
+            onPress={() => { if (item.route) router.push(item.route as any); }}
+            activeOpacity={0.7}
             style={{
-              width: 44,
-              height: 44,
-              borderRadius: 12,
+              flexDirection: "row",
               alignItems: "center",
-              justifyContent: "center",
-              marginRight: 14,
-              backgroundColor: theme.backgroundElement,
-              borderWidth: 1,
-              borderColor: theme.border,
+              paddingVertical: 14,
+              paddingHorizontal: 16,
+              borderBottomWidth: index < menuItems.length - 1 ? 1 : 0,
+              borderBottomColor: theme.divider,
             }}
           >
-            <AppIcon
-              family={item.icon.family}
-              name={item.icon.name}
-              color={theme.primary}
-              size={24}
-            />
-          </View>
-
-          {/* Text */}
-          <View style={{ flex: 1 }}>
-            <ThemedText type="smallBold" style={{ fontSize: 15 }}>
-              {item.title}
-            </ThemedText>
-            <ThemedText
-              type="small"
-              themeColor="textSecondary"
-              style={{ fontSize: 12, marginTop: 1 }}
+            {/* Icon */}
+            <View
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: 13,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: theme.backgroundSelected,
+                marginRight: 14,
+              }}
             >
-              {item.description}
-            </ThemedText>
-          </View>
+              <AppIcon
+                family={item.icon.family}
+                name={item.icon.name}
+                color={theme.primary}
+                size={22}
+              />
+            </View>
 
-          {/* Chevron */}
-          <AppIcon
-            family="material-community"
-            name="chevron-right"
-            color={theme.textMuted}
-            size={22}
-          />
-        </TouchableOpacity>
-      ))}
+            {/* Text */}
+            <View style={{ flex: 1 }}>
+              <ThemedText style={{ fontSize: 15, fontWeight: "600" }}>
+                {item.title}
+              </ThemedText>
+              <ThemedText
+                themeColor="textSecondary"
+                style={{ fontSize: 12, marginTop: 1 }}
+              >
+                {item.description}
+              </ThemedText>
+            </View>
+
+            <AppIcon name="chevron-forward" size={16} color={theme.textMuted} />
+          </TouchableOpacity>
+        ))}
+      </View>
 
       {/* Logout */}
       <TouchableOpacity
         onPress={handleLogout}
+        activeOpacity={0.8}
         style={{
           flexDirection: "row",
           alignItems: "center",
-          paddingVertical: 14,
-          marginTop: 8,
-          borderRadius: 16,
-          paddingHorizontal: 12,
+          marginTop: 16,
+          padding: 16,
+          borderRadius: 20,
           backgroundColor: theme.errorBackground,
           borderWidth: 1,
           borderColor: theme.borderError,
         }}
       >
-        {/* Icon */}
         <View
           style={{
-            width: 44,
-            height: 44,
-            borderRadius: 12,
+            width: 42,
+            height: 42,
+            borderRadius: 13,
             alignItems: "center",
             justifyContent: "center",
+            backgroundColor: "rgba(239,68,68,0.12)",
             marginRight: 14,
-            backgroundColor: theme.background,
-            borderWidth: 1,
-            borderColor: theme.borderError,
           }}
         >
-          <AppIcon
-            family="material-community"
-            name="logout"
-            color={theme.error}
-            size={24}
-          />
+          <AppIcon family="material-community" name="logout" color={theme.error} size={22} />
         </View>
 
-        {/* Text */}
         <View style={{ flex: 1 }}>
-          <ThemedText
-            type="smallBold"
-            style={{ fontSize: 15, color: theme.error }}
-          >
+          <ThemedText style={{ fontSize: 15, fontWeight: "600", color: theme.error }}>
             Logout
           </ThemedText>
-          <ThemedText
-            type="small"
-            style={{
-              fontSize: 12,
-              marginTop: 1,
-              color: theme.error,
-              opacity: 0.7,
-            }}
-          >
+          <ThemedText style={{ fontSize: 12, marginTop: 1, color: theme.error, opacity: 0.7 }}>
             Sign out of your account
           </ThemedText>
         </View>
 
-        {/* Chevron */}
-        <AppIcon
-          family="material-community"
-          name="chevron-right"
-          color={theme.error}
-          size={22}
-        />
+        <AppIcon name="chevron-forward" size={16} color={theme.error} />
       </TouchableOpacity>
-    </ThemedView>
+    </View>
   );
 }

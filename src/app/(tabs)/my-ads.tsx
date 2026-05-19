@@ -47,22 +47,22 @@ function statusMeta(status: MyAdStatus, theme: ReturnType<typeof useTheme>) {
   if (status === "sold") {
     return {
       label: "Sold",
-      bg: "#7BF7CF44",
-      text: "#03BABB",
+      bg: "rgba(16,185,129,0.12)",
+      text: "#10B981",
     };
   }
 
   if (status === "deactivated") {
     return {
       label: "Deactivated",
-      bg: `${theme.textMuted}22`,
+      bg: theme.backgroundSelected,
       text: theme.textMuted,
     };
   }
 
   return {
     label: "Active",
-    bg: `${theme.primary}22`,
+    bg: theme.backgroundSelected,
     text: theme.primary,
   };
 }

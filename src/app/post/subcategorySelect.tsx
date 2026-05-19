@@ -3,7 +3,8 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { CATEGORIES, SubCategory } from "@/config/categoryConfig";
 import { useTheme } from "@/hooks/use-theme";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { ScreenHeader } from "@/components/ScreenHeader";
 import React from "react";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 
@@ -103,33 +104,7 @@ export default function SubCategoryScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          headerBackVisible: false,
-          headerStyle: { backgroundColor: theme.background },
-          headerShadowVisible: false,
-          headerTitle: () => (
-            <ThemedText
-              type="smallBold"
-              style={{ fontSize: 18, fontWeight: "700" }}
-              numberOfLines={1}
-            >
-              {screenTitle}
-            </ThemedText>
-          ),
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} className="ml-1">
-              <AppIcon
-                family="ion"
-                name="chevron-back-circle"
-                color={theme.text}
-                size={28}
-              />
-            </TouchableOpacity>
-          ),
-        }}
-      />
+      <ScreenHeader title={screenTitle} />
 
       <ThemedView className="flex-1">
         <ScrollView

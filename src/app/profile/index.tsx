@@ -5,7 +5,8 @@ import { useTheme } from "@/hooks/use-theme";
 import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { useUserData } from "@/hooks/useUserData";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
+import { ScreenHeader } from "@/components/ScreenHeader";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -157,32 +158,7 @@ export default function ProfileScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerTitle: () => (
-            <ThemedText
-              type="smallBold"
-              style={{ fontSize: 20, fontWeight: "700" }}
-            >
-              My Profile
-            </ThemedText>
-          ),
-          headerShown: true,
-          headerBackVisible: false,
-          headerStyle: { backgroundColor: theme.background },
-          headerShadowVisible: false,
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} className="ml-1">
-              <AppIcon
-                family="ion"
-                name="chevron-back-circle"
-                color={theme.text}
-                size={28}
-              />
-            </TouchableOpacity>
-          ),
-        }}
-      />
+      <ScreenHeader title="My Profile" />
 
       {loading || !userData ? (
         <ThemedView className="flex-1 justify-center items-center">

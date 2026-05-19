@@ -10,6 +10,7 @@ export type ThemedTextProps = TextProps & {
     | "small"
     | "smallBold"
     | "subtitle"
+    | "heading"
     | "link"
     | "linkPrimary"
     | "code";
@@ -38,6 +39,7 @@ export function ThemedText({
         type === "small" && styles.small,
         type === "smallBold" && styles.smallBold,
         type === "subtitle" && styles.subtitle,
+        type === "heading" && styles.heading,
         type === "link" && styles.link,
         type === "linkPrimary" && styles.linkPrimary,
         type === "code" && styles.code,
@@ -50,41 +52,48 @@ export function ThemedText({
 
 const styles = StyleSheet.create({
   small: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 500,
+    fontSize: 13,
+    lineHeight: 19,
+    fontWeight: "400",
   },
   smallBold: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 700,
+    fontSize: 13,
+    lineHeight: 19,
+    fontWeight: "600",
   },
   default: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: 500,
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: "400",
   },
-  title: {
-    fontSize: 48,
-    fontWeight: 600,
-    lineHeight: 52,
+  heading: {
+    fontSize: 18,
+    lineHeight: 26,
+    fontWeight: "700",
   },
   subtitle: {
-    fontSize: 32,
+    fontSize: 22,
+    lineHeight: 30,
+    fontWeight: "700",
+  },
+  title: {
+    fontSize: 36,
+    fontWeight: "800",
     lineHeight: 44,
-    fontWeight: 600,
+    letterSpacing: -0.5,
   },
   link: {
-    lineHeight: 30,
+    lineHeight: 22,
     fontSize: 14,
   },
   linkPrimary: {
-    lineHeight: 30,
+    lineHeight: 22,
     fontSize: 14,
+    fontWeight: "600",
   },
   code: {
     fontFamily: Fonts.mono,
-    fontWeight: Platform.select({ android: 700 }) ?? 500,
+    fontWeight: Platform.select({ android: "700" }) ?? "500",
     fontSize: 12,
   },
 });
