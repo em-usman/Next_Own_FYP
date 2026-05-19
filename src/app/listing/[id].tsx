@@ -1,4 +1,3 @@
-import * as ExpoLinking from "expo-linking";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
@@ -247,9 +246,7 @@ export default function ListingDetailScreen() {
       }
     }
 
-    const productUrl = ExpoLinking.createURL(`/listing/${listing.id}`, {
-      queryParams: { ref: "whatsapp" },
-    });
+    const productUrl = `https://next-own.web.app/listing/${listing.id}`;
     const message = encodeURIComponent(
       `Hi, I am interested in this ad: ${listing.title}\n${productUrl}\nAd ID: ${listing.id}`,
     );
@@ -271,9 +268,7 @@ export default function ListingDetailScreen() {
   async function handleSharePress() {
     if (!listing) return;
 
-    const productUrl = ExpoLinking.createURL(`/listing/${listing.id}`, {
-      queryParams: { ref: "share" },
-    });
+    const productUrl = `https://next-own.web.app/listing/${listing.id}`;
 
     try {
       await Share.share({
