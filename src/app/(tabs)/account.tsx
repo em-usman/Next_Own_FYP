@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollView } from "react-native";
+import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
@@ -8,8 +8,11 @@ import { ThemedView } from "@/components/themed-view";
 import MenuList from "@/components/account/menuList";
 import ProfileBoxes from "@/components/account/profileBoxes";
 import UserHeader from "@/components/account/userHeader";
+import { useTheme } from "@/hooks/use-theme";
 
 export default function Account() {
+  const theme = useTheme();
+
   return (
     <ThemedView className="flex-1">
       <SafeAreaView className="flex-1">
@@ -17,27 +20,28 @@ export default function Account() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 120 }}
         >
-          {/* Page Title */}
-          <ThemedView className="px-4 pt-4 pb-2">
-            <ThemedText type="subtitle" style={{ fontSize: 22 }}>
-              My Account
-            </ThemedText>
-          </ThemedView>
+          {/* Header */}
+          <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
+            <ThemedText type="subtitle">My Account</ThemedText>
+          </View>
 
-          {/* 1. User Header — name + avatar */}
+          {/* User card */}
           <UserHeader />
 
-          {/* 2. Quick Action Buttons — Help, Favourites, Cart */}
+          {/* Quick actions */}
           <ProfileBoxes />
 
           {/* Divider */}
-          <ThemedView
-            className="mx-4 my-5"
-            style={{ height: 1 }}
-            type="backgroundSelected"
+          <View
+            style={{
+              height: 1,
+              backgroundColor: theme.divider,
+              marginHorizontal: 16,
+              marginVertical: 20,
+            }}
           />
 
-          {/* 3. Menu Options */}
+          {/* Menu */}
           <MenuList />
         </ScrollView>
       </SafeAreaView>

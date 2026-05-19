@@ -377,7 +377,7 @@ export default function SignupScreen() {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#03BABB" size="small" />
+                <ActivityIndicator color={theme.primary} size="small" />
               ) : (
                 <>
                   <Image
@@ -439,21 +439,27 @@ export default function SignupScreen() {
 
             {/* Create Account Button */}
             <TouchableOpacity
-              style={{ backgroundColor: theme.black }}
-              className={`rounded-full py-4 items-center justify-center mt-2 ${
-                !termsChecked || isSubmitting ? "opacity-50" : "opacity-100"
-              }`}
+              style={{
+                backgroundColor: theme.primary,
+                borderRadius: 16,
+                paddingVertical: 16,
+                alignItems: "center",
+                justifyContent: "center",
+                marginTop: 4,
+                shadowColor: theme.primary,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 4,
+                opacity: !termsChecked || isSubmitting ? 0.5 : 1,
+              }}
               onPress={handleManualSignup}
               disabled={!termsChecked || isSubmitting}
             >
               {isSubmitting ? (
-                <ActivityIndicator color={theme.white} size="small" />
+                <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <ThemedText
-                  type="default"
-                  themeColor="textInverse"
-                  style={{ fontWeight: "700" }}
-                >
+                <ThemedText style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "700" }}>
                   Create Account
                 </ThemedText>
               )}

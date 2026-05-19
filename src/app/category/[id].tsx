@@ -1,4 +1,5 @@
-import { Stack, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
+import { ScreenHeader } from "@/components/ScreenHeader";
 import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -134,17 +135,7 @@ export default function CategoryListingScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          title: categoryLabel,
-          headerStyle: { backgroundColor: theme.background },
-          headerTintColor: theme.text,
-          headerShadowVisible: false,
-          headerBackButtonDisplayMode: "minimal",
-          headerTitleStyle: { fontSize: 18, fontWeight: "700" },
-        }}
-      />
+      <ScreenHeader title={categoryLabel} />
 
       <ThemedView className="flex-1">
         {/* Search Bar */}

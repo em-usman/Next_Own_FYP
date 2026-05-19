@@ -9,7 +9,8 @@ import { useCloudinary } from "@/hooks/useCloudnary";
 import { usePost } from "@/hooks/usePost";
 import { useUserData } from "@/hooks/useUserData";
 import * as ImagePicker from "expo-image-picker";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { ScreenHeader } from "@/components/ScreenHeader";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -254,36 +255,7 @@ export default function PostFormScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          headerBackVisible: false,
-          headerStyle: { backgroundColor: theme.background },
-          headerShadowVisible: false,
-          headerTitle: () => (
-            <ThemedText
-              style={{ fontSize: 16, fontWeight: "700" }}
-              numberOfLines={1}
-            >
-              Post Ad for{" "}
-              <ThemedText
-                style={{
-                  color: theme.primary,
-                  fontSize: 16,
-                  fontWeight: "700",
-                }}
-              >
-                {selectedLabel}
-              </ThemedText>
-            </ThemedText>
-          ),
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} className="ml-1">
-              <AppIcon family="ion" name="close" color={theme.text} size={24} />
-            </TouchableOpacity>
-          ),
-        }}
-      />
+      <ScreenHeader title="Post Ad for" titleAccent={selectedLabel} closeIcon />
 
       <ThemedView className="flex-1">
         <KeyboardAwareScrollView
