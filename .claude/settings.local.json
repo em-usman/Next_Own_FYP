@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//h/SideProjects/Next_Own_FYP/src/app/listing/**)",
+      "Bash(firebase --version)"
+    ]
+  }
+}

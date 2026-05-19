@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "imosman.next_own",
+      "sha256_cert_fingerprints": [
+        "32:1F:3C:6D:D8:21:ED:BF:97:47:82:00:3D:D4:C4:EA:D1:15:1C:E1:9C:5A:D5:81:0F:ED:74:94:81:BD:B4:70",
+        "32:1F:3C:6D:D8:21:ED:BF:97:47:82:00:3D:D4:C4:EA:D1:15:1C:E1:9C:5A:D5:81:0F:ED:74:94:81:BD:B4:70"
+      ]
+    }
+  }
+]

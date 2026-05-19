@@ -1,4 +1,3 @@
-import * as ExpoLinking from "expo-linking";
 import { router } from "expo-router";
 import { Image, Share, TouchableOpacity, View } from "react-native";
 
@@ -43,9 +42,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
   }
 
   async function handleSharePress() {
-    const productUrl = ExpoLinking.createURL(`/listing/${listing.id}`, {
-      queryParams: { ref: "share" },
-    });
+    const productUrl = `https://next-own.web.app/listing/${listing.id}`;
 
     try {
       await Share.share({
