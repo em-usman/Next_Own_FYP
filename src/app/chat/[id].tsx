@@ -1,6 +1,6 @@
-import { router, useLocalSearchParams } from "expo-router";
 import { ScreenHeader } from "@/components/ScreenHeader";
-import { useMemo, useRef, useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -16,12 +16,12 @@ import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
-import { auth } from "../../../firebaseConfig";
 import {
   type ChatInfo,
   type ChatMessage,
   useChatMessages,
 } from "@/hooks/useChatMessages";
+import { auth } from "../../../firebaseConfig";
 
 const placeholderImage = require("@/assets/categories/mobile.png");
 
@@ -53,14 +53,6 @@ function MessageBubble({
         marginHorizontal: 16,
       }}
     >
-      {!isOwn && (
-        <ThemedText
-          type="small"
-          style={{ color: theme.textSecondary, marginBottom: 2, marginLeft: 4 }}
-        >
-          {message.senderName}
-        </ThemedText>
-      )}
       <View
         style={{
           backgroundColor: isOwn ? theme.primary : theme.backgroundElement,
@@ -120,8 +112,10 @@ export default function ChatScreen() {
             postImageUri: "",
             buyerId: "",
             buyerName: "",
+            buyerImageUri: "",
             sellerId: "",
             sellerName: "",
+            sellerImageUri: "",
           };
     } catch {
       return {
@@ -130,8 +124,10 @@ export default function ChatScreen() {
         postImageUri: "",
         buyerId: "",
         buyerName: "",
+        buyerImageUri: "",
         sellerId: "",
         sellerName: "",
+        sellerImageUri: "",
       };
     }
   }, [rawInfo]);
@@ -158,7 +154,10 @@ export default function ChatScreen() {
     <>
       <ScreenHeader title={otherName || "Chat"} />
 
-      <ThemedView className="flex-1" style={{ backgroundColor: theme.background }}>
+      <ThemedView
+        className="flex-1"
+        style={{ backgroundColor: theme.background }}
+      >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -215,7 +214,13 @@ export default function ChatScreen() {
 
           {/* Messages */}
           {isLoading ? (
-            <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+            <View
+              style={{
+                flex: 1,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <ActivityIndicator size="large" color={theme.primary} />
             </View>
           ) : messages.length === 0 ? (
@@ -234,7 +239,10 @@ export default function ChatScreen() {
                 size={44}
                 color={theme.textMuted}
               />
-              <ThemedText type="subtitle" style={{ fontSize: 18, textAlign: "center" }}>
+              <ThemedText
+                type="subtitle"
+                style={{ fontSize: 18, textAlign: "center" }}
+              >
                 Start the conversation
               </ThemedText>
               <ThemedText
@@ -253,10 +261,7 @@ export default function ChatScreen() {
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingVertical: 12 }}
               renderItem={({ item }) => (
-                <MessageBubble
-                  message={item}
-                  isOwn={item.senderId === uid}
-                />
+                <MessageBubble message={item} isOwn={item.senderId === uid} />
               )}
             />
           )}
@@ -305,8 +310,9 @@ export default function ChatScreen() {
                 width: 44,
                 height: 44,
                 borderRadius: 22,
-                backgroundColor:
-                  inputText.trim() ? theme.primary : theme.border,
+                backgroundColor: inputText.trim()
+                  ? theme.primary
+                  : theme.border,
                 alignItems: "center",
                 justifyContent: "center",
               }}
@@ -314,12 +320,7 @@ export default function ChatScreen() {
               {isSending ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <AppIcon
-                  family="ion"
-                  name="send"
-                  size={18}
-                  color="#FFFFFF"
-                />
+                <AppIcon family="ion" name="send" size={18} color="#FFFFFF" />
               )}
             </TouchableOpacity>
           </ThemedView>

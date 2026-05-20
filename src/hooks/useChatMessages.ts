@@ -2,6 +2,7 @@ import {
   addDoc,
   collection,
   doc,
+  getDoc,
   increment,
   onSnapshot,
   orderBy,
@@ -28,9 +29,30 @@ export type ChatInfo = {
   postImageUri: string;
   buyerId: string;
   buyerName: string;
+  buyerImageUri: string;
   sellerId: string;
   sellerName: string;
+  sellerImageUri: string;
 };
+
+// Helper function to fetch user data (displayName and imageUri)
+async function fetchUserData(
+  userId: string,
+): Promise<{ displayName: string; imageUri: string }> {
+  try {
+    const userDoc = await getDoc(doc(db, "users", userId));
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      return {
+        displayName: data?.displayName || "User",
+        imageUri: data?.imageUri || "",
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+  }
+  return { displayName: "User", imageUri: "" };
+}
 
 export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -99,6 +121,24 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
     try {
       const chatRef = doc(db, "chats", chatId);
 
+      // Fetch buyer data if missing
+      let buyerName = chatInfo.buyerName;
+      let buyerImageUri = chatInfo.buyerImageUri;
+      if ((!buyerName || !buyerImageUri) && chatInfo.buyerId) {
+        const buyerData = await fetchUserData(chatInfo.buyerId);
+        buyerName = buyerData.displayName;
+        buyerImageUri = buyerData.imageUri;
+      }
+
+      // Fetch seller data if missing
+      let sellerName = chatInfo.sellerName;
+      let sellerImageUri = chatInfo.sellerImageUri;
+      if ((!sellerName || !sellerImageUri) && chatInfo.sellerId) {
+        const sellerData = await fetchUserData(chatInfo.sellerId);
+        sellerName = sellerData.displayName;
+        sellerImageUri = sellerData.imageUri;
+      }
+
       // Create or update chat document
       await setDoc(
         chatRef,
@@ -107,9 +147,11 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
           postTitle: chatInfo.postTitle,
           postImageUri: chatInfo.postImageUri,
           buyerId: chatInfo.buyerId,
-          buyerName: chatInfo.buyerName,
+          buyerName: buyerName,
+          buyerImageUri: buyerImageUri,
           sellerId: chatInfo.sellerId,
-          sellerName: chatInfo.sellerName,
+          sellerName: sellerName,
+          sellerImageUri: sellerImageUri,
           participants: [chatInfo.buyerId, chatInfo.sellerId],
           lastMessage: trimmed,
           lastMessageAt: serverTimestamp(),

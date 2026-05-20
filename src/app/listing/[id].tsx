@@ -1,5 +1,5 @@
-import { router, useLocalSearchParams } from "expo-router";
 import { ScreenHeader } from "@/components/ScreenHeader";
+import { router, useLocalSearchParams } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -280,7 +280,13 @@ export default function ListingDetailScreen() {
       setChatLoading(true);
       try {
         for (const category of CATEGORIES) {
-          const postRef = doc(db, "categories", category.id, "posts", listing.id);
+          const postRef = doc(
+            db,
+            "categories",
+            category.id,
+            "posts",
+            listing.id,
+          );
           const snap = await getDoc(postRef);
           if (snap.exists()) {
             sellerId = snap.data()?.userId || "";
@@ -296,6 +302,17 @@ export default function ListingDetailScreen() {
 
     if (!sellerId || sellerId === currentUid) return;
 
+    // Fetch seller image from user profile
+    let sellerImageUri = "";
+    try {
+      const sellerDoc = await getDoc(doc(db, "users", sellerId));
+      if (sellerDoc.exists()) {
+        sellerImageUri = sellerDoc.data()?.imageUri || "";
+      }
+    } catch (e) {
+      console.error("Fetch seller image error:", e);
+    }
+
     const chatId = `${listing.id}_${currentUid}`;
     const chatInfo = {
       postId: listing.id,
@@ -303,8 +320,10 @@ export default function ListingDetailScreen() {
       postImageUri: imageUrls[0] || "",
       buyerId: currentUid,
       buyerName: auth.currentUser?.displayName || "User",
+      buyerImageUri: auth.currentUser?.photoURL || "",
       sellerId,
       sellerName: listing.sellerName || "",
+      sellerImageUri: sellerImageUri,
     };
 
     router.push({
@@ -669,13 +688,19 @@ export default function ListingDetailScreen() {
               className="flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-full"
               style={{ backgroundColor: theme.primary }}
               onPress={handleChatPress}
-              disabled={chatLoading || listing.sellerId === auth.currentUser?.uid}
+              disabled={
+                chatLoading || listing.sellerId === auth.currentUser?.uid
+              }
             >
               {chatLoading ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
                 <>
-                  <AppIcon name="chatbubble-outline" size={18} color="#FFFFFF" />
+                  <AppIcon
+                    name="chatbubble-outline"
+                    size={18}
+                    color="#FFFFFF"
+                  />
                   <ThemedText type="smallBold" style={{ color: "#FFFFFF" }}>
                     Chat
                   </ThemedText>
@@ -716,7 +741,11 @@ export default function ListingDetailScreen() {
               onPress={handleWhatsAppPress}
               disabled={!listing.sellerPhone}
             >
-              <AppIcon name="chatbubble-outline" size={16} color={theme.white} />
+              <AppIcon
+                name="chatbubble-outline"
+                size={16}
+                color={theme.white}
+              />
               <ThemedText type="small" style={{ color: theme.white }}>
                 WhatsApp
               </ThemedText>
