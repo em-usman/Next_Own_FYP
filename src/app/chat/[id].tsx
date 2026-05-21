@@ -1,5 +1,4 @@
-import { ScreenHeader } from "@/components/ScreenHeader";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -33,6 +32,37 @@ function formatMessageTime(isoString: string): string {
     minute: "2-digit",
     hour12: true,
   });
+}
+
+function formatMessageDate(isoString: string): string {
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const now = new Date();
+  const today = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  ).getTime();
+  const messageDate = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+  ).getTime();
+  const diffDays = Math.round((today - messageDate) / (24 * 60 * 60 * 1000));
+
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+  });
+}
+
+function getMessageDateKey(isoString: string): string {
+  const date = new Date(isoString);
+  return date.toISOString().split("T")[0];
 }
 
 function MessageBubble({
@@ -92,6 +122,41 @@ function MessageBubble({
   );
 }
 
+function DateSeparator({ date }: { date: string }) {
+  const theme = useTheme();
+  return (
+    <View
+      style={{
+        alignItems: "center",
+        marginVertical: 12,
+        marginHorizontal: 16,
+      }}
+    >
+      <View
+        style={{
+          backgroundColor: theme.backgroundElement,
+          borderRadius: 12,
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          borderWidth: 1,
+          borderColor: theme.border,
+        }}
+      >
+        <ThemedText
+          type="small"
+          style={{
+            fontSize: 12,
+            color: theme.textSecondary,
+            fontWeight: "500",
+          }}
+        >
+          {date}
+        </ThemedText>
+      </View>
+    </View>
+  );
+}
+
 export default function ChatScreen() {
   const theme = useTheme();
   const { id, info } = useLocalSearchParams<{
@@ -142,6 +207,8 @@ export default function ChatScreen() {
 
   const otherName =
     uid === chatInfo.buyerId ? chatInfo.sellerName : chatInfo.buyerName;
+  const otherImageUri =
+    uid === chatInfo.buyerId ? chatInfo.sellerImageUri : chatInfo.buyerImageUri;
 
   async function handleSend() {
     const text = inputText.trim();
@@ -152,7 +219,42 @@ export default function ChatScreen() {
 
   return (
     <>
-      <ScreenHeader title={otherName || "Chat"} />
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: otherName || "Chat",
+          headerStyle: { backgroundColor: theme.background },
+          headerTintColor: theme.text,
+          headerShadowVisible: false,
+          headerTitleStyle: { fontSize: 18, fontWeight: "700" },
+          headerLeft: () => (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 12,
+                paddingLeft: 16,
+              }}
+            >
+              <TouchableOpacity onPress={() => router.back()}>
+                <AppIcon
+                  family="ion"
+                  name="chevron-back"
+                  size={24}
+                  color={theme.text}
+                />
+              </TouchableOpacity>
+              <Image
+                source={
+                  otherImageUri ? { uri: otherImageUri } : placeholderImage
+                }
+                style={{ width: 32, height: 32, borderRadius: 16 }}
+                resizeMode="cover"
+              />
+            </View>
+          ),
+        }}
+      />
 
       <ThemedView
         className="flex-1"
@@ -161,7 +263,7 @@ export default function ChatScreen() {
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 70}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 90}
         >
           {/* Post info card */}
           {chatInfo.postTitle ? (
@@ -260,9 +362,26 @@ export default function ChatScreen() {
               inverted
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingVertical: 12 }}
-              renderItem={({ item }) => (
-                <MessageBubble message={item} isOwn={item.senderId === uid} />
-              )}
+              renderItem={({ item, index }) => {
+                const nextMessage = messages[index + 1];
+                const showDateSeparator =
+                  index === messages.length - 1 ||
+                  (nextMessage &&
+                    getMessageDateKey(item.createdAt) !==
+                      getMessageDateKey(nextMessage.createdAt));
+
+                return (
+                  <View>
+                    {showDateSeparator && (
+                      <DateSeparator date={formatMessageDate(item.createdAt)} />
+                    )}
+                    <MessageBubble
+                      message={item}
+                      isOwn={item.senderId === uid}
+                    />
+                  </View>
+                );
+              }}
             />
           )}
 
@@ -287,8 +406,8 @@ export default function ChatScreen() {
                 borderWidth: 1,
                 borderColor: theme.border,
                 paddingHorizontal: 16,
-                paddingVertical: 10,
-                minHeight: 44,
+                paddingVertical: 2,
+                minHeight: 36,
                 justifyContent: "center",
               }}
             >

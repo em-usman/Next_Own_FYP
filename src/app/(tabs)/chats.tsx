@@ -14,8 +14,8 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
 import { type ChatPreview, useChats } from "@/hooks/useChats";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { auth } from "../../../firebaseConfig";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const placeholderImage =
   require("../../../assets/categories/mobile.png") as number;
 
@@ -83,17 +83,13 @@ function ChatItem({ chat }: { chat: ChatPreview }) {
 
   return (
     <TouchableOpacity onPress={handlePress} activeOpacity={0.75}>
-      <ThemedView
-        type="backgroundElement"
+      <View
         style={{
           flexDirection: "row",
           alignItems: "center",
           paddingHorizontal: 16,
-          marginHorizontal: 0,
           paddingVertical: 12,
           gap: 12,
-          borderBottomWidth: 1,
-          borderBottomColor: theme.border,
         }}
       >
         {/* User Avatar */}
@@ -121,7 +117,13 @@ function ChatItem({ chat }: { chat: ChatPreview }) {
             >
               <ThemedText
                 type="small"
-                style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}
+                style={{
+                  color: "#FFFFFF",
+                  fontSize: 10,
+                  fontWeight: "700",
+                  textAlign: "center",
+                  lineHeight: 13, 
+                }}
               >
                 {chat.unreadCount > 9 ? "9+" : String(chat.unreadCount)}
               </ThemedText>
@@ -167,7 +169,7 @@ function ChatItem({ chat }: { chat: ChatPreview }) {
             {chat.lastMessage || "No messages yet"}
           </ThemedText>
         </View>
-      </ThemedView>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -180,6 +182,7 @@ export default function ChatsScreen() {
     "all",
   );
   const { chats, isLoading } = useChats(searchQuery, filterType);
+  const insets = useSafeAreaInsets();
 
   return (
     <>
@@ -232,9 +235,7 @@ export default function ChatsScreen() {
               style={{
                 paddingHorizontal: 16,
                 paddingVertical: 12,
-                paddingTop: 24,
-                borderBottomWidth: 1,
-                borderBottomColor: theme.border,
+                paddingTop: insets.top + 20,
                 backgroundColor: theme.background,
               }}
             >
@@ -282,46 +283,80 @@ export default function ChatsScreen() {
                 paddingHorizontal: 16,
                 paddingVertical: 12,
                 gap: 10,
-                borderBottomWidth: 1,
-                borderBottomColor: theme.border,
                 backgroundColor: theme.background,
               }}
             >
-              {["all", "read", "unread"].map((filter) => (
-                <TouchableOpacity
-                  key={filter}
-                  onPress={() =>
-                    setFilterType(filter as "all" | "read" | "unread")
-                  }
-                  style={{
-                    paddingHorizontal: 16,
-                    paddingVertical: 8,
-                    borderRadius: 20,
-                    backgroundColor:
-                      filterType === filter
-                        ? theme.primary
-                        : theme.backgroundElement,
-                    borderWidth: filterType === filter ? 0 : 1,
-                    borderColor: theme.border,
-                  }}
-                >
-                  <ThemedText
-                    type="small"
+              {["all", "read", "unread"].map((filter) => {
+                const unreadCount = chats.filter(
+                  (c) => c.unreadCount > 0,
+                ).length;
+                return (
+                  <TouchableOpacity
+                    key={filter}
+                    onPress={() =>
+                      setFilterType(filter as "all" | "read" | "unread")
+                    }
                     style={{
-                      color:
-                        filterType === filter ? "#FFFFFF" : theme.textSecondary,
-                      fontWeight: filterType === filter ? "700" : "600",
-                      textTransform: "capitalize",
+                      paddingHorizontal: 16,
+                      paddingVertical: 8,
+                      borderRadius: 20,
+                      backgroundColor:
+                        filterType === filter
+                          ? theme.primary
+                          : theme.backgroundElement,
+                      borderWidth: filterType === filter ? 0 : 1,
+                      borderColor: theme.border,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 6,
                     }}
                   >
-                    {filter === "unread"
-                      ? "Unread"
-                      : filter === "read"
-                        ? "Read"
-                        : "All"}
-                  </ThemedText>
-                </TouchableOpacity>
-              ))}
+                    <ThemedText
+                      type="small"
+                      style={{
+                        color:
+                          filterType === filter
+                            ? "#FFFFFF"
+                            : theme.textSecondary,
+                        fontWeight: filterType === filter ? "700" : "600",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {filter === "unread"
+                        ? "Unread"
+                        : filter === "read"
+                          ? "Read"
+                          : "All"}
+                    </ThemedText>
+                    {filter === "unread" && unreadCount > 0 && (
+                      <View
+                        style={{
+                          backgroundColor:
+                            filterType === filter
+                              ? "rgba(255,255,255,0.3)"
+                              : theme.primary,
+                          borderRadius: 12,
+                          width: 24,
+                          height: 24,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <ThemedText
+                          type="small"
+                          style={{
+                            color: "#FFFFFF",
+                            fontSize: 11,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {unreadCount}
+                        </ThemedText>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
             {/* Chat List */}
@@ -370,6 +405,8 @@ export default function ChatsScreen() {
                 keyExtractor={(item) => item.id}
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => <ChatItem chat={item} />}
+                contentContainerStyle={{ paddingHorizontal: 16 }}
+                ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
               />
             )}
           </>
