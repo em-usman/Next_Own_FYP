@@ -87,11 +87,7 @@ function getMessageDateKey(isoString: string): string {
 }
 
 // --- Status tick icon for own messages ---
-function StatusTick({
-  status,
-}: {
-  status: ChatMessage["status"];
-}) {
+function StatusTick({ status }: { status: ChatMessage["status"] }) {
   if (status === "sending") {
     return (
       <AppIcon
@@ -114,15 +110,9 @@ function StatusTick({
   }
   // seen — bright white double-check to distinguish from sent
   return (
-    <AppIcon
-      family="ion"
-      name="checkmark-done"
-      size={12}
-      color="#FFFFFF"
-    />
+    <AppIcon family="ion" name="checkmark-done" size={12} color="#FFFFFF" />
   );
 }
-
 
 function MessageBubble({
   message,
@@ -152,7 +142,9 @@ function MessageBubble({
       >
         <View
           style={{
-            backgroundColor: isSelected ? theme.backgroundSelected : "transparent",
+            backgroundColor: isSelected
+              ? theme.backgroundSelected
+              : "transparent",
             paddingVertical: 2,
           }}
         >
@@ -193,7 +185,9 @@ function MessageBubble({
                 type="small"
                 style={{ color: theme.textMuted, fontStyle: "italic" }}
               >
-                {isOwn ? "You deleted this message" : "This message was deleted"}
+                {isOwn
+                  ? "You deleted this message"
+                  : "This message was deleted"}
               </ThemedText>
             </View>
           </View>
@@ -212,7 +206,9 @@ function MessageBubble({
       {/* Full-width selection tint — bubble colour itself never changes */}
       <View
         style={{
-          backgroundColor: isSelected ? theme.backgroundSelected : "transparent",
+          backgroundColor: isSelected
+            ? theme.backgroundSelected
+            : "transparent",
           paddingVertical: 2,
         }}
       >
@@ -249,13 +245,20 @@ function MessageBubble({
               const textColor = isOwn ? "#FFFFFF" : theme.text;
               const linkColor = isOwn ? "rgba(255,255,255,0.9)" : theme.primary;
               return (
-                <Text style={{ color: textColor, fontSize: 13, lineHeight: 20 }}>
+                <Text
+                  style={{ color: textColor, fontSize: 13, lineHeight: 20 }}
+                >
                   {parts.map((part, i) =>
                     i % 2 === 1 ? (
                       <Text
                         key={i}
-                        style={{ color: linkColor, textDecorationLine: "underline" }}
-                        onPress={() => Linking.openURL(part).catch(console.error)}
+                        style={{
+                          color: linkColor,
+                          textDecorationLine: "underline",
+                        }}
+                        onPress={() =>
+                          Linking.openURL(part).catch(console.error)
+                        }
                       >
                         {part}
                       </Text>
@@ -351,7 +354,9 @@ export default function ChatScreen() {
 
   const chatId = Array.isArray(id) ? id[0] : id || "";
   const rawInfo = Array.isArray(info) ? info[0] : info || "";
-  const rawDefault = Array.isArray(defaultMessage) ? defaultMessage[0] : defaultMessage || "";
+  const rawDefault = Array.isArray(defaultMessage)
+    ? defaultMessage[0]
+    : defaultMessage || "";
 
   const chatInfo = useMemo<ChatInfo>(() => {
     try {
@@ -380,7 +385,9 @@ export default function ChatScreen() {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  const [editingMessage, setEditingMessage] = useState<ChatMessage | null>(null);
+  const [editingMessage, setEditingMessage] = useState<ChatMessage | null>(
+    null,
+  );
   const inputRef = useRef<TextInput>(null);
 
   // Mark other's messages as seen when chat opens
@@ -405,9 +412,7 @@ export default function ChatScreen() {
   const otherName =
     uid === chatInfo.buyerId ? chatInfo.sellerName : chatInfo.buyerName;
   const otherImageUri =
-    uid === chatInfo.buyerId
-      ? chatInfo.sellerImageUri
-      : chatInfo.buyerImageUri;
+    uid === chatInfo.buyerId ? chatInfo.sellerImageUri : chatInfo.buyerImageUri;
 
   // Derived selection info
   const selectedMessageObjs = messages.filter((m) =>
@@ -417,7 +422,9 @@ export default function ChatScreen() {
     selectedMessages.length === 1 ? selectedMessageObjs[0] : null;
   const allSelectedOwn =
     selectedMessageObjs.length > 0 &&
-    selectedMessageObjs.every((m) => m.senderId === uid && !m.deletedForEveryone);
+    selectedMessageObjs.every(
+      (m) => m.senderId === uid && !m.deletedForEveryone,
+    );
   const canEdit =
     !!singleSelected &&
     singleSelected.senderId === uid &&
@@ -490,7 +497,11 @@ export default function ChatScreen() {
   }
 
   function handleForward() {
-    Toast.show({ type: "info", text1: "Forward coming soon", visibilityTime: 1500 });
+    Toast.show({
+      type: "info",
+      text1: "Forward coming soon",
+      visibilityTime: 1500,
+    });
     cancelSelection();
   }
 
@@ -539,9 +550,9 @@ export default function ChatScreen() {
                 >
                   <AppIcon
                     family="ion"
-                    name="chevron-back"
-                    size={24}
-                    color={theme.text}
+                    name="chevron-back-circle"
+                    size={30}
+                    color={theme.primary}
                   />
                 </TouchableOpacity>
               )}
@@ -661,9 +672,7 @@ export default function ChatScreen() {
                 return (
                   <View>
                     {showDateSeparator ? (
-                      <DateSeparator
-                        date={formatMessageDate(item.createdAt)}
-                      />
+                      <DateSeparator date={formatMessageDate(item.createdAt)} />
                     ) : null}
                     <MessageBubble
                       message={item}
@@ -857,10 +866,7 @@ export default function ChatScreen() {
         statusBarTranslucent
         onRequestClose={() => setMenuVisible(false)}
       >
-        <Pressable
-          style={{ flex: 1 }}
-          onPress={() => setMenuVisible(false)}
-        >
+        <Pressable style={{ flex: 1 }} onPress={() => setMenuVisible(false)}>
           <View
             style={{
               position: "absolute",
