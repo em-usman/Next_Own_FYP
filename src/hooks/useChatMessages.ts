@@ -17,6 +17,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 import { auth, db } from "../../firebaseConfig";
+import { sendPushNotification } from "../utils/pushNotifications";
 
 export type ChatMessage = {
   id: string;
@@ -85,6 +86,15 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
       q,
       (snapshot) => {
         const items: ChatMessage[] = snapshot.docs
+          .filter((docSnap) => {
+            // Skip our own locally-cached writes that haven't reached the server yet.
+            // They are already shown as optimistic temp bubbles, so including them
+            // here would create a duplicate until the promote step runs.
+            if (docSnap.metadata.hasPendingWrites && docSnap.data().senderId === uid) {
+              return false;
+            }
+            return true;
+          })
           .map((docSnap) => {
             const data = docSnap.data();
             return {
@@ -102,13 +112,11 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
             };
           })
           .filter((msg) => {
-            // If the user removed it from their view, hide it entirely
             if (msg.deletedFor?.includes(uid)) return false;
             return true;
           });
 
-        // Re-inject any optimistic messages still in-flight so they don't
-        // disappear when a previous message triggers the snapshot
+        // Re-inject optimistic temps that are still waiting for server confirmation
         setMessages((prev) => {
           const stillPending = prev.filter((m) =>
             pendingTemps.current.has(m.id),
@@ -205,6 +213,14 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
         [`unreadCounts.${uid}`]: 0,
       });
 
+      // Fire-and-forget — don't await so it doesn't delay the send
+      sendPushNotification(
+        otherParticipantId,
+        displayName,
+        trimmed,
+        chatId,
+      ).catch(console.error);
+
       const messageRef = await addDoc(
         collection(db, "chats", chatId, "messages"),
         {
@@ -216,18 +232,15 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
         },
       );
 
-      // Promote temp message to real ID + "sent" status.
-      // Also strip any snapshot-injected copy of the same real ID to avoid
-      // duplicate keys when the onSnapshot fires before this runs.
+      // Promote temp message to real ID + "sent" status
       pendingTemps.current.delete(tempId);
-      setMessages((prev) => {
-        const withoutDuplicate = prev.filter((msg) => msg.id !== messageRef.id);
-        return withoutDuplicate.map((msg) =>
+      setMessages((prev) =>
+        prev.map((msg) =>
           msg.id === tempId
             ? { ...msg, id: messageRef.id, status: "sent" }
             : msg,
-        );
-      });
+        ),
+      );
     } catch (e) {
       console.error("sendMessage error:", e);
       pendingTemps.current.delete(tempId);

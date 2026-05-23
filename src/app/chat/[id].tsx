@@ -1,6 +1,6 @@
 import * as Clipboard from "expo-clipboard";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   BackHandler,
@@ -359,6 +359,7 @@ export default function ChatScreen() {
   const [menuVisible, setMenuVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [editingMessage, setEditingMessage] = useState<ChatMessage | null>(null);
+  const inputRef = useRef<TextInput>(null);
 
   // Mark other's messages as seen when chat opens
   useEffect(() => {
@@ -453,7 +454,6 @@ export default function ChatScreen() {
       .map((m) => m.text)
       .join("\n");
     await Clipboard.setStringAsync(text);
-    Toast.show({ type: "success", text1: "Copied to clipboard", visibilityTime: 1500 });
     cancelSelection();
   }
 
@@ -464,6 +464,7 @@ export default function ChatScreen() {
     setMenuVisible(false);
     setSelectedMessages([]);
     setIsSelectionMode(false);
+    setTimeout(() => inputRef.current?.focus(), 50);
   }
 
   function handleForward() {
@@ -732,6 +733,7 @@ export default function ChatScreen() {
               }}
             >
               <TextInput
+                ref={inputRef}
                 value={inputText}
                 onChangeText={setInputText}
                 placeholder={

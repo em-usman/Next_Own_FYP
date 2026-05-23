@@ -1,7 +1,9 @@
 import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import * as Notifications from "expo-notifications";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
+import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -10,9 +12,20 @@ import Toast from "react-native-toast-message";
 import "../global.css";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { registerPushToken } from "@/utils/pushNotifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ActivityIndicator } from "react-native";
+import { auth } from "../../firebaseConfig";
 import WelcomeScreen from "./WelcomeScreen";
+
+// Show notifications even when app is in the foreground
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 SplashScreen.preventAutoHideAsync();
 
@@ -27,11 +40,17 @@ export default function RootLayout() {
     const checkFirstLaunch = async () => {
       const hasSeenWelcome = await AsyncStorage.getItem("hasSeenWelcome");
       setShowWelcome(hasSeenWelcome ? false : true);
-
       await SplashScreen.hideAsync();
     };
-
     checkFirstLaunch();
+  }, []);
+
+  // Register push token whenever a user signs in
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user) registerPushToken().catch(console.error);
+    });
+    return () => unsub();
   }, []);
 
   useEffect(() => {
