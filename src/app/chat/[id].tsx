@@ -1,16 +1,21 @@
+import * as Clipboard from "expo-clipboard";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  BackHandler,
   FlatList,
   Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
+  Pressable,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
@@ -23,7 +28,20 @@ import {
 } from "@/hooks/useChatMessages";
 import { auth } from "../../../firebaseConfig";
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const placeholderImage = require("@/assets/categories/mobile.png");
+
+const EMPTY_INFO: ChatInfo = {
+  postId: "",
+  postTitle: "",
+  postImageUri: "",
+  buyerId: "",
+  buyerName: "",
+  buyerImageUri: "",
+  sellerId: "",
+  sellerName: "",
+  sellerImageUri: "",
+};
 
 function formatMessageTime(isoString: string): string {
   const date = new Date(isoString);
@@ -66,6 +84,66 @@ function getMessageDateKey(isoString: string): string {
   return date.toISOString().split("T")[0];
 }
 
+// --- Status tick icon for own messages ---
+function StatusTick({
+  status,
+}: {
+  status: ChatMessage["status"];
+}) {
+  if (status === "sending") {
+    return (
+      <AppIcon
+        family="ion"
+        name="time-outline"
+        size={12}
+        color="rgba(255,255,255,0.45)"
+      />
+    );
+  }
+  if (status === "sent") {
+    return (
+      <AppIcon
+        family="ion"
+        name="checkmark"
+        size={12}
+        color="rgba(255,255,255,0.65)"
+      />
+    );
+  }
+  // seen — bright white double-check to distinguish from sent
+  return (
+    <AppIcon
+      family="ion"
+      name="checkmark-done"
+      size={12}
+      color="#FFFFFF"
+    />
+  );
+}
+
+// --- Selection circle ---
+function SelectionCircle({ isSelected }: { isSelected: boolean }) {
+  const theme = useTheme();
+  return (
+    <View
+      style={{
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: isSelected ? theme.primary : "transparent",
+        borderWidth: 2,
+        borderColor: isSelected ? theme.primary : theme.border,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {isSelected ? (
+        <AppIcon family="ion" name="checkmark" size={14} color="#FFFFFF" />
+      ) : null}
+    </View>
+  );
+}
+
 function MessageBubble({
   message,
   isOwn,
@@ -83,125 +161,147 @@ function MessageBubble({
 }) {
   const theme = useTheme();
 
+  // Deleted-for-everyone placeholder
+  if (message.deletedForEveryone) {
+    return (
+      <TouchableOpacity
+        onPress={isSelectionMode ? onPress : undefined}
+        activeOpacity={0.7}
+      >
+        <View
+          style={{
+            backgroundColor: isSelected ? theme.backgroundSelected : "transparent",
+            paddingVertical: 2,
+          }}
+        >
+          <View
+            style={{
+              alignSelf: isOwn ? "flex-end" : "flex-start",
+              maxWidth: "75%",
+              marginVertical: 3,
+              marginHorizontal: 16,
+              flexDirection: "row",
+              alignItems: "flex-end",
+              gap: 8,
+            }}
+          >
+            {isSelectionMode ? <SelectionCircle isSelected={isSelected} /> : null}
+            <View
+              style={{
+                backgroundColor: theme.backgroundElement,
+                borderRadius: 18,
+                borderBottomRightRadius: isOwn ? 4 : 18,
+                borderBottomLeftRadius: isOwn ? 18 : 4,
+                paddingVertical: 8,
+                paddingHorizontal: 14,
+                borderWidth: 1,
+                borderColor: theme.border,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+                opacity: 0.75,
+              }}
+            >
+              <AppIcon
+                family="ion"
+                name="ban-outline"
+                size={14}
+                color={theme.textMuted}
+              />
+              <ThemedText
+                type="small"
+                style={{ color: theme.textMuted, fontStyle: "italic" }}
+              >
+                {isOwn ? "You deleted this message" : "This message was deleted"}
+              </ThemedText>
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+
   return (
     <TouchableOpacity
       onLongPress={onLongPress}
       onPress={isSelectionMode ? onPress : undefined}
       activeOpacity={0.7}
+      delayLongPress={300}
     >
+      {/* Full-width selection tint — bubble colour itself never changes */}
       <View
         style={{
-          alignSelf: isOwn ? "flex-end" : "flex-start",
-          maxWidth: "75%",
-          marginVertical: 3,
-          marginHorizontal: 16,
-          flexDirection: "row",
-          alignItems: "flex-end",
-          gap: 8,
+          backgroundColor: isSelected ? theme.backgroundSelected : "transparent",
+          paddingVertical: 2,
         }}
       >
-        {isSelectionMode && (
-          <View
-            style={{
-              width: 24,
-              height: 24,
-              borderRadius: 12,
-              backgroundColor: isSelected ? theme.primary : theme.border,
-              borderWidth: isSelected ? 0 : 2,
-              borderColor: theme.border,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {isSelected && (
-              <ThemedText
-                type="small"
-                style={{
-                  color: "#FFFFFF",
-                  fontSize: 14,
-                  fontWeight: "700",
-                }}
-              >
-                ✓
-              </ThemedText>
-            )}
-          </View>
-        )}
         <View
           style={{
-            backgroundColor: isSelected
-              ? theme.primary + "40"
-              : isOwn
-                ? theme.primary
-                : theme.backgroundElement,
-            borderRadius: 18,
-            borderBottomRightRadius: isOwn ? 4 : 18,
-            borderBottomLeftRadius: isOwn ? 18 : 4,
-            paddingVertical: 10,
-            paddingHorizontal: 14,
-            borderWidth: isOwn ? 0 : 1,
-            borderColor: theme.border,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.06,
-            shadowRadius: 3,
-            elevation: 1,
+            alignSelf: isOwn ? "flex-end" : "flex-start",
+            maxWidth: "75%",
+            marginVertical: 3,
+            marginHorizontal: 16,
+            flexDirection: "row",
+            alignItems: "flex-end",
+            gap: 8,
           }}
         >
-          <ThemedText
-            type="small"
-            style={{ color: isOwn ? "#FFFFFF" : theme.text, lineHeight: 20 }}
-          >
-            {message.text}
-          </ThemedText>
+          {isSelectionMode ? <SelectionCircle isSelected={isSelected} /> : null}
           <View
             style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 4,
-              marginTop: 4,
-              justifyContent: isOwn ? "flex-end" : "flex-start",
+              backgroundColor: isOwn ? theme.primary : theme.backgroundElement,
+              borderRadius: 18,
+              borderBottomRightRadius: isOwn ? 4 : 18,
+              borderBottomLeftRadius: isOwn ? 18 : 4,
+              paddingVertical: 10,
+              paddingHorizontal: 14,
+              borderWidth: isOwn ? 0 : 1,
+              borderColor: theme.border,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.06,
+              shadowRadius: 3,
+              elevation: 1,
             }}
           >
             <ThemedText
               type="small"
+              style={{ color: isOwn ? "#FFFFFF" : theme.text, lineHeight: 20 }}
+            >
+              {message.text}
+            </ThemedText>
+            <View
               style={{
-                color: isOwn ? "rgba(255,255,255,0.65)" : theme.textMuted,
-                fontSize: 10,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 4,
+                marginTop: 4,
+                justifyContent: isOwn ? "flex-end" : "flex-start",
               }}
             >
-              {formatMessageTime(message.createdAt)}
-            </ThemedText>
-            {isOwn && (
-              <View style={{ marginLeft: 4 }}>
-                {message.status === "sending" && (
-                  <AppIcon
-                    family="ion"
-                    name="time"
-                    size={10}
-                    color="rgba(255,255,255,0.65)"
-                  />
-                )}
-                {message.status === "sent" && (
-                  <ThemedText
-                    style={{ color: "rgba(255,255,255,0.65)", fontSize: 9 }}
-                  >
-                    ✓✓
-                  </ThemedText>
-                )}
-                {message.status === "seen" && (
-                  <ThemedText
-                    style={{
-                      color: "#000000",
-                      fontSize: 9,
-                      fontWeight: "600",
-                    }}
-                  >
-                    ✓✓
-                  </ThemedText>
-                )}
-              </View>
-            )}
+              {message.edited ? (
+                <ThemedText
+                  type="small"
+                  style={{
+                    color: isOwn ? "rgba(255,255,255,0.6)" : theme.textMuted,
+                    fontSize: 10,
+                    fontStyle: "italic",
+                  }}
+                >
+                  edited
+                </ThemedText>
+              ) : null}
+              <ThemedText
+                type="small"
+                style={{
+                  color: isOwn ? "rgba(255,255,255,0.65)" : theme.textMuted,
+                  fontSize: 10,
+                }}
+              >
+                {formatMessageTime(message.createdAt)}
+              </ThemedText>
+              {isOwn ? <StatusTick status={message.status} /> : null}
+            </View>
           </View>
         </View>
       </View>
@@ -246,6 +346,7 @@ function DateSeparator({ date }: { date: string }) {
 
 export default function ChatScreen() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const { id, info } = useLocalSearchParams<{
     id?: string | string[];
     info?: string | string[];
@@ -258,29 +359,9 @@ export default function ChatScreen() {
     try {
       return rawInfo
         ? (JSON.parse(decodeURIComponent(rawInfo)) as ChatInfo)
-        : {
-            postId: "",
-            postTitle: "",
-            postImageUri: "",
-            buyerId: "",
-            buyerName: "",
-            buyerImageUri: "",
-            sellerId: "",
-            sellerName: "",
-            sellerImageUri: "",
-          };
+        : EMPTY_INFO;
     } catch {
-      return {
-        postId: "",
-        postTitle: "",
-        postImageUri: "",
-        buyerId: "",
-        buyerName: "",
-        buyerImageUri: "",
-        sellerId: "",
-        sellerName: "",
-        sellerImageUri: "",
-      };
+      return EMPTY_INFO;
     }
   }, [rawInfo]);
 
@@ -288,83 +369,138 @@ export default function ChatScreen() {
   const {
     messages,
     isLoading,
-    isSending,
     sendMessage,
-    deleteMessages,
     markMessagesAsSeen,
+    deleteMessage,
+    editMessage,
   } = useChatMessages(chatId, chatInfo);
 
   const [inputText, setInputText] = useState("");
   const [selectedMessages, setSelectedMessages] = useState<string[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [editingMessage, setEditingMessage] = useState<ChatMessage | null>(null);
 
+  // Mark other's messages as seen when chat opens
   useEffect(() => {
-    markMessagesAsSeen().catch((error) => {
-      console.error("Failed to mark messages as seen:", error);
+    if (!chatId) return;
+    markMessagesAsSeen().catch(console.error);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatId]);
+
+  // Android hardware back: cancel edit mode instead of navigating away
+  useEffect(() => {
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      if (editingMessage) {
+        cancelEdit();
+        return true;
+      }
+      return false;
     });
-  }, [chatId, markMessagesAsSeen]);
+    return () => sub.remove();
+  }, [editingMessage]);
 
   const otherName =
     uid === chatInfo.buyerId ? chatInfo.sellerName : chatInfo.buyerName;
   const otherImageUri =
-    uid === chatInfo.buyerId ? chatInfo.sellerImageUri : chatInfo.buyerImageUri;
+    uid === chatInfo.buyerId
+      ? chatInfo.sellerImageUri
+      : chatInfo.buyerImageUri;
 
-  async function handleSend() {
-    const text = inputText.trim();
-    if (!text) return;
-    setInputText("");
-    await sendMessage(text);
-  }
+  // Derived selection info
+  const selectedMessageObjs = messages.filter((m) =>
+    selectedMessages.includes(m.id),
+  );
+  const singleSelected =
+    selectedMessages.length === 1 ? selectedMessageObjs[0] : null;
+  const allSelectedOwn =
+    selectedMessageObjs.length > 0 &&
+    selectedMessageObjs.every((m) => m.senderId === uid);
+  const canEdit =
+    !!singleSelected &&
+    singleSelected.senderId === uid &&
+    !singleSelected.deletedForEveryone;
 
-  function handleMessageLongPress(messageId: string) {
-    setIsSelectionMode(true);
-    setSelectedMessages([messageId]);
-  }
-
-  function handleMessagePress(messageId: string) {
-    if (!isSelectionMode) return;
-    setSelectedMessages((prev) => {
-      if (prev.includes(messageId)) {
-        const updated = prev.filter((id) => id !== messageId);
-        if (updated.length === 0) {
-          setIsSelectionMode(false);
-        }
-        return updated;
-      } else {
-        return [...prev, messageId];
-      }
-    });
-  }
-
-  async function handleDelete() {
-    setIsDeleting(true);
-    setDeleteError(null);
-    try {
-      await deleteMessages(selectedMessages);
-      setSelectedMessages([]);
-      setIsSelectionMode(false);
-      setShowDeleteModal(false);
-    } catch (error) {
-      console.error("Failed to delete messages:", error);
-      setDeleteError(
-        error instanceof Error ? error.message : "Failed to delete message",
-      );
-    } finally {
-      setIsDeleting(false);
-    }
-  }
-
-  function handleCloseDeleteModal() {
-    setShowDeleteModal(false);
-    setDeleteError(null);
-  }
+  // Dropdown position — just below the header
+  const menuTop = insets.top + 56;
 
   function cancelSelection() {
     setSelectedMessages([]);
     setIsSelectionMode(false);
+    setMenuVisible(false);
+  }
+
+  function handleMessageLongPress(messageId: string, msg: ChatMessage) {
+    if (msg.deletedForEveryone) return;
+    setIsSelectionMode(true);
+    setSelectedMessages([messageId]);
+  }
+
+  function handleMessagePress(messageId: string, msg: ChatMessage) {
+    if (!isSelectionMode) return;
+    if (msg.deletedForEveryone) return;
+    setSelectedMessages((prev) => {
+      const updated = prev.includes(messageId)
+        ? prev.filter((mid) => mid !== messageId)
+        : [...prev, messageId];
+      if (updated.length === 0) setIsSelectionMode(false);
+      return updated;
+    });
+  }
+
+  async function handleSend() {
+    const text = inputText.trim();
+    if (!text) return;
+
+    if (editingMessage) {
+      const msg = editingMessage;
+      setInputText("");
+      setEditingMessage(null);
+      await editMessage(msg.id, text);
+    } else {
+      setInputText("");
+      await sendMessage(text);
+    }
+  }
+
+  function cancelEdit() {
+    setEditingMessage(null);
+    setInputText("");
+  }
+
+  // ─── Menu actions ────────────────────────────────────────────────────────────
+
+  async function handleCopy() {
+    const text = selectedMessageObjs
+      .filter((m) => !m.deletedForEveryone)
+      .map((m) => m.text)
+      .join("\n");
+    await Clipboard.setStringAsync(text);
+    Toast.show({ type: "success", text1: "Copied to clipboard", visibilityTime: 1500 });
+    cancelSelection();
+  }
+
+  function handleEdit() {
+    if (!canEdit || !singleSelected) return;
+    setEditingMessage(singleSelected);
+    setInputText(singleSelected.text);
+    setMenuVisible(false);
+    setSelectedMessages([]);
+    setIsSelectionMode(false);
+  }
+
+  function handleForward() {
+    Toast.show({ type: "info", text1: "Forward coming soon", visibilityTime: 1500 });
+    cancelSelection();
+  }
+
+  async function handleDelete(forEveryone: boolean) {
+    setDeleteModalVisible(false);
+    for (const msgId of selectedMessages) {
+      await deleteMessage(msgId, forEveryone);
+    }
+    cancelSelection();
   }
 
   return (
@@ -398,7 +534,10 @@ export default function ChatScreen() {
                   />
                 </TouchableOpacity>
               ) : (
-                <TouchableOpacity onPress={() => router.back()}>
+                // In edit mode back cancels the edit; otherwise navigate away
+                <TouchableOpacity
+                  onPress={editingMessage ? cancelEdit : () => router.back()}
+                >
                   <AppIcon
                     family="ion"
                     name="chevron-back"
@@ -420,127 +559,40 @@ export default function ChatScreen() {
           ),
           headerRight: () =>
             isSelectionMode ? (
-              <TouchableOpacity
-                onPress={() => setShowDeleteModal(true)}
-                style={{ paddingRight: 16 }}
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 4,
+                  paddingRight: 12,
+                }}
               >
-                <AppIcon
-                  family="ion"
-                  name="trash"
-                  size={24}
-                  color={theme.primary}
-                />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setDeleteModalVisible(true)}
+                  style={{ padding: 6 }}
+                >
+                  <AppIcon
+                    family="ion"
+                    name="trash-outline"
+                    size={22}
+                    color={theme.error}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setMenuVisible(true)}
+                  style={{ padding: 6 }}
+                >
+                  <AppIcon
+                    family="ion"
+                    name="ellipsis-vertical"
+                    size={22}
+                    color={theme.text}
+                  />
+                </TouchableOpacity>
+              </View>
             ) : null,
         }}
       />
-
-      {/* Delete confirmation modal */}
-      <Modal
-        visible={showDeleteModal}
-        transparent
-        animationType="fade"
-        onRequestClose={handleCloseDeleteModal}
-      >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            alignItems: "center",
-            justifyContent: "center",
-            paddingHorizontal: 20,
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: theme.background,
-              borderRadius: 16,
-              padding: 24,
-              width: "100%",
-              maxWidth: 320,
-            }}
-          >
-            <ThemedText
-              type="subtitle"
-              style={{ fontSize: 18, marginBottom: 8, textAlign: "center" }}
-            >
-              Delete Message{selectedMessages.length > 1 ? "s" : ""}?
-            </ThemedText>
-            <ThemedText
-              type="small"
-              themeColor="textSecondary"
-              style={{ textAlign: "center", marginBottom: 24 }}
-            >
-              This action cannot be undone.
-            </ThemedText>
-
-            {deleteError && (
-              <View
-                style={{
-                  backgroundColor: "#FF3B30",
-                  borderRadius: 10,
-                  padding: 12,
-                  marginBottom: 16,
-                }}
-              >
-                <ThemedText
-                  type="small"
-                  style={{ color: "#FFFFFF", textAlign: "center" }}
-                >
-                  {deleteError}
-                </ThemedText>
-              </View>
-            )}
-
-            <View style={{ gap: 12, flexDirection: "row" }}>
-              <TouchableOpacity
-                onPress={handleCloseDeleteModal}
-                disabled={isDeleting}
-                style={{
-                  flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 10,
-                  backgroundColor: theme.backgroundElement,
-                  borderWidth: 1,
-                  borderColor: theme.border,
-                  alignItems: "center",
-                  opacity: isDeleting ? 0.5 : 1,
-                }}
-              >
-                <ThemedText
-                  type="small"
-                  style={{ fontWeight: "600", color: theme.text }}
-                >
-                  Cancel
-                </ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleDelete}
-                disabled={isDeleting}
-                style={{
-                  flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 10,
-                  backgroundColor: isDeleting ? "#FF3B30CC" : "#FF3B30",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                {isDeleting ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <ThemedText
-                    type="small"
-                    style={{ fontWeight: "600", color: "#FFFFFF" }}
-                  >
-                    Delete
-                  </ThemedText>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
 
       <ThemedView
         className="flex-1"
@@ -658,16 +710,18 @@ export default function ChatScreen() {
 
                 return (
                   <View>
-                    {showDateSeparator && (
-                      <DateSeparator date={formatMessageDate(item.createdAt)} />
-                    )}
+                    {showDateSeparator ? (
+                      <DateSeparator
+                        date={formatMessageDate(item.createdAt)}
+                      />
+                    ) : null}
                     <MessageBubble
                       message={item}
                       isOwn={item.senderId === uid}
                       isSelected={selectedMessages.includes(item.id)}
                       isSelectionMode={isSelectionMode}
-                      onLongPress={() => handleMessageLongPress(item.id)}
-                      onPress={() => handleMessagePress(item.id)}
+                      onLongPress={() => handleMessageLongPress(item.id, item)}
+                      onPress={() => handleMessagePress(item.id, item)}
                     />
                   </View>
                 );
@@ -704,7 +758,9 @@ export default function ChatScreen() {
               <TextInput
                 value={inputText}
                 onChangeText={setInputText}
-                placeholder="Type a message..."
+                placeholder={
+                  editingMessage ? "Edit message..." : "Type a message..."
+                }
                 placeholderTextColor={theme.textMuted}
                 style={{ color: theme.text, fontSize: 15, maxHeight: 100 }}
                 multiline
@@ -726,11 +782,216 @@ export default function ChatScreen() {
                 justifyContent: "center",
               }}
             >
-              <AppIcon family="ion" name="send" size={18} color="#FFFFFF" />
+              <AppIcon
+                family="ion"
+                name={editingMessage ? "checkmark" : "send"}
+                size={18}
+                color="#FFFFFF"
+              />
             </TouchableOpacity>
           </ThemedView>
         </KeyboardAvoidingView>
       </ThemedView>
+
+      {/* Centered WhatsApp-style delete dialog */}
+      <Modal
+        visible={deleteModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteModalVisible(false)}
+      >
+        <Pressable
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.45)",
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 40,
+          }}
+          onPress={() => setDeleteModalVisible(false)}
+        >
+          {/* Stop tap-through so tapping the card doesn't dismiss */}
+          <Pressable
+            style={{
+              width: "100%",
+              backgroundColor: theme.backgroundElement,
+              borderRadius: 16,
+              overflow: "hidden",
+              borderWidth: 1,
+              borderColor: theme.border,
+            }}
+          >
+            {/* Title */}
+            <View
+              style={{
+                paddingVertical: 16,
+                paddingHorizontal: 20,
+                borderBottomWidth: 1,
+                borderBottomColor: theme.border,
+              }}
+            >
+              <ThemedText
+                type="subtitle"
+                style={{ textAlign: "center", fontSize: 16 }}
+              >
+                {selectedMessages.length > 1
+                  ? `Delete ${selectedMessages.length} messages?`
+                  : "Delete message?"}
+              </ThemedText>
+            </View>
+
+            {/* Delete for everyone — only when all selected are own messages */}
+            {allSelectedOwn ? (
+              <TouchableOpacity
+                onPress={() => handleDelete(true)}
+                style={{
+                  paddingVertical: 17,
+                  paddingHorizontal: 20,
+                  borderBottomWidth: 1,
+                  borderBottomColor: theme.border,
+                }}
+              >
+                <ThemedText
+                  type="default"
+                  style={{ color: theme.error, textAlign: "center" }}
+                >
+                  Delete for everyone
+                </ThemedText>
+              </TouchableOpacity>
+            ) : null}
+
+            {/* Delete for me — always available */}
+            <TouchableOpacity
+              onPress={() => handleDelete(false)}
+              style={{
+                paddingVertical: 17,
+                paddingHorizontal: 20,
+                borderBottomWidth: 1,
+                borderBottomColor: theme.border,
+              }}
+            >
+              <ThemedText
+                type="default"
+                style={{ color: theme.error, textAlign: "center" }}
+              >
+                Delete for me
+              </ThemedText>
+            </TouchableOpacity>
+
+            {/* Cancel */}
+            <TouchableOpacity
+              onPress={() => setDeleteModalVisible(false)}
+              style={{ paddingVertical: 17, paddingHorizontal: 20 }}
+            >
+              <ThemedText
+                type="default"
+                style={{
+                  textAlign: "center",
+                  fontWeight: "600",
+                  color: theme.textSecondary,
+                }}
+              >
+                Cancel
+              </ThemedText>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Three-dots context menu — slides in from top-right */}
+      <Modal
+        visible={menuVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <Pressable
+          style={{ flex: 1 }}
+          onPress={() => setMenuVisible(false)}
+        >
+          <View
+            style={{
+              position: "absolute",
+              top: menuTop,
+              right: 8,
+              backgroundColor: theme.backgroundElement,
+              borderRadius: 14,
+              paddingVertical: 4,
+              minWidth: 210,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.18,
+              shadowRadius: 16,
+              elevation: 12,
+              borderWidth: 1,
+              borderColor: theme.border,
+            }}
+          >
+            {/* Copy */}
+            <TouchableOpacity
+              onPress={handleCopy}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 14,
+                paddingHorizontal: 18,
+                paddingVertical: 14,
+              }}
+            >
+              <AppIcon
+                family="ion"
+                name="copy-outline"
+                size={20}
+                color={theme.text}
+              />
+              <ThemedText type="default">Copy</ThemedText>
+            </TouchableOpacity>
+
+            {/* Edit — own single non-deleted message only */}
+            {canEdit ? (
+              <TouchableOpacity
+                onPress={handleEdit}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 14,
+                  paddingHorizontal: 18,
+                  paddingVertical: 14,
+                }}
+              >
+                <AppIcon
+                  family="ion"
+                  name="pencil-outline"
+                  size={20}
+                  color={theme.text}
+                />
+                <ThemedText type="default">Edit</ThemedText>
+              </TouchableOpacity>
+            ) : null}
+
+            {/* Forward */}
+            <TouchableOpacity
+              onPress={handleForward}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 14,
+                paddingHorizontal: 18,
+                paddingVertical: 14,
+              }}
+            >
+              <AppIcon
+                family="ion"
+                name="arrow-redo-outline"
+                size={20}
+                color={theme.text}
+              />
+              <ThemedText type="default">Forward</ThemedText>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
     </>
   );
 }

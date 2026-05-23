@@ -1,12 +1,11 @@
 import {
   addDoc,
+  arrayUnion,
   collection,
-  deleteDoc,
   doc,
   getDoc,
   getDocs,
   increment,
-  limit,
   onSnapshot,
   orderBy,
   query,
@@ -26,6 +25,9 @@ export type ChatMessage = {
   text: string;
   createdAt: string;
   status: "sending" | "sent" | "seen";
+  deletedForEveryone?: boolean;
+  deletedFor?: string[];
+  edited?: boolean;
 };
 
 export type ChatInfo = {
@@ -40,7 +42,6 @@ export type ChatInfo = {
   sellerImageUri: string;
 };
 
-// Helper function to fetch user data (displayName and imageUri)
 async function fetchUserData(
   userId: string,
 ): Promise<{ displayName: string; imageUri: string }> {
@@ -62,7 +63,7 @@ async function fetchUserData(
 export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSending, setIsSending] = useState(false);
+  const [isSending] = useState(false);
   const uid = auth.currentUser?.uid || "";
   const displayName = auth.currentUser?.displayName || "User";
 
@@ -81,19 +82,29 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const items: ChatMessage[] = snapshot.docs.map((docSnap) => {
-          const data = docSnap.data();
-          return {
-            id: docSnap.id,
-            senderId: data.senderId || "",
-            senderName: data.senderName || "",
-            text: data.text || "",
-            createdAt:
-              data.createdAt?.toDate?.()?.toISOString() ||
-              new Date().toISOString(),
-            status: data.status || "sent",
-          };
-        });
+        const items: ChatMessage[] = snapshot.docs
+          .map((docSnap) => {
+            const data = docSnap.data();
+            return {
+              id: docSnap.id,
+              senderId: data.senderId || "",
+              senderName: data.senderName || "",
+              text: data.text || "",
+              createdAt:
+                data.createdAt?.toDate?.()?.toISOString() ||
+                new Date().toISOString(),
+              status: data.status || "sent",
+              deletedForEveryone: data.deletedForEveryone ?? false,
+              deletedFor: data.deletedFor ?? [],
+              edited: data.edited ?? false,
+            };
+          })
+          .filter((msg) => {
+            // Always keep deletedForEveryone messages (shown as placeholder)
+            if (msg.deletedForEveryone) return true;
+            // Hide messages this user soft-deleted for themselves
+            return !msg.deletedFor?.includes(uid);
+          });
         setMessages(items);
         setIsLoading(false);
       },
@@ -104,7 +115,7 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
     );
 
     return () => unsubscribe();
-  }, [chatId]);
+  }, [chatId, uid]);
 
   // Reset own unread count when chat is opened
   useEffect(() => {
@@ -125,7 +136,7 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
     const tempId = `temp_${Date.now()}`;
     const now = new Date().toISOString();
 
-    // Create optimistic message
+    // Optimistic message appears instantly with "sending" status
     const optimisticMessage: ChatMessage = {
       id: tempId,
       senderId: uid,
@@ -134,14 +145,11 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
       createdAt: now,
       status: "sending",
     };
-
-    // Add optimistic message to state immediately
     setMessages((prev) => [optimisticMessage, ...prev]);
 
     try {
       const chatRef = doc(db, "chats", chatId);
 
-      // Fetch buyer data if missing
       let buyerName = chatInfo.buyerName;
       let buyerImageUri = chatInfo.buyerImageUri;
       if ((!buyerName || !buyerImageUri) && chatInfo.buyerId) {
@@ -150,7 +158,6 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
         buyerImageUri = buyerData.imageUri;
       }
 
-      // Fetch seller data if missing
       let sellerName = chatInfo.sellerName;
       let sellerImageUri = chatInfo.sellerImageUri;
       if ((!sellerName || !sellerImageUri) && chatInfo.sellerId) {
@@ -159,7 +166,6 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
         sellerImageUri = sellerData.imageUri;
       }
 
-      // Create or update chat document
       await setDoc(
         chatRef,
         {
@@ -167,11 +173,11 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
           postTitle: chatInfo.postTitle,
           postImageUri: chatInfo.postImageUri,
           buyerId: chatInfo.buyerId,
-          buyerName: buyerName,
-          buyerImageUri: buyerImageUri,
+          buyerName,
+          buyerImageUri,
           sellerId: chatInfo.sellerId,
-          sellerName: sellerName,
-          sellerImageUri: sellerImageUri,
+          sellerName,
+          sellerImageUri,
           participants: [chatInfo.buyerId, chatInfo.sellerId],
           lastMessage: trimmed,
           lastMessageAt: serverTimestamp(),
@@ -179,13 +185,11 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
         { merge: true },
       );
 
-      // Update unread counts
       await updateDoc(chatRef, {
         [`unreadCounts.${otherParticipantId}`]: increment(1),
         [`unreadCounts.${uid}`]: 0,
       });
 
-      // Add message to subcollection with status "sent"
       const messageRef = await addDoc(
         collection(db, "chats", chatId, "messages"),
         {
@@ -197,16 +201,10 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
         },
       );
 
-      // Replace temp message with real message from Firestore
+      // Promote temp message to real ID + "sent" status
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.id === tempId
-            ? {
-                ...msg,
-                id: messageRef.id,
-                status: "sent",
-              }
-            : msg,
+          msg.id === tempId ? { ...msg, id: messageRef.id, status: "sent" } : msg,
         ),
       );
     } catch (e) {
@@ -214,66 +212,63 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
     }
   }
 
+  // Mark all messages sent by the other participant as "seen"
   async function markMessagesAsSeen(): Promise<void> {
     if (!chatId || !uid) return;
-
     try {
-      const messagesRef = collection(db, "chats", chatId, "messages");
-      const q = query(messagesRef, where("senderId", "!=", uid));
-      const querySnapshot = await getDocs(q);
-
-      const batch: Promise<void>[] = [];
-      querySnapshot.forEach((docSnap) => {
-        const messageData = docSnap.data() as ChatMessage;
-        // Only update if status is not already "seen"
-        if (messageData.status !== "seen") {
-          batch.push(
+      const q = query(
+        collection(db, "chats", chatId, "messages"),
+        where("senderId", "!=", uid),
+      );
+      const snapshot = await getDocs(q);
+      const updates: Promise<void>[] = [];
+      snapshot.forEach((docSnap) => {
+        if (docSnap.data().status !== "seen") {
+          updates.push(
             updateDoc(doc(db, "chats", chatId, "messages", docSnap.id), {
               status: "seen",
             }),
           );
         }
       });
-
-      await Promise.all(batch);
+      await Promise.all(updates);
     } catch (error) {
       console.error("markMessagesAsSeen error:", error);
     }
   }
 
-  async function deleteMessages(messageIds: string[]): Promise<void> {
-    if (!chatId || messageIds.length === 0) return;
-
+  // WhatsApp-style soft delete
+  // forEveryone=true  → sets deletedForEveryone flag (placeholder shown to both sides)
+  // forEveryone=false → adds uid to deletedFor (only hidden for current user)
+  async function deleteMessage(
+    messageId: string,
+    forEveryone: boolean,
+  ): Promise<void> {
+    if (!uid || !chatId) return;
     try {
-      // Delete the messages
-      for (const msgId of messageIds) {
-        await deleteDoc(doc(db, "chats", chatId, "messages", msgId));
-      }
-
-      // Fetch the new last message after deletion
-      const messagesRef = collection(db, "chats", chatId, "messages");
-      const q = query(messagesRef, orderBy("createdAt", "desc"), limit(1));
-      const querySnapshot = await getDocs(q);
-
-      const chatRef = doc(db, "chats", chatId);
-
-      if (querySnapshot.empty) {
-        // No messages left, clear the last message fields
-        await updateDoc(chatRef, {
-          lastMessage: "",
-          lastMessageAt: null,
-        });
+      const msgRef = doc(db, "chats", chatId, "messages", messageId);
+      if (forEveryone) {
+        await updateDoc(msgRef, { deletedForEveryone: true, text: "" });
       } else {
-        // Update with new last message
-        const lastMsg = querySnapshot.docs[0].data();
-        await updateDoc(chatRef, {
-          lastMessage: lastMsg.text || "",
-          lastMessageAt: lastMsg.createdAt || null,
-        });
+        await updateDoc(msgRef, { deletedFor: arrayUnion(uid) });
       }
-    } catch (error) {
-      console.error("deleteMessages error:", error);
-      throw error;
+    } catch (e) {
+      console.error("deleteMessage error:", e);
+    }
+  }
+
+  async function editMessage(
+    messageId: string,
+    newText: string,
+  ): Promise<void> {
+    if (!uid || !chatId || !newText.trim()) return;
+    try {
+      await updateDoc(doc(db, "chats", chatId, "messages", messageId), {
+        text: newText.trim(),
+        edited: true,
+      });
+    } catch (e) {
+      console.error("editMessage error:", e);
     }
   }
 
@@ -282,7 +277,8 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
     isLoading,
     isSending,
     sendMessage,
-    deleteMessages,
     markMessagesAsSeen,
+    deleteMessage,
+    editMessage,
   };
 }

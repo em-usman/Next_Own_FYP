@@ -122,7 +122,7 @@ function ChatItem({ chat }: { chat: ChatPreview }) {
                   fontSize: 10,
                   fontWeight: "700",
                   textAlign: "center",
-                  lineHeight: 13, 
+                  lineHeight: 13,
                 }}
               >
                 {chat.unreadCount > 9 ? "9+" : String(chat.unreadCount)}
