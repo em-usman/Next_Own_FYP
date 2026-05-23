@@ -17,7 +17,21 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "imosman.next_own",
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "next-own.web.app",
+              "pathPrefix": "/listing"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "output": "static",

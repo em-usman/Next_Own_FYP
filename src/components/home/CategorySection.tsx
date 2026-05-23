@@ -1,7 +1,9 @@
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { FlatList, TouchableOpacity, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
+import { useTheme } from "@/hooks/use-theme";
 import type { Listing } from "@/types/listing";
 
 import { ListingCard } from "./ListingCard";
@@ -17,34 +19,43 @@ type Props = {
 export function CategorySection({
   title,
   categoryId,
-  categoryHref,
   listings,
   maxItems = 5,
 }: Props) {
+  const theme = useTheme();
   const latest = listings.slice(0, maxItems);
 
-  function handleSeeAll() {
-    router.push(`/category/${categoryId}` as any);
-  }
-
   return (
-    <View className="gap-3 mb-6">
+    <View style={{ marginBottom: 28 }}>
       {/* Header */}
-      <View className="flex-row justify-between items-center px-4">
-        <ThemedText type="subtitle" style={{ fontSize: 20 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingHorizontal: 16,
+          marginBottom: 12,
+        }}
+      >
+        <ThemedText type="subtitle" style={{ fontSize: 18, fontWeight: "700" }}>
           {title}
         </ThemedText>
         <TouchableOpacity
-          onPress={handleSeeAll}
-          className="flex-row items-center gap-0.5"
+          onPress={() => router.push(`/category/${categoryId}` as any)}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 2,
+            paddingHorizontal: 12,
+            paddingVertical: 5,
+            borderRadius: 20,
+            backgroundColor: theme.backgroundSelected,
+          }}
         >
-          <ThemedText type="small" themeColor="primary">
+          <ThemedText style={{ fontSize: 12, color: theme.primary, fontWeight: "600" }}>
             See All
           </ThemedText>
-          <ThemedText type="small" themeColor="primary">
-            {" "}
-            ›
-          </ThemedText>
+          <Ionicons name="chevron-forward" size={12} color={theme.primary} />
         </TouchableOpacity>
       </View>
 

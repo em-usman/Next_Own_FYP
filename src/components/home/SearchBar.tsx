@@ -30,44 +30,59 @@ export function SearchBar() {
   const { cartCount } = useCart();
 
   return (
-    <ThemedView className="px-4 py-3 gap-3">
-      {/* Search Row */}
-      <View className="flex-row items-center gap-3">
-        <ThemedView
-          type="backgroundElement"
-          className="flex-1 flex-row items-center rounded-3xl px-4 py-2 border"
-          style={{ borderColor: theme.border }}
-        >
-          <Ionicons name="search-outline" size={18} color={theme.icon} />
-          <TextInput
-            className="flex-1 ml-2 text-sm"
-            style={{ color: theme.text }}
-            placeholder="Search..."
-            placeholderTextColor={theme.textMuted}
-            value={query}
-            onChangeText={setQuery}
-          />
-        </ThemedView>
+    <ThemedView className="px-4 pb-3 gap-2.5">
+      {/* Top row: brand + actions */}
+      <View className="flex-row items-center justify-between">
+        <View>
+          <ThemedText type="title" style={{ fontSize: 24, letterSpacing: -0.3 }}>
+            Next{" "}
+            <ThemedText
+              type="title"
+              style={{ fontSize: 24, letterSpacing: -0.3, color: theme.primary }}
+            >
+              Own
+            </ThemedText>
+          </ThemedText>
+          <View className="flex-row items-center gap-1 mt-0.5">
+            <Ionicons name="location-sharp" size={13} color={theme.primary} />
+            <ThemedText type="small" themeColor="textSecondary">
+              {COUNTRY}
+            </ThemedText>
+            <Ionicons name="chevron-down" size={12} color={theme.textMuted} />
+          </View>
+        </View>
 
-        {/* Cart */}
+        {/* Cart icon */}
         <TouchableOpacity
           onPress={() => router.push("/profile/cart" as any)}
-          className="w-10 h-10 rounded-full items-center justify-center border"
           style={{
+            width: 44,
+            height: 44,
+            borderRadius: 22,
+            alignItems: "center",
+            justifyContent: "center",
             backgroundColor: theme.backgroundElement,
+            borderWidth: 1,
             borderColor: theme.border,
           }}
         >
-          <Ionicons name="cart-outline" size={20} color={theme.icon} />
+          <Ionicons name="cart-outline" size={22} color={theme.icon} />
           {cartCount > 0 && (
             <View
-              className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full items-center justify-center px-1"
-              style={{ backgroundColor: theme.primary }}
+              style={{
+                position: "absolute",
+                top: -2,
+                right: -2,
+                minWidth: 18,
+                height: 18,
+                borderRadius: 9,
+                backgroundColor: theme.primary,
+                alignItems: "center",
+                justifyContent: "center",
+                paddingHorizontal: 4,
+              }}
             >
-              <ThemedText
-                type="smallBold"
-                style={{ color: theme.white, fontSize: 10 }}
-              >
+              <ThemedText style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}>
                 {cartCount > 99 ? "99+" : String(cartCount)}
               </ThemedText>
             </View>
@@ -75,14 +90,46 @@ export function SearchBar() {
         </TouchableOpacity>
       </View>
 
-      {/* Country Row */}
-      <TouchableOpacity className="flex-row items-center gap-1">
-        <Ionicons name="location-sharp" size={16} color={theme.primary} />
-        <ThemedText type="small">{COUNTRY}</ThemedText>
-        <Ionicons name="chevron-down" size={14} color={theme.textSecondary} />
-      </TouchableOpacity>
+      {/* Search input */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: theme.backgroundElement,
+          borderWidth: 1.5,
+          borderColor: theme.border,
+          borderRadius: 16,
+          paddingHorizontal: 14,
+          paddingVertical: 2,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.06,
+          shadowRadius: 4,
+          elevation: 2,
+        }}
+      >
+        <Ionicons name="search-outline" size={18} color={theme.primary} />
+        <TextInput
+          style={{
+            flex: 1,
+            marginLeft: 10,
+            fontSize: 15,
+            color: theme.text,
+            paddingVertical: 11,
+          }}
+          placeholder="Search listings..."
+          placeholderTextColor={theme.textMuted}
+          value={query}
+          onChangeText={setQuery}
+        />
+        {query.length > 0 && (
+          <TouchableOpacity onPress={() => setQuery("")}>
+            <Ionicons name="close-circle" size={18} color={theme.textMuted} />
+          </TouchableOpacity>
+        )}
+      </View>
 
-      {/* Recent Searches Slider */}
+      {/* Recent searches */}
       <FlatList
         data={RECENT_SEARCHES}
         horizontal
@@ -92,13 +139,16 @@ export function SearchBar() {
         renderItem={({ item }) => (
           <Pressable
             onPress={() => setQuery(item)}
-            className="px-4 py-1.5 rounded-full border"
             style={{
-              backgroundColor: theme.backgroundElement,
+              paddingHorizontal: 14,
+              paddingVertical: 6,
+              borderRadius: 20,
+              backgroundColor: theme.backgroundSelected,
+              borderWidth: 1,
               borderColor: theme.border,
             }}
           >
-            <ThemedText type="small" themeColor="textSecondary">
+            <ThemedText style={{ fontSize: 12, color: theme.primary, fontWeight: "500" }}>
               {item}
             </ThemedText>
           </Pressable>

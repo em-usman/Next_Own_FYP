@@ -1,5 +1,5 @@
-import * as ExpoLinking from "expo-linking";
-import { router, Stack, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { ScreenHeader } from "@/components/ScreenHeader";
 import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -21,7 +21,7 @@ import { CATEGORIES } from "@/config/categoryConfig";
 import { useTheme } from "@/hooks/use-theme";
 import { useCart } from "@/hooks/useCart";
 import { useFavourites } from "@/hooks/useFavourites";
-import { db } from "../../../firebaseConfig";
+import { auth, db } from "../../../firebaseConfig";
 
 const { width } = Dimensions.get("window");
 
@@ -47,6 +47,7 @@ type ListingDetailsPayload = {
   details?: Record<string, string>;
   imageUri?: string;
   imageUrls?: string[];
+  sellerId?: string;
 };
 
 function formatDetailLabel(key: string): string {
@@ -173,6 +174,7 @@ export default function ListingDetailScreen() {
               : {},
           imageUri,
           imageUrls: images.length > 0 ? images : imageUri ? [imageUri] : [],
+          sellerId: typeof data.userId === "string" ? data.userId : "",
         };
 
         if (!cancelled) {
@@ -247,9 +249,7 @@ export default function ListingDetailScreen() {
       }
     }
 
-    const productUrl = ExpoLinking.createURL(`/listing/${listing.id}`, {
-      queryParams: { ref: "whatsapp" },
-    });
+    const productUrl = `https://next-own.web.app/listing/${listing.id}`;
     const message = encodeURIComponent(
       `Hi, I am interested in this ad: ${listing.title}\n${productUrl}\nAd ID: ${listing.id}`,
     );
@@ -268,12 +268,58 @@ export default function ListingDetailScreen() {
     });
   }
 
+  const [chatLoading, setChatLoading] = useState(false);
+
+  async function handleChatPress() {
+    const currentUid = auth.currentUser?.uid;
+    if (!currentUid || !listing) return;
+
+    let sellerId = listing.sellerId;
+
+    if (!sellerId) {
+      setChatLoading(true);
+      try {
+        for (const category of CATEGORIES) {
+          const postRef = doc(db, "categories", category.id, "posts", listing.id);
+          const snap = await getDoc(postRef);
+          if (snap.exists()) {
+            sellerId = snap.data()?.userId || "";
+            break;
+          }
+        }
+      } catch (e) {
+        console.error("Fetch sellerId error:", e);
+      } finally {
+        setChatLoading(false);
+      }
+    }
+
+    if (!sellerId || sellerId === currentUid) return;
+
+    const chatId = `${listing.id}_${currentUid}`;
+    const chatInfo = {
+      postId: listing.id,
+      postTitle: listing.title,
+      postImageUri: imageUrls[0] || "",
+      buyerId: currentUid,
+      buyerName: auth.currentUser?.displayName || "User",
+      sellerId,
+      sellerName: listing.sellerName || "",
+    };
+
+    router.push({
+      pathname: "/chat/[id]" as never,
+      params: {
+        id: chatId,
+        info: encodeURIComponent(JSON.stringify(chatInfo)),
+      },
+    });
+  }
+
   async function handleSharePress() {
     if (!listing) return;
 
-    const productUrl = ExpoLinking.createURL(`/listing/${listing.id}`, {
-      queryParams: { ref: "share" },
-    });
+    const productUrl = `https://next-own.web.app/listing/${listing.id}`;
 
     try {
       await Share.share({
@@ -391,17 +437,7 @@ export default function ListingDetailScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          title: "Ad Details",
-          headerStyle: { backgroundColor: theme.background },
-          headerTintColor: theme.text,
-          headerShadowVisible: false,
-          headerBackButtonDisplayMode: "minimal",
-          headerTitleStyle: { fontSize: 18, fontWeight: "700" },
-        }}
-      />
+      <ScreenHeader title="Ad Details" />
 
       <ThemedView className="flex-1">
         <ScrollView
@@ -612,58 +648,80 @@ export default function ListingDetailScreen() {
 
         {/* Bottom CTA */}
         <ThemedView
-          className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-3 flex-row gap-2"
+          className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-3 gap-2"
           style={{ borderTopWidth: 1, borderTopColor: theme.border }}
         >
-          {/* Call Button */}
-          <TouchableOpacity
-            className="flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-full border"
-            style={{ borderColor: theme.primary }}
-            onPress={handleCallPress}
-            disabled={!listing.sellerPhone}
-          >
-            <AppIcon name="call-outline" size={18} color={theme.primary} />
-            <ThemedText type="smallBold" themeColor="primary">
-              Call
-            </ThemedText>
-          </TouchableOpacity>
+          {/* Row 1: Call + Chat */}
+          <View className="flex-row gap-2">
+            <TouchableOpacity
+              className="flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-full border"
+              style={{ borderColor: theme.primary }}
+              onPress={handleCallPress}
+              disabled={!listing.sellerPhone}
+            >
+              <AppIcon name="call-outline" size={18} color={theme.primary} />
+              <ThemedText type="smallBold" themeColor="primary">
+                Call
+              </ThemedText>
+            </TouchableOpacity>
 
-          {/* Add to Cart Button */}
-          <TouchableOpacity
-            className="flex-1 flex-row items-center justify-center gap-1.5 py-3.5 rounded-full"
-            style={{
-              backgroundColor: cartHasItem ? theme.error : theme.primary,
-            }}
-            onPress={handleAddToCartPress}
-            disabled={
-              isUpdating ||
-              (!cartHasItem &&
-                listing.status !== undefined &&
-                listing.status !== "active")
-            }
-          >
-            <AppIcon
-              name={cartHasItem ? "trash-outline" : "cart-outline"}
-              size={17}
-              color={theme.white}
-            />
-            <ThemedText type="smallBold" style={{ color: theme.white }}>
-              {cartHasItem ? "Remove" : "Add Cart"}
-            </ThemedText>
-          </TouchableOpacity>
+            <TouchableOpacity
+              className="flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-full"
+              style={{ backgroundColor: theme.primary }}
+              onPress={handleChatPress}
+              disabled={chatLoading || listing.sellerId === auth.currentUser?.uid}
+            >
+              {chatLoading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <>
+                  <AppIcon name="chatbubble-outline" size={18} color="#FFFFFF" />
+                  <ThemedText type="smallBold" style={{ color: "#FFFFFF" }}>
+                    Chat
+                  </ThemedText>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
 
-          {/* WhatsApp Button */}
-          <TouchableOpacity
-            className="flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-full"
-            style={{ backgroundColor: theme.black }}
-            onPress={handleWhatsAppPress}
-            disabled={!listing.sellerPhone}
-          >
-            <AppIcon name="chatbubble-outline" size={18} color={theme.white} />
-            <ThemedText type="smallBold" style={{ color: theme.white }}>
-              WhatsApp
-            </ThemedText>
-          </TouchableOpacity>
+          {/* Row 2: Cart + WhatsApp */}
+          <View className="flex-row gap-2">
+            <TouchableOpacity
+              className="flex-1 flex-row items-center justify-center gap-1.5 py-3 rounded-full border"
+              style={{ borderColor: cartHasItem ? theme.error : theme.border }}
+              onPress={handleAddToCartPress}
+              disabled={
+                isUpdating ||
+                (!cartHasItem &&
+                  listing.status !== undefined &&
+                  listing.status !== "active")
+              }
+            >
+              <AppIcon
+                name={cartHasItem ? "trash-outline" : "cart-outline"}
+                size={16}
+                color={cartHasItem ? theme.error : theme.text}
+              />
+              <ThemedText
+                type="small"
+                style={{ color: cartHasItem ? theme.error : theme.text }}
+              >
+                {cartHasItem ? "Remove" : "Add to Cart"}
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-full"
+              style={{ backgroundColor: theme.black }}
+              onPress={handleWhatsAppPress}
+              disabled={!listing.sellerPhone}
+            >
+              <AppIcon name="chatbubble-outline" size={16} color={theme.white} />
+              <ThemedText type="small" style={{ color: theme.white }}>
+                WhatsApp
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
         </ThemedView>
       </ThemedView>
     </>

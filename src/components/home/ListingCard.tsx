@@ -1,18 +1,15 @@
-import * as ExpoLinking from "expo-linking";
 import { router } from "expo-router";
 import { Image, Share, TouchableOpacity, View } from "react-native";
 
 import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
 import { useFavourites } from "@/hooks/useFavourites";
 import type { Listing } from "@/types/listing";
 
 export function ListingCard({ listing }: { listing: Listing }) {
   const theme = useTheme();
-  const { addToFavourites, removeFromFavourites, isFavourite, isUpdating } =
-    useFavourites();
+  const { addToFavourites, removeFromFavourites, isFavourite, isUpdating } = useFavourites();
 
   function handlePress() {
     const imageUri =
@@ -27,26 +24,17 @@ export function ListingCard({ listing }: { listing: Listing }) {
       })
       .filter(Boolean);
 
-    const payload = {
-      ...listing,
-      imageUri,
-      imageUrls,
-    };
-
     router.push({
       pathname: "/listing/[id]",
       params: {
         id: String(listing.id),
-        data: encodeURIComponent(JSON.stringify(payload)),
+        data: encodeURIComponent(JSON.stringify({ ...listing, imageUri, imageUrls })),
       },
     });
   }
 
   async function handleSharePress() {
-    const productUrl = ExpoLinking.createURL(`/listing/${listing.id}`, {
-      queryParams: { ref: "share" },
-    });
-
+    const productUrl = `https://next-own.web.app/listing/${listing.id}`;
     try {
       await Share.share({
         title: listing.title,
@@ -102,66 +90,127 @@ export function ListingCard({ listing }: { listing: Listing }) {
   const liked = isFavourite(String(listing.id));
 
   return (
-    <TouchableOpacity style={{ width: 200 }} onPress={handlePress}>
-      <ThemedView
-        type="backgroundElement"
-        className="rounded-2xl overflow-hidden border"
-        style={{ borderColor: theme.border }}
+    <TouchableOpacity
+      style={{ width: 200 }}
+      onPress={handlePress}
+      activeOpacity={0.9}
+    >
+      <View
+        style={{
+          borderRadius: 20,
+          overflow: "hidden",
+          backgroundColor: theme.backgroundElement,
+          borderWidth: 1,
+          borderColor: theme.border,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.08,
+          shadowRadius: 12,
+          elevation: 4,
+        }}
       >
         {/* Image */}
-        <View className="relative">
+        <View style={{ position: "relative" }}>
           <Image
             source={listing.image}
-            className="w-full h-36"
+            style={{ width: "100%", height: 148 }}
             resizeMode="cover"
           />
+
+          {/* Share button */}
           <TouchableOpacity
-            className="absolute top-2 right-2 rounded-full p-1.5"
-            style={{ backgroundColor: theme.background }}
+            style={{
+              position: "absolute",
+              top: 10,
+              right: 10,
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: "rgba(255,255,255,0.92)",
+              alignItems: "center",
+              justifyContent: "center",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 3,
+            }}
             onPress={handleSharePress}
           >
             <AppIcon name="share-social-outline" size={15} color={theme.icon} />
           </TouchableOpacity>
+
+          {/* Featured badge */}
           {listing.isFeatured && (
             <View
-              className="absolute top-2 left-2 px-2 py-0.5 rounded-md"
-              style={{ backgroundColor: "#7BF7CF" }}
+              style={{
+                position: "absolute",
+                top: 10,
+                left: 10,
+                paddingHorizontal: 10,
+                paddingVertical: 3,
+                borderRadius: 8,
+                backgroundColor: theme.primary,
+              }}
             >
-              <ThemedText
-                style={{ fontSize: 11, fontWeight: "700", color: "#141414" }}
-              >
+              <ThemedText style={{ fontSize: 10, fontWeight: "700", color: "#FFFFFF" }}>
                 Featured
               </ThemedText>
             </View>
           )}
+
+          {/* Favourite button */}
           <TouchableOpacity
-            className="absolute bottom-2 right-2 rounded-full p-1"
-            style={{ backgroundColor: theme.background }}
+            style={{
+              position: "absolute",
+              bottom: 10,
+              right: 10,
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: "rgba(255,255,255,0.92)",
+              alignItems: "center",
+              justifyContent: "center",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 3,
+            }}
             onPress={handleFavouritePress}
             disabled={isUpdating}
           >
             <AppIcon
               name={liked ? "heart" : "heart-outline"}
               size={16}
-              color={liked ? "#FF3B59" : theme.icon}
+              color={liked ? "#EF4444" : theme.icon}
             />
           </TouchableOpacity>
         </View>
 
         {/* Info */}
-        <View className="p-2.5 gap-0.5">
-          <ThemedText type="smallBold">{listing.price}</ThemedText>
-          <ThemedText type="small" numberOfLines={1}>
+        <View style={{ padding: 12, gap: 3 }}>
+          <ThemedText style={{ fontSize: 15, fontWeight: "700", color: theme.primary }}>
+            {listing.price}
+          </ThemedText>
+          <ThemedText
+            style={{ fontSize: 13, fontWeight: "500", color: theme.text }}
+            numberOfLines={1}
+          >
             {listing.title}
           </ThemedText>
-          <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
-            {listing.location}
-          </ThemedText>
-          <ThemedText type="small" themeColor="textMuted">
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 3, marginTop: 2 }}>
+            <AppIcon name="location-sharp" size={11} color={theme.textMuted} />
+            <ThemedText
+              style={{ fontSize: 11, color: theme.textMuted }}
+              numberOfLines={1}
+            >
+              {listing.location}
+            </ThemedText>
+          </View>
+          <ThemedText style={{ fontSize: 11, color: theme.textMuted, marginTop: 1 }}>
             {listing.timeAgo}
           </ThemedText>
         </View>
-      </ThemedView>
+      </View>
     </TouchableOpacity>
   );
 }

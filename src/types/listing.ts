@@ -24,4 +24,5 @@ export type Listing = {
   status?: ListingStatus;
   images?: any[];
   details?: Record<string, string>;
+  sellerId?: string;
 };

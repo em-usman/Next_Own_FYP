@@ -1,4 +1,3 @@
-import * as ExpoLinking from "expo-linking";
 import { router } from "expo-router";
 import { Image, Share, TouchableOpacity, View } from "react-native";
 
@@ -87,10 +86,7 @@ export function CategoryListItem({ listing }: { listing: Listing }) {
   }
 
   async function handleSharePress() {
-    const productUrl = ExpoLinking.createURL(`/listing/${listing.id}`, {
-      queryParams: { ref: "share" },
-    });
-
+    const productUrl = `https://next-own.web.app/listing/${listing.id}`;
     try {
       await Share.share({
         title: listing.title,
@@ -104,34 +100,48 @@ export function CategoryListItem({ listing }: { listing: Listing }) {
   const liked = isFavourite(String(listing.id));
 
   return (
-    <TouchableOpacity onPress={handlePress}>
-      <ThemedView
-        type="backgroundElement"
-        className="flex-row gap-3 p-3 rounded-xl border mb-2"
-        style={{ borderColor: theme.border }}
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.85}>
+      <View
+        style={{
+          flexDirection: "row",
+          gap: 12,
+          padding: 12,
+          borderRadius: 18,
+          marginBottom: 10,
+          backgroundColor: theme.backgroundElement,
+          borderWidth: 1,
+          borderColor: theme.border,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 6,
+          elevation: 2,
+        }}
       >
         {/* Image */}
-        <View
-          className="relative rounded-lg overflow-hidden"
-          style={{ width: 100, height: 100 }}
-        >
+        <View style={{ width: 96, height: 96, borderRadius: 14, overflow: "hidden" }}>
           <Image
             source={
               typeof listing.image === "object" && listing.image?.uri
                 ? listing.image
                 : placeholderImage
             }
-            className="w-full h-full"
+            style={{ width: "100%", height: "100%" }}
             resizeMode="cover"
           />
           {listing.isFeatured && (
             <View
-              className="absolute top-1 left-1 px-1.5 py-0.5 rounded"
-              style={{ backgroundColor: "#7BF7CF" }}
+              style={{
+                position: "absolute",
+                top: 6,
+                left: 6,
+                paddingHorizontal: 7,
+                paddingVertical: 2,
+                borderRadius: 6,
+                backgroundColor: theme.primary,
+              }}
             >
-              <ThemedText
-                style={{ fontSize: 9, fontWeight: "700", color: "#141414" }}
-              >
+              <ThemedText style={{ fontSize: 9, fontWeight: "700", color: "#FFFFFF" }}>
                 Featured
               </ThemedText>
             </View>
@@ -139,64 +149,64 @@ export function CategoryListItem({ listing }: { listing: Listing }) {
         </View>
 
         {/* Content */}
-        <View className="flex-1 justify-between">
-          <View className="gap-0.5">
-            <ThemedText type="smallBold" style={{ fontSize: 14 }}>
+        <View style={{ flex: 1, justifyContent: "space-between" }}>
+          <View style={{ gap: 2 }}>
+            <ThemedText style={{ fontSize: 15, fontWeight: "700", color: theme.primary }}>
               {listing.price}
             </ThemedText>
-            <ThemedText type="small" numberOfLines={2}>
+            <ThemedText style={{ fontSize: 13, fontWeight: "500", color: theme.text }} numberOfLines={2}>
               {listing.title}
             </ThemedText>
           </View>
 
-          <View className="gap-0.5">
-            <View className="flex-row items-center gap-1">
-              <AppIcon
-                name="location-sharp"
-                size={12}
-                color={theme.textSecondary}
-              />
-              <ThemedText
-                type="small"
-                themeColor="textSecondary"
-                numberOfLines={1}
-              >
+          <View style={{ gap: 2 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+              <AppIcon name="location-sharp" size={11} color={theme.textMuted} />
+              <ThemedText style={{ fontSize: 11, color: theme.textMuted }} numberOfLines={1}>
                 {listing.location}
               </ThemedText>
             </View>
-            <ThemedText
-              type="small"
-              themeColor="textMuted"
-              style={{ fontSize: 11 }}
-            >
+            <ThemedText style={{ fontSize: 11, color: theme.textMuted }}>
               {listing.timeAgo}
             </ThemedText>
           </View>
         </View>
 
         {/* Actions */}
-        <View className="justify-start pt-1 gap-2">
+        <View style={{ justifyContent: "flex-start", paddingTop: 2, gap: 8 }}>
           <TouchableOpacity
-            className="w-6 h-6 rounded-full items-center justify-center"
-            style={{ backgroundColor: theme.backgroundElement }}
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: 15,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: theme.backgroundSelected,
+            }}
             onPress={handleSharePress}
           >
-            <AppIcon name="share-social-outline" size={13} color={theme.icon} />
+            <AppIcon name="share-social-outline" size={13} color={theme.primary} />
           </TouchableOpacity>
           <TouchableOpacity
-            className="w-6 h-6 rounded-full items-center justify-center"
-            style={{ backgroundColor: theme.backgroundElement }}
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: 15,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: liked ? "rgba(239,68,68,0.1)" : theme.backgroundSelected,
+            }}
             onPress={handleFavouritePress}
             disabled={isUpdating}
           >
             <AppIcon
               name={liked ? "heart" : "heart-outline"}
               size={14}
-              color={liked ? "#FF3B59" : theme.icon}
+              color={liked ? "#EF4444" : theme.icon}
             />
           </TouchableOpacity>
         </View>
-      </ThemedView>
+      </View>
     </TouchableOpacity>
   );
 }

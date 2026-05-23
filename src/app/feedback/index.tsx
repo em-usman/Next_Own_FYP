@@ -4,7 +4,8 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
 import { FeedbackCategory, useFeedback } from "@/hooks/useFeedback";
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
+import { ScreenHeader } from "@/components/ScreenHeader";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -50,32 +51,7 @@ export default function FeedbackScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerTitle: () => (
-            <ThemedText
-              type="smallBold"
-              style={{ fontSize: 20, fontWeight: "700" }}
-            >
-              Feedback
-            </ThemedText>
-          ),
-          headerShown: true,
-          headerBackVisible: false,
-          headerStyle: { backgroundColor: theme.background },
-          headerShadowVisible: false,
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} className="ml-1">
-              <AppIcon
-                family="ion"
-                name="chevron-back-circle"
-                color={theme.text}
-                size={28}
-              />
-            </TouchableOpacity>
-          ),
-        }}
-      />
+      <ScreenHeader title="Feedback" />
 
       <ThemedView className="flex-1">
         <KeyboardAwareScrollView

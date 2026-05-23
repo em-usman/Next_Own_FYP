@@ -1,6 +1,5 @@
 import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
 import { useUserData } from "@/hooks/useUserData";
 import { useRouter } from "expo-router";
@@ -10,48 +9,52 @@ import { Image, TouchableOpacity, View } from "react-native";
 export default function UserHeader() {
   const theme = useTheme();
   const router = useRouter();
-
   const { userData, loading } = useUserData();
 
   const displayName = userData?.displayName || "User";
   const imageURL = userData?.imageUri || null;
 
   return (
-    <TouchableOpacity onPress={() => router.push("/profile")}>
-      <ThemedView
-        type="backgroundElement"
+    <TouchableOpacity
+      onPress={() => router.push("/profile")}
+      activeOpacity={0.85}
+      style={{ paddingHorizontal: 16, marginTop: 8, marginBottom: 4 }}
+    >
+      <View
         style={{
           flexDirection: "row",
           alignItems: "center",
-          paddingHorizontal: 16,
-          paddingVertical: 16,
-          borderRadius: 16,
-          marginHorizontal: 16,
+          padding: 16,
+          borderRadius: 20,
+          backgroundColor: theme.backgroundElement,
           borderWidth: 1,
           borderColor: theme.border,
-          gap: 16,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
+          elevation: 3,
+          gap: 14,
         }}
       >
         {/* Avatar */}
         {loading ? (
-          // Skeleton Avatar
           <View
             style={{
-              width: 64,
-              height: 64,
-              borderRadius: 32,
+              width: 60,
+              height: 60,
+              borderRadius: 30,
               backgroundColor: theme.backgroundSelected,
-              opacity: 0.5,
             }}
           />
         ) : imageURL ? (
           <Image
             source={{ uri: imageURL }}
             style={{
-              width: 64,
-              height: 64,
-              borderRadius: 32,
-              borderWidth: 2,
+              width: 60,
+              height: 60,
+              borderRadius: 30,
+              borderWidth: 2.5,
               borderColor: theme.primary,
             }}
             resizeMode="cover"
@@ -59,47 +62,50 @@ export default function UserHeader() {
         ) : (
           <View
             style={{
-              width: 64,
-              height: 64,
-              borderRadius: 32,
+              width: 60,
+              height: 60,
+              borderRadius: 30,
               backgroundColor: theme.backgroundSelected,
               alignItems: "center",
               justifyContent: "center",
-              borderWidth: 2,
+              borderWidth: 2.5,
               borderColor: theme.primary,
             }}
           >
-            <ThemedText
-              style={{ fontSize: 24, fontWeight: "700", color: theme.primary }}
-            >
+            <ThemedText style={{ fontSize: 22, fontWeight: "700", color: theme.primary }}>
               {displayName.charAt(0).toUpperCase()}
             </ThemedText>
           </View>
         )}
 
-        {/* Name */}
+        {/* Info */}
         <View style={{ flex: 1 }}>
           {loading ? (
-            // Skeleton Text
             <View
               style={{
-                height: 16,
-                width: "60%",
+                height: 14,
+                width: "55%",
                 borderRadius: 6,
                 backgroundColor: theme.backgroundSelected,
-                opacity: 0.5,
               }}
             />
           ) : (
-            <ThemedText type="smallBold" style={{ fontSize: 17 }}>
-              {displayName}
-            </ThemedText>
+            <>
+              <ThemedText style={{ fontSize: 16, fontWeight: "700" }}>
+                {displayName}
+              </ThemedText>
+              <ThemedText
+                themeColor="textSecondary"
+                style={{ fontSize: 12, marginTop: 2 }}
+              >
+                View & edit profile
+              </ThemedText>
+            </>
           )}
         </View>
 
-        {/* Chevron */}
-        <AppIcon name="chevron-forward" size={20} color={theme.textMuted} />
-      </ThemedView>
+        <AppIcon name="chevron-forward" size={18} color={theme.textMuted} />
+      </View>
     </TouchableOpacity>
   );
 }

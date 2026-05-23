@@ -4,7 +4,8 @@ import { ThemedView } from "@/components/themed-view";
 import { CATEGORIES } from "@/config/categoryConfig";
 import { useTheme } from "@/hooks/use-theme";
 import { usePost, type ManagedPostStatus } from "@/hooks/usePost";
-import { router, Stack, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { ScreenHeader } from "@/components/ScreenHeader";
 import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import {

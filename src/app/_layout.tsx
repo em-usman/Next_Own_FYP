@@ -67,6 +67,7 @@ export default function RootLayout() {
           <Stack.Screen name="profile" options={{ headerShown: false }} />
           <Stack.Screen name="feedback" options={{ headerShown: false }} />
           <Stack.Screen name="listing" options={{ headerShown: false }} />
+          <Stack.Screen name="chat" options={{ headerShown: false }} />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
