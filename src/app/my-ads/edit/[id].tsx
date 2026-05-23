@@ -17,29 +17,12 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import {
     ActivityIndicator,
-    FlatList,
     Image,
-    Modal,
     ScrollView,
     TouchableOpacity,
     View,
 } from "react-native";
 import { db } from "../../../../firebaseConfig";
-
-const LOCATIONS = [
-  "Karachi",
-  "Lahore",
-  "Islamabad",
-  "Rawalpindi",
-  "Faisalabad",
-  "Multan",
-  "Peshawar",
-  "Quetta",
-  "Sialkot",
-  "Gujranwala",
-  "Hyderabad",
-  "Other",
-];
 
 type PostRecord = {
   id: string;
@@ -48,7 +31,11 @@ type PostRecord = {
   price: number;
   images: string[];
   coverImage: string;
-  location: string;
+  location?: string;
+  province?: string;
+  district?: string;
+  city?: string;
+  address?: string;
   contactName: string;
   contactPhone: string;
   hidePhone: boolean;
@@ -96,14 +83,16 @@ export default function EditMyAdScreen() {
 
   const [post, setPost] = useState<PostRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [locationModal, setLocationModal] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [images, setImages] = useState<string[]>([]);
   const [form, setForm] = useState<CommonFormData>({
     title: "",
     description: "",
     price: "",
-    location: "",
+    province: "",
+    district: "",
+    city: "",
+    address: "",
     contactName: "",
     contactPhone: "",
     hidePhone: false,
@@ -156,7 +145,10 @@ export default function EditMyAdScreen() {
                 )
               : [],
             coverImage: (data as any).coverImage || "",
-            location: data.location || "",
+            province: (data as any).province || "",
+            district: (data as any).district || "",
+            city: (data as any).city || "",
+            address: (data as any).address || "",
             contactName: data.contactName || "",
             contactPhone: data.contactPhone || "",
             hidePhone: Boolean(data.hidePhone),
@@ -180,7 +172,10 @@ export default function EditMyAdScreen() {
             title: parsed.title,
             description: parsed.description,
             price: String(parsed.price || ""),
-            location: parsed.location,
+            province: parsed.province || "",
+            district: parsed.district || "",
+            city: parsed.city || "",
+            address: parsed.address || "",
             contactName: parsed.contactName,
             contactPhone: stripPhonePrefix(parsed.contactPhone),
             hidePhone: parsed.hidePhone,
@@ -239,7 +234,9 @@ export default function EditMyAdScreen() {
 
     if (!form.title.trim()) nextErrors.title = "Title is required.";
     if (!form.price.trim()) nextErrors.price = "Price is required.";
-    if (!form.location.trim()) nextErrors.location = "Location is required.";
+    if (!form.province.trim()) nextErrors.province = "Province is required.";
+    if (!form.district.trim()) nextErrors.district = "District is required.";
+    if (!form.city.trim()) nextErrors.city = "City is required.";
     if (!form.contactName.trim()) nextErrors.contactName = "Name is required.";
     if (form.contactPhone.trim() && !/^3[0-9]{9}$/.test(form.contactPhone)) {
       nextErrors.contactPhone = "Enter valid number e.g. 3217168912";
@@ -323,7 +320,10 @@ export default function EditMyAdScreen() {
       price: parseFloat(form.price),
       images: finalImageUrls,
       coverImage: finalImageUrls[0],
-      location: form.location,
+      province: form.province,
+      district: form.district,
+      city: form.city,
+      address: form.address.trim(),
       hidePhone: form.hidePhone,
       details: form.details,
     });
@@ -492,7 +492,6 @@ export default function EditMyAdScreen() {
                 errors={errors}
                 categoryLabel={categoryLabel}
                 onChange={handleFormChange}
-                onSelectLocation={() => setLocationModal(true)}
               />
             </ScrollView>
 
@@ -512,7 +511,7 @@ export default function EditMyAdScreen() {
                     <ThemedText
                       style={{ color: "#fff", fontSize: 15, fontWeight: "600" }}
                     >
-                      {isUploading ? "Uploading images..." : "Saving..."}
+                      {"Saving..."}
                     </ThemedText>
                   </View>
                 ) : (
@@ -528,84 +527,6 @@ export default function EditMyAdScreen() {
         )}
       </ThemedView>
 
-      <Modal
-        visible={locationModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setLocationModal(false)}
-      >
-        <TouchableOpacity
-          className="flex-1"
-          style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
-          activeOpacity={1}
-          onPress={() => setLocationModal(false)}
-        />
-        <ThemedView
-          type="backgroundElement"
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-            maxHeight: "60%",
-            paddingBottom: 30,
-          }}
-        >
-          <View
-            className="flex-row items-center justify-between px-5 py-4"
-            style={{ borderBottomWidth: 1, borderBottomColor: theme.border }}
-          >
-            <ThemedText style={{ fontSize: 16, fontWeight: "700" }}>
-              Location
-            </ThemedText>
-            <TouchableOpacity onPress={() => setLocationModal(false)}>
-              <AppIcon family="ion" name="close" size={22} color={theme.text} />
-            </TouchableOpacity>
-          </View>
-
-          <FlatList
-            data={LOCATIONS}
-            keyExtractor={(item) => item}
-            renderItem={({ item }) => {
-              const isSelected = form.location === item;
-              return (
-                <TouchableOpacity
-                  onPress={() => {
-                    setForm((prev) => ({ ...prev, location: item }));
-                    setErrors((prev) => ({ ...prev, location: "" }));
-                    setLocationModal(false);
-                  }}
-                  className="flex-row items-center justify-between px-5 py-4"
-                  style={{
-                    borderBottomWidth: 1,
-                    borderBottomColor: theme.border,
-                  }}
-                >
-                  <ThemedText
-                    style={{
-                      fontSize: 15,
-                      color: isSelected ? theme.primary : theme.text,
-                      fontWeight: isSelected ? "600" : "400",
-                    }}
-                  >
-                    {item}
-                  </ThemedText>
-                  {isSelected ? (
-                    <AppIcon
-                      family="ion"
-                      name="checkmark"
-                      size={18}
-                      color={theme.primary}
-                    />
-                  ) : null}
-                </TouchableOpacity>
-              );
-            }}
-          />
-        </ThemedView>
-      </Modal>
     </>
   );
 }

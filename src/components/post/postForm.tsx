@@ -8,6 +8,11 @@ import { ThemedView } from "@/components/themed-view";
 import { getBrandModelConfig } from "@/config/brandModels";
 import { getChipsFieldOptions, getFieldOptions } from "@/config/chipsOptions";
 import type { Field } from "@/config/postFields";
+import {
+  getCities,
+  getDistricts,
+  PAKISTAN_PROVINCES,
+} from "@/data/pakistanLocations";
 import { useTheme } from "@/hooks/use-theme";
 import React, { useState } from "react";
 import {
@@ -23,7 +28,10 @@ export type CommonFormData = {
   title: string;
   description: string;
   price: string;
-  location: string;
+  province: string;
+  district: string;
+  city: string;
+  address: string;
   contactName: string;
   contactPhone: string;
   hidePhone: boolean;
@@ -39,7 +47,6 @@ type Props = {
   errors: Record<string, string>;
   categoryLabel: string;
   onChange: (updated: Partial<CommonFormData>) => void;
-  onSelectLocation: () => void;
 };
 
 function SectionHeader({ title }: { title: string }) {
@@ -412,7 +419,6 @@ export default function CommonListingForm({
   errors,
   categoryLabel,
   onChange,
-  onSelectLocation,
 }: Props) {
   const theme = useTheme();
   const brandModelConfig = getBrandModelConfig(categoryId, subCategoryId);
@@ -603,13 +609,44 @@ export default function CommonListingForm({
         keyboardType="numeric"
         rightText="Rs"
       />
-      <FormSelect
-        label="Location"
-        value={form.location}
-        placeholder="Choose location"
+      <SectionHeader title="Location" />
+
+      <SelectPicker
+        label="Province"
+        options={PAKISTAN_PROVINCES.map((p) => p.name)}
+        selected={form.province}
+        onSelect={(val) => onChange({ province: val, district: "", city: "" })}
+        placeholder="Select province"
         required
-        onPress={onSelectLocation}
-        error={errors.location}
+        error={errors.province}
+      />
+
+      <SelectPicker
+        label="District"
+        options={getDistricts(form.province).map((d) => d.name)}
+        selected={form.district}
+        onSelect={(val) => onChange({ district: val, city: "" })}
+        placeholder={form.province ? "Select district" : "Select province first"}
+        required
+        error={errors.district}
+      />
+
+      <SelectPicker
+        label="City"
+        options={getCities(form.province, form.district)}
+        selected={form.city}
+        onSelect={(val) => onChange({ city: val })}
+        placeholder={form.district ? "Select city" : "Select district first"}
+        required
+        error={errors.city}
+      />
+
+      <FormInput
+        label="Address"
+        value={form.address}
+        placeholder="Street address, area, landmark..."
+        onChangeText={(text) => onChange({ address: text })}
+        error={errors.address}
       />
 
       <SectionHeader title="Contact Info" />

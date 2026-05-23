@@ -203,7 +203,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
               style={{ fontSize: 11, color: theme.textMuted }}
               numberOfLines={1}
             >
-              {listing.location}
+              {listing.city || listing.location}
             </ThemedText>
           </View>
           <ThemedText style={{ fontSize: 11, color: theme.textMuted, marginTop: 1 }}>

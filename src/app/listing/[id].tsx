@@ -32,6 +32,10 @@ type ListingDetailsPayload = {
   title: string;
   price: string;
   location: string;
+  province?: string;
+  district?: string;
+  city?: string;
+  address?: string;
   timeAgo: string;
   description?: string;
   category?: string;
@@ -630,18 +634,36 @@ export default function ListingDetailScreen() {
             </View>
 
             {/* Location + Time */}
-            <View className="flex-row items-center gap-1">
+            <View className="flex-row items-start gap-1">
               <AppIcon
                 name="location-sharp"
                 size={14}
                 color={theme.textSecondary}
+                style={{ marginTop: 2 }}
               />
-              <ThemedText type="small" themeColor="textSecondary">
-                {listing.location}
-              </ThemedText>
-              <ThemedText type="small" themeColor="textMuted">
-                · {listing.timeAgo}
-              </ThemedText>
+              <View style={{ flex: 1 }}>
+                {listing.province ? (
+                  <>
+                    {listing.address ? (
+                      <ThemedText type="small" themeColor="textSecondary">
+                        {listing.address}
+                      </ThemedText>
+                    ) : null}
+                    <ThemedText type="small" themeColor="textSecondary">
+                      {[listing.city, listing.district, listing.province]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </ThemedText>
+                  </>
+                ) : (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {listing.location}
+                  </ThemedText>
+                )}
+                <ThemedText type="small" themeColor="textMuted">
+                  {listing.timeAgo}
+                </ThemedText>
+              </View>
             </View>
 
             {/* Divider */}

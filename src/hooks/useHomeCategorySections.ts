@@ -15,6 +15,10 @@ type FirestorePost = {
   title?: string;
   price?: number;
   location?: string;
+  province?: string;
+  district?: string;
+  city?: string;
+  address?: string;
   coverImage?: string;
   images?: string[];
   status?: string;
@@ -24,6 +28,7 @@ type FirestorePost = {
   contactPhone?: string;
   hidePhone?: boolean;
   details?: Record<string, string>;
+  userId?: string;
 };
 
 export type HomeCategorySection = {
@@ -90,7 +95,11 @@ function toListing(
     id: postId,
     title: post.title?.trim() || "Untitled listing",
     price: formatPrice(post.price),
-    location: post.location || "Location not set",
+    location: post.location || post.city || "Location not set",
+    province: post.province || "",
+    district: post.district || "",
+    city: post.city || "",
+    address: post.address || "",
     timeAgo: toTimeAgo(post.createdAt),
     image: coverUrl ? { uri: coverUrl } : null,
     images: post.images?.map((url) => ({ uri: url })) || [],
