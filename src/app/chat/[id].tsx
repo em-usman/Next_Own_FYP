@@ -325,13 +325,15 @@ function DateSeparator({ date }: { date: string }) {
 export default function ChatScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const { id, info } = useLocalSearchParams<{
+  const { id, info, defaultMessage } = useLocalSearchParams<{
     id?: string | string[];
     info?: string | string[];
+    defaultMessage?: string | string[];
   }>();
 
   const chatId = Array.isArray(id) ? id[0] : id || "";
   const rawInfo = Array.isArray(info) ? info[0] : info || "";
+  const rawDefault = Array.isArray(defaultMessage) ? defaultMessage[0] : defaultMessage || "";
 
   const chatInfo = useMemo<ChatInfo>(() => {
     try {
@@ -353,7 +355,9 @@ export default function ChatScreen() {
     editMessage,
   } = useChatMessages(chatId, chatInfo);
 
-  const [inputText, setInputText] = useState("");
+  const [inputText, setInputText] = useState(
+    rawDefault ? decodeURIComponent(rawDefault) : "",
+  );
   const [selectedMessages, setSelectedMessages] = useState<string[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);

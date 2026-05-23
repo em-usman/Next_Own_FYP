@@ -206,9 +206,7 @@ export default function PostFormScreen() {
     if (!form.price.trim()) newErrors.price = "Price is required.";
     if (!form.location.trim()) newErrors.location = "Location is required.";
     if (!form.contactName.trim()) newErrors.contactName = "Name is required.";
-    if (!form.contactPhone.trim()) {
-      newErrors.contactPhone = "Phone number is required.";
-    } else if (!/^3[0-9]{9}$/.test(form.contactPhone)) {
+    if (form.contactPhone.trim() && !/^3[0-9]{9}$/.test(form.contactPhone)) {
       newErrors.contactPhone = "Enter valid number e.g. 3217168912";
     }
     if (images.length === 0)
@@ -242,8 +240,6 @@ export default function PostFormScreen() {
       images: uploadedUrls,
       coverImage: uploadedUrls[0],
       location: form.location,
-      contactName: form.contactName.trim(),
-      contactPhone: `+92${form.contactPhone}`,
       hidePhone: form.hidePhone,
       details: form.details,
     });

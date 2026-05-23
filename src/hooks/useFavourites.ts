@@ -36,6 +36,7 @@ export type FavouriteItem = {
   isFeatured?: boolean;
   details?: Record<string, string>;
   status: "active" | "deactivated" | "sold";
+  sellerId?: string;
 };
 
 type AddToFavouritesPayload = {
@@ -58,6 +59,7 @@ type AddToFavouritesPayload = {
   isFeatured?: boolean;
   details?: Record<string, string>;
   status?: "active" | "deactivated" | "sold";
+  sellerId?: string;
 };
 
 type UseFavouritesReturn = {

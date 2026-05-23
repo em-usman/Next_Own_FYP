@@ -13,6 +13,7 @@ import React, { useState } from "react";
 import {
     FlatList,
     Modal,
+    Switch,
     TextInput,
     TouchableOpacity,
     View,
@@ -624,7 +625,7 @@ export default function CommonListingForm({
 
       <View className="mb-4">
         <ThemedText className="text-sm font-semibold mb-1.5">
-          Phone Number <ThemedText style={{ color: theme.error }}>*</ThemedText>
+          Phone Number
         </ThemedText>
         <ThemedView
           type="backgroundElement"
@@ -675,12 +676,20 @@ export default function CommonListingForm({
         )}
       </View>
 
-      {/*
       <View
-        className="flex-row items-center justify-between py-3"
+        className="flex-row items-center justify-between py-3 mb-2"
         style={{ borderTopWidth: 1, borderTopColor: theme.border }}
       >
-        <ThemedText style={{ fontSize: 15 }}>Hide my phone number</ThemedText>
+        <View style={{ flex: 1, marginRight: 12 }}>
+          <ThemedText style={{ fontSize: 15, fontWeight: "500" }}>
+            Hide phone number
+          </ThemedText>
+          <ThemedText style={{ fontSize: 12, color: theme.textMuted, marginTop: 2 }}>
+            {form.hidePhone
+              ? "Call & WhatsApp buttons will be hidden from buyers"
+              : "Buyers can contact you via call and WhatsApp"}
+          </ThemedText>
+        </View>
         <Switch
           value={form.hidePhone}
           onValueChange={(val) => onChange({ hidePhone: val })}
@@ -688,7 +697,6 @@ export default function CommonListingForm({
           thumbColor="#fff"
         />
       </View>
-      */}
     </>
   );
 }

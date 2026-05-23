@@ -183,8 +183,6 @@ export default function CartScreen() {
                                     model: item.model,
                                     color: item.color,
                                     condition: item.condition,
-                                    sellerName: item.sellerName,
-                                    sellerPhone: item.sellerPhone,
                                     hidePhone: item.hidePhone,
                                     isFeatured: item.isFeatured,
                                     details: item.details,
@@ -197,6 +195,7 @@ export default function CartScreen() {
                                         : item.imageUri
                                           ? [item.imageUri]
                                           : [],
+                                    sellerId: item.sellerId,
                                   }),
                                 ),
                               },

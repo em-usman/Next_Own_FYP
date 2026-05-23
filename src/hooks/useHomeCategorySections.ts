@@ -100,6 +100,7 @@ function toListing(
     sellerPhone: post.contactPhone || "",
     hidePhone: post.hidePhone || false,
     status: normalizeStatus(post.status),
+    sellerId: post.userId || "",
     brand: details.brand || "",
     model: details.model || "",
     color: details.color || "",

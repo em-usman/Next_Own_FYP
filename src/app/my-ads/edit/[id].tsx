@@ -9,8 +9,9 @@ import { getPostFields } from "@/config/postFields";
 import { useTheme } from "@/hooks/use-theme";
 import { useCloudinary } from "@/hooks/useCloudnary";
 import { usePost } from "@/hooks/usePost";
+import { useUserData } from "@/hooks/useUserData";
 import * as ImagePicker from "expo-image-picker";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
@@ -89,6 +90,7 @@ export default function EditMyAdScreen() {
   const theme = useTheme();
   const { updatePost, isSubmitting } = usePost();
   const { isUploading, uploadImages } = useCloudinary();
+  const { userData } = useUserData();
   const { id } = useLocalSearchParams<{ id?: string | string[] }>();
   const postId = Array.isArray(id) ? id[0] : id || "";
 
@@ -212,6 +214,16 @@ export default function EditMyAdScreen() {
     return findSubCategoryLabel(post.categoryId, post.subCategoryId) || "Ad";
   }, [post?.categoryId, post?.subCategoryId]);
 
+  // Fill contact fields from user profile when the post has no stored values
+  useEffect(() => {
+    if (!userData) return;
+    setForm((prev) => ({
+      ...prev,
+      contactName: prev.contactName || userData.displayName || "",
+      contactPhone: prev.contactPhone || stripPhonePrefix(userData.phoneNumber || ""),
+    }));
+  }, [userData]);
+
   function handleFormChange(updated: Partial<CommonFormData>) {
     setForm((prev) => ({
       ...prev,
@@ -229,9 +241,7 @@ export default function EditMyAdScreen() {
     if (!form.price.trim()) nextErrors.price = "Price is required.";
     if (!form.location.trim()) nextErrors.location = "Location is required.";
     if (!form.contactName.trim()) nextErrors.contactName = "Name is required.";
-    if (!form.contactPhone.trim()) {
-      nextErrors.contactPhone = "Phone number is required.";
-    } else if (!/^3[0-9]{9}$/.test(form.contactPhone)) {
+    if (form.contactPhone.trim() && !/^3[0-9]{9}$/.test(form.contactPhone)) {
       nextErrors.contactPhone = "Enter valid number e.g. 3217168912";
     }
     if (images.length === 0)
@@ -314,8 +324,6 @@ export default function EditMyAdScreen() {
       images: finalImageUrls,
       coverImage: finalImageUrls[0],
       location: form.location,
-      contactName: form.contactName.trim(),
-      contactPhone: `+92${form.contactPhone}`,
       hidePhone: form.hidePhone,
       details: form.details,
     });

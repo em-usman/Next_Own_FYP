@@ -26,8 +26,6 @@ export type Post = {
   images: string[];
   coverImage: string;
   location: string;
-  contactName: string;
-  contactPhone: string;
   hidePhone: boolean;
   details: Record<string, string>;
   status: PostStatus;

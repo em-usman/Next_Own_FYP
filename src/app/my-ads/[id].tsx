@@ -299,12 +299,6 @@ export default function MyAdDetailScreen() {
                 <ThemedText type="small" themeColor="textSecondary">
                   Category: {categoryLabel || "N/A"}
                 </ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  Seller: {post.contactName || "N/A"}
-                </ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  Phone: {post.contactPhone || "N/A"}
-                </ThemedText>
               </ThemedView>
 
               {post.description ? (
@@ -348,58 +342,24 @@ export default function MyAdDetailScreen() {
               className="absolute bottom-0 left-0 right-0 p-4 gap-2"
               style={{ borderTopWidth: 1, borderTopColor: theme.border }}
             >
-              <View className="flex-row gap-2">
-                <TouchableOpacity
-                  className="flex-1 rounded-xl py-3 items-center border"
-                  style={{ borderColor: theme.border }}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/my-ads/edit/[id]",
-                      params: { id: post.id },
-                    })
-                  }
-                >
-                  <AppIcon
-                    family="material-community"
-                    name="pencil-outline"
-                    size={18}
-                    color={theme.text}
-                  />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  className="flex-1 rounded-xl py-3 items-center"
-                  style={{ backgroundColor: theme.black }}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/listing/[id]",
-                      params: {
-                        id: post.id,
-                        data: encodeURIComponent(
-                          JSON.stringify({
-                            id: post.id,
-                            title: post.title,
-                            price: formatPrice(post.price),
-                            location: post.location,
-                            timeAgo: toTimeAgo(post.createdAt),
-                            description: post.description,
-                            category: categoryLabel,
-                            sellerName: post.contactName,
-                            sellerPhone: post.contactPhone,
-                            details: post.details,
-                            imageUri: imageUrls[0] || "",
-                            imageUrls,
-                          }),
-                        ),
-                      },
-                    })
-                  }
-                >
-                  <ThemedText type="smallBold" style={{ color: theme.white }}>
-                    Open Public View
-                  </ThemedText>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                className="rounded-xl py-3 items-center flex-row justify-center gap-2 border"
+                style={{ borderColor: theme.border }}
+                onPress={() =>
+                  router.push({
+                    pathname: "/my-ads/edit/[id]",
+                    params: { id: post.id },
+                  })
+                }
+              >
+                <AppIcon
+                  family="material-community"
+                  name="pencil-outline"
+                  size={18}
+                  color={theme.text}
+                />
+                <ThemedText type="smallBold">Edit Ad</ThemedText>
+              </TouchableOpacity>
 
               <View className="flex-row gap-2 items-center">
                 <TouchableOpacity
