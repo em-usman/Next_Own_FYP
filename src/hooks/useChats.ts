@@ -6,7 +6,7 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { auth, db } from "../../firebaseConfig";
 
@@ -24,36 +24,48 @@ export type ChatPreview = {
   unreadCount: number;
 };
 
+async function fetchUserData(
+  userId: string,
+): Promise<{ displayName: string; imageUri: string }> {
+  try {
+    const userDoc = await getDoc(doc(db, "users", userId));
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      return {
+        displayName: data?.displayName || "User",
+        imageUri: data?.imageUri || "",
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+  }
+  return { displayName: "User", imageUri: "" };
+}
+
 export function useChats(
   searchQuery: string = "",
   filterType: "all" | "read" | "unread" = "all",
 ) {
-  const [chats, setChats] = useState<ChatPreview[]>([]);
+  const [allChats, setAllChats] = useState<ChatPreview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const uid = auth.currentUser?.uid;
 
-  // Fetch user data (displayName and imageUri) by ID
-  async function fetchUserData(
-    userId: string,
-  ): Promise<{ displayName: string; imageUri: string }> {
-    try {
-      const userDoc = await getDoc(doc(db, "users", userId));
-      if (userDoc.exists()) {
-        const data = userDoc.data();
-        return {
-          displayName: data?.displayName || "User",
-          imageUri: data?.imageUri || "",
-        };
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-    return { displayName: "User", imageUri: "" };
+  // In-memory cache so repeated snapshots don't re-fetch the same user docs
+  const userCache = useRef<Map<string, { displayName: string; imageUri: string }>>(
+    new Map(),
+  );
+
+  async function fetchCached(userId: string) {
+    if (userCache.current.has(userId)) return userCache.current.get(userId)!;
+    const data = await fetchUserData(userId);
+    userCache.current.set(userId, data);
+    return data;
   }
 
+  // Subscribe once — only re-subscribes when the logged-in user changes
   useEffect(() => {
     if (!uid) {
-      setChats([]);
+      setAllChats([]);
       setIsLoading(false);
       return;
     }
@@ -84,53 +96,25 @@ export function useChats(
           };
         });
 
-        // Fetch buyer and seller data
         items = await Promise.all(
           items.map(async (item) => {
-            let updatedItem = { ...item };
-
-            // Fetch buyer data
-            if (updatedItem.buyerId) {
-              const buyerData = await fetchUserData(updatedItem.buyerId);
-              updatedItem.buyerName = buyerData.displayName;
-              updatedItem.buyerImageUri = buyerData.imageUri;
+            const updated = { ...item };
+            if (updated.buyerId) {
+              const d = await fetchCached(updated.buyerId);
+              updated.buyerName = d.displayName;
+              updated.buyerImageUri = d.imageUri;
             }
-
-            // Fetch seller data
-            if (updatedItem.sellerId) {
-              const sellerData = await fetchUserData(updatedItem.sellerId);
-              updatedItem.sellerName = sellerData.displayName;
-              updatedItem.sellerImageUri = sellerData.imageUri;
+            if (updated.sellerId) {
+              const d = await fetchCached(updated.sellerId);
+              updated.sellerName = d.displayName;
+              updated.sellerImageUri = d.imageUri;
             }
-
-            return updatedItem;
+            return updated;
           }),
         );
 
-        // Apply filters
-        let filtered = items;
-
-        if (filterType === "read") {
-          filtered = items.filter((chat) => chat.unreadCount === 0);
-        } else if (filterType === "unread") {
-          filtered = items.filter((chat) => chat.unreadCount > 0);
-        }
-
-        // Apply search
-        if (searchQuery.trim()) {
-          const searchLower = searchQuery.toLowerCase();
-          filtered = filtered.filter((chat) => {
-            const otherName =
-              uid === chat.buyerId ? chat.sellerName : chat.buyerName;
-            return (
-              otherName.toLowerCase().includes(searchLower) ||
-              chat.lastMessage.toLowerCase().includes(searchLower)
-            );
-          });
-        }
-
-        // Sort by last message time
-        filtered.sort((a, b) => {
+        // Sort once here; filtering is done in useMemo below
+        items.sort((a, b) => {
           if (!a.lastMessageAt && !b.lastMessageAt) return 0;
           if (!a.lastMessageAt) return 1;
           if (!b.lastMessageAt) return -1;
@@ -140,7 +124,7 @@ export function useChats(
           );
         });
 
-        setChats(filtered);
+        setAllChats(items);
         setIsLoading(false);
       },
       (error) => {
@@ -150,7 +134,31 @@ export function useChats(
     );
 
     return () => unsubscribe();
-  }, [uid, searchQuery, filterType]);
+  }, [uid]); // filterType / searchQuery no longer cause a re-subscribe
+
+  // Filtering and searching are pure in-memory operations — instant
+  const chats = useMemo(() => {
+    let filtered = allChats;
+
+    if (filterType === "read") {
+      filtered = filtered.filter((c) => c.unreadCount === 0);
+    } else if (filterType === "unread") {
+      filtered = filtered.filter((c) => c.unreadCount > 0);
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter((c) => {
+        const otherName = uid === c.buyerId ? c.sellerName : c.buyerName;
+        return (
+          otherName.toLowerCase().includes(q) ||
+          c.lastMessage.toLowerCase().includes(q)
+        );
+      });
+    }
+
+    return filtered;
+  }, [allChats, filterType, searchQuery, uid]);
 
   return { chats, isLoading };
 }
