@@ -1,7 +1,10 @@
 import {
   addDoc,
+  arrayUnion,
   collection,
   doc,
+  getDoc,
+  getDocs,
   increment,
   onSnapshot,
   orderBy,
@@ -9,10 +12,12 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { auth, db } from "../../firebaseConfig";
+import { sendPushNotification } from "../utils/pushNotifications";
 
 export type ChatMessage = {
   id: string;
@@ -20,6 +25,10 @@ export type ChatMessage = {
   senderName: string;
   text: string;
   createdAt: string;
+  status: "sending" | "sent" | "seen";
+  deletedForEveryone?: boolean;
+  deletedFor?: string[];
+  edited?: boolean;
 };
 
 export type ChatInfo = {
@@ -28,16 +37,38 @@ export type ChatInfo = {
   postImageUri: string;
   buyerId: string;
   buyerName: string;
+  buyerImageUri: string;
   sellerId: string;
   sellerName: string;
+  sellerImageUri: string;
 };
+
+async function fetchUserData(
+  userId: string,
+): Promise<{ displayName: string; imageUri: string }> {
+  try {
+    const userDoc = await getDoc(doc(db, "users", userId));
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      return {
+        displayName: data?.displayName || "User",
+        imageUri: data?.imageUri || "",
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+  }
+  return { displayName: "User", imageUri: "" };
+}
 
 export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSending, setIsSending] = useState(false);
+  const [isSending] = useState(false);
   const uid = auth.currentUser?.uid || "";
   const displayName = auth.currentUser?.displayName || "User";
+  // Tracks temp IDs of messages that are still being written to Firestore
+  const pendingTemps = useRef<Set<string>>(new Set());
 
   // Real-time listener on messages (descending for inverted FlatList)
   useEffect(() => {
@@ -54,19 +85,49 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const items: ChatMessage[] = snapshot.docs.map((docSnap) => {
-          const data = docSnap.data();
-          return {
-            id: docSnap.id,
-            senderId: data.senderId || "",
-            senderName: data.senderName || "",
-            text: data.text || "",
-            createdAt:
-              data.createdAt?.toDate?.()?.toISOString() ||
-              new Date().toISOString(),
-          };
+        const items: ChatMessage[] = snapshot.docs
+          .filter((docSnap) => {
+            // Skip our own locally-cached writes that haven't reached the server yet.
+            // They are already shown as optimistic temp bubbles, so including them
+            // here would create a duplicate until the promote step runs.
+            if (docSnap.metadata.hasPendingWrites && docSnap.data().senderId === uid) {
+              return false;
+            }
+            return true;
+          })
+          .map((docSnap) => {
+            const data = docSnap.data();
+            return {
+              id: docSnap.id,
+              senderId: data.senderId || "",
+              senderName: data.senderName || "",
+              text: data.text || "",
+              createdAt:
+                data.createdAt?.toDate?.()?.toISOString() ||
+                new Date().toISOString(),
+              status: data.status || "sent",
+              deletedForEveryone: data.deletedForEveryone ?? false,
+              deletedFor: data.deletedFor ?? [],
+              edited: data.edited ?? false,
+            };
+          })
+          .filter((msg) => {
+            if (msg.deletedFor?.includes(uid)) return false;
+            return true;
+          });
+
+        // Re-inject optimistic temps that are still waiting for server confirmation
+        setMessages((prev) => {
+          const stillPending = prev.filter((m) =>
+            pendingTemps.current.has(m.id),
+          );
+          const merged = [...stillPending, ...items];
+          merged.sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          );
+          return merged;
         });
-        setMessages(items);
         setIsLoading(false);
       },
       (error) => {
@@ -76,7 +137,7 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
     );
 
     return () => unsubscribe();
-  }, [chatId]);
+  }, [chatId, uid]);
 
   // Reset own unread count when chat is opened
   useEffect(() => {
@@ -94,12 +155,40 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
     const trimmed = text.trim();
     const otherParticipantId =
       uid === chatInfo.buyerId ? chatInfo.sellerId : chatInfo.buyerId;
+    const tempId = `temp_${Date.now()}`;
+    const now = new Date().toISOString();
 
-    setIsSending(true);
+    // Optimistic message appears instantly with "sending" status
+    const optimisticMessage: ChatMessage = {
+      id: tempId,
+      senderId: uid,
+      senderName: displayName,
+      text: trimmed,
+      createdAt: now,
+      status: "sending",
+    };
+    pendingTemps.current.add(tempId);
+    setMessages((prev) => [optimisticMessage, ...prev]);
+
     try {
       const chatRef = doc(db, "chats", chatId);
 
-      // Create or update chat document
+      let buyerName = chatInfo.buyerName;
+      let buyerImageUri = chatInfo.buyerImageUri;
+      if ((!buyerName || !buyerImageUri) && chatInfo.buyerId) {
+        const buyerData = await fetchUserData(chatInfo.buyerId);
+        buyerName = buyerData.displayName;
+        buyerImageUri = buyerData.imageUri;
+      }
+
+      let sellerName = chatInfo.sellerName;
+      let sellerImageUri = chatInfo.sellerImageUri;
+      if ((!sellerName || !sellerImageUri) && chatInfo.sellerId) {
+        const sellerData = await fetchUserData(chatInfo.sellerId);
+        sellerName = sellerData.displayName;
+        sellerImageUri = sellerData.imageUri;
+      }
+
       await setDoc(
         chatRef,
         {
@@ -107,9 +196,11 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
           postTitle: chatInfo.postTitle,
           postImageUri: chatInfo.postImageUri,
           buyerId: chatInfo.buyerId,
-          buyerName: chatInfo.buyerName,
+          buyerName,
+          buyerImageUri,
           sellerId: chatInfo.sellerId,
-          sellerName: chatInfo.sellerName,
+          sellerName,
+          sellerImageUri,
           participants: [chatInfo.buyerId, chatInfo.sellerId],
           lastMessage: trimmed,
           lastMessageAt: serverTimestamp(),
@@ -117,25 +208,134 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
         { merge: true },
       );
 
-      // Update unread counts
       await updateDoc(chatRef, {
         [`unreadCounts.${otherParticipantId}`]: increment(1),
         [`unreadCounts.${uid}`]: 0,
       });
 
-      // Add message to subcollection
-      await addDoc(collection(db, "chats", chatId, "messages"), {
-        senderId: uid,
-        senderName: displayName,
-        text: trimmed,
-        createdAt: serverTimestamp(),
-      });
+      // Fire-and-forget — don't await so it doesn't delay the send
+      sendPushNotification(
+        otherParticipantId,
+        displayName,
+        trimmed,
+        chatId,
+      ).catch(console.error);
+
+      const messageRef = await addDoc(
+        collection(db, "chats", chatId, "messages"),
+        {
+          senderId: uid,
+          senderName: displayName,
+          text: trimmed,
+          createdAt: serverTimestamp(),
+          status: "sent",
+        },
+      );
+
+      // Promote temp message to real ID + "sent" status
+      pendingTemps.current.delete(tempId);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === tempId
+            ? { ...msg, id: messageRef.id, status: "sent" }
+            : msg,
+        ),
+      );
     } catch (e) {
       console.error("sendMessage error:", e);
-    } finally {
-      setIsSending(false);
+      pendingTemps.current.delete(tempId);
     }
   }
 
-  return { messages, isLoading, isSending, sendMessage };
+  // Mark all messages sent by the other participant as "seen"
+  async function markMessagesAsSeen(): Promise<void> {
+    if (!chatId || !uid) return;
+    try {
+      const q = query(
+        collection(db, "chats", chatId, "messages"),
+        where("senderId", "!=", uid),
+      );
+      const snapshot = await getDocs(q);
+      const updates: Promise<void>[] = [];
+      snapshot.forEach((docSnap) => {
+        if (docSnap.data().status !== "seen") {
+          updates.push(
+            updateDoc(doc(db, "chats", chatId, "messages", docSnap.id), {
+              status: "seen",
+            }),
+          );
+        }
+      });
+      await Promise.all(updates);
+    } catch (error) {
+      console.error("markMessagesAsSeen error:", error);
+    }
+  }
+
+  // WhatsApp-style soft delete
+  // forEveryone=true  → sets deletedForEveryone flag (placeholder shown to both sides)
+  // forEveryone=false → adds uid to deletedFor (only hidden for current user)
+  async function deleteMessage(
+    messageId: string,
+    forEveryone: boolean,
+  ): Promise<void> {
+    if (!uid || !chatId) return;
+    try {
+      const msgRef = doc(db, "chats", chatId, "messages", messageId);
+      if (forEveryone) {
+        await updateDoc(msgRef, { deletedForEveryone: true, text: "" });
+        if (messages.length > 0 && messages[0].id === messageId) {
+          await updateDoc(doc(db, "chats", chatId), {
+            lastMessage: "This message was deleted",
+          });
+        }
+      } else {
+        await updateDoc(msgRef, { deletedFor: arrayUnion(uid) });
+        // If this was the last visible message, roll the preview back to the
+        // previous message so the chats list doesn't stay stale
+        if (messages.length > 0 && messages[0].id === messageId) {
+          const prev = messages[1] ?? null;
+          await updateDoc(doc(db, "chats", chatId), {
+            lastMessage: prev
+              ? prev.deletedForEveryone
+                ? "This message was deleted"
+                : prev.text
+              : "",
+          });
+        }
+      }
+    } catch (e) {
+      console.error("deleteMessage error:", e);
+    }
+  }
+
+  async function editMessage(
+    messageId: string,
+    newText: string,
+  ): Promise<void> {
+    if (!uid || !chatId || !newText.trim()) return;
+    try {
+      const trimmed = newText.trim();
+      await updateDoc(doc(db, "chats", chatId, "messages", messageId), {
+        text: trimmed,
+        edited: true,
+      });
+      // Keep the chat preview in sync when the last message is edited
+      if (messages.length > 0 && messages[0].id === messageId) {
+        await updateDoc(doc(db, "chats", chatId), { lastMessage: trimmed });
+      }
+    } catch (e) {
+      console.error("editMessage error:", e);
+    }
+  }
+
+  return {
+    messages,
+    isLoading,
+    isSending,
+    sendMessage,
+    markMessagesAsSeen,
+    deleteMessage,
+    editMessage,
+  };
 }

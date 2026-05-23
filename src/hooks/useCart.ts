@@ -36,6 +36,7 @@ export type CartItem = {
   isFeatured?: boolean;
   details?: Record<string, string>;
   status: "active" | "deactivated" | "sold";
+  sellerId?: string;
 };
 
 type AddToCartPayload = {
@@ -58,6 +59,7 @@ type AddToCartPayload = {
   isFeatured?: boolean;
   details?: Record<string, string>;
   status?: "active" | "deactivated" | "sold";
+  sellerId?: string;
 };
 
 type UseCartReturn = {

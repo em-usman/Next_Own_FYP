@@ -8,11 +8,17 @@ import { ThemedView } from "@/components/themed-view";
 import { getBrandModelConfig } from "@/config/brandModels";
 import { getChipsFieldOptions, getFieldOptions } from "@/config/chipsOptions";
 import type { Field } from "@/config/postFields";
+import {
+  getCities,
+  getDistricts,
+  PAKISTAN_PROVINCES,
+} from "@/data/pakistanLocations";
 import { useTheme } from "@/hooks/use-theme";
 import React, { useState } from "react";
 import {
     FlatList,
     Modal,
+    Switch,
     TextInput,
     TouchableOpacity,
     View,
@@ -22,7 +28,10 @@ export type CommonFormData = {
   title: string;
   description: string;
   price: string;
-  location: string;
+  province: string;
+  district: string;
+  city: string;
+  address: string;
   contactName: string;
   contactPhone: string;
   hidePhone: boolean;
@@ -38,7 +47,6 @@ type Props = {
   errors: Record<string, string>;
   categoryLabel: string;
   onChange: (updated: Partial<CommonFormData>) => void;
-  onSelectLocation: () => void;
 };
 
 function SectionHeader({ title }: { title: string }) {
@@ -411,7 +419,6 @@ export default function CommonListingForm({
   errors,
   categoryLabel,
   onChange,
-  onSelectLocation,
 }: Props) {
   const theme = useTheme();
   const brandModelConfig = getBrandModelConfig(categoryId, subCategoryId);
@@ -602,13 +609,44 @@ export default function CommonListingForm({
         keyboardType="numeric"
         rightText="Rs"
       />
-      <FormSelect
-        label="Location"
-        value={form.location}
-        placeholder="Choose location"
+      <SectionHeader title="Location" />
+
+      <SelectPicker
+        label="Province"
+        options={PAKISTAN_PROVINCES.map((p) => p.name)}
+        selected={form.province}
+        onSelect={(val) => onChange({ province: val, district: "", city: "" })}
+        placeholder="Select province"
         required
-        onPress={onSelectLocation}
-        error={errors.location}
+        error={errors.province}
+      />
+
+      <SelectPicker
+        label="District"
+        options={getDistricts(form.province).map((d) => d.name)}
+        selected={form.district}
+        onSelect={(val) => onChange({ district: val, city: "" })}
+        placeholder={form.province ? "Select district" : "Select province first"}
+        required
+        error={errors.district}
+      />
+
+      <SelectPicker
+        label="City"
+        options={getCities(form.province, form.district)}
+        selected={form.city}
+        onSelect={(val) => onChange({ city: val })}
+        placeholder={form.district ? "Select city" : "Select district first"}
+        required
+        error={errors.city}
+      />
+
+      <FormInput
+        label="Address"
+        value={form.address}
+        placeholder="Street address, area, landmark..."
+        onChangeText={(text) => onChange({ address: text })}
+        error={errors.address}
       />
 
       <SectionHeader title="Contact Info" />
@@ -624,7 +662,7 @@ export default function CommonListingForm({
 
       <View className="mb-4">
         <ThemedText className="text-sm font-semibold mb-1.5">
-          Phone Number <ThemedText style={{ color: theme.error }}>*</ThemedText>
+          Phone Number
         </ThemedText>
         <ThemedView
           type="backgroundElement"
@@ -675,12 +713,20 @@ export default function CommonListingForm({
         )}
       </View>
 
-      {/*
       <View
-        className="flex-row items-center justify-between py-3"
+        className="flex-row items-center justify-between py-3 mb-2"
         style={{ borderTopWidth: 1, borderTopColor: theme.border }}
       >
-        <ThemedText style={{ fontSize: 15 }}>Hide my phone number</ThemedText>
+        <View style={{ flex: 1, marginRight: 12 }}>
+          <ThemedText style={{ fontSize: 15, fontWeight: "500" }}>
+            Hide phone number
+          </ThemedText>
+          <ThemedText style={{ fontSize: 12, color: theme.textMuted, marginTop: 2 }}>
+            {form.hidePhone
+              ? "Call & WhatsApp buttons will be hidden from buyers"
+              : "Buyers can contact you via call and WhatsApp"}
+          </ThemedText>
+        </View>
         <Switch
           value={form.hidePhone}
           onValueChange={(val) => onChange({ hidePhone: val })}
@@ -688,7 +734,6 @@ export default function CommonListingForm({
           thumbColor="#fff"
         />
       </View>
-      */}
     </>
   );
 }

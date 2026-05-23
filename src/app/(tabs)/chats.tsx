@@ -1,8 +1,10 @@
 import { router, Stack } from "expo-router";
+import { useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Image,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -11,10 +13,11 @@ import { AppIcon } from "@/components/Icons/AppIcon";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
-import { auth } from "../../../firebaseConfig";
 import { type ChatPreview, useChats } from "@/hooks/useChats";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const placeholderImage = require("../../../assets/categories/mobile.png") as number;
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { auth } from "../../../firebaseConfig";
+const placeholderImage =
+  require("../../../assets/categories/mobile.png") as number;
 
 function formatChatTime(isoString: string | null): string {
   if (!isoString) return "";
@@ -51,19 +54,22 @@ function formatChatTime(isoString: string | null): string {
 function ChatItem({ chat }: { chat: ChatPreview }) {
   const theme = useTheme();
   const uid = auth.currentUser?.uid || "";
-  const otherName =
-    uid === chat.buyerId ? chat.sellerName : chat.buyerName;
+  const otherName = uid === chat.buyerId ? chat.sellerName : chat.buyerName;
+  const otherImageUri =
+    uid === chat.buyerId ? chat.sellerImageUri : chat.buyerImageUri;
   const hasUnread = chat.unreadCount > 0;
 
   function handlePress() {
     const chatInfo = {
       postId: chat.postId,
-      postTitle: chat.postTitle,
-      postImageUri: chat.postImageUri,
+      postTitle: "",
+      postImageUri: "",
       buyerId: chat.buyerId,
       buyerName: chat.buyerName,
+      buyerImageUri: chat.buyerImageUri,
       sellerId: chat.sellerId,
       sellerName: chat.sellerName,
+      sellerImageUri: chat.sellerImageUri,
     };
 
     router.push({
@@ -77,27 +83,20 @@ function ChatItem({ chat }: { chat: ChatPreview }) {
 
   return (
     <TouchableOpacity onPress={handlePress} activeOpacity={0.75}>
-      <ThemedView
-        type="backgroundElement"
+      <View
         style={{
           flexDirection: "row",
           alignItems: "center",
           paddingHorizontal: 16,
-          paddingVertical: 14,
+          paddingVertical: 12,
           gap: 12,
-          borderBottomWidth: 1,
-          borderBottomColor: theme.border,
         }}
       >
-        {/* Post thumbnail */}
+        {/* User Avatar */}
         <View style={{ position: "relative" }}>
           <Image
-            source={
-              chat.postImageUri
-                ? { uri: chat.postImageUri }
-                : placeholderImage
-            }
-            style={{ width: 52, height: 52, borderRadius: 12 }}
+            source={otherImageUri ? { uri: otherImageUri } : placeholderImage}
+            style={{ width: 52, height: 52, borderRadius: 26 }}
             resizeMode="cover"
           />
           {hasUnread && (
@@ -118,7 +117,13 @@ function ChatItem({ chat }: { chat: ChatPreview }) {
             >
               <ThemedText
                 type="small"
-                style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}
+                style={{
+                  color: "#FFFFFF",
+                  fontSize: 10,
+                  fontWeight: "700",
+                  textAlign: "center",
+                  lineHeight: 13,
+                }}
               >
                 {chat.unreadCount > 9 ? "9+" : String(chat.unreadCount)}
               </ThemedText>
@@ -155,15 +160,6 @@ function ChatItem({ chat }: { chat: ChatPreview }) {
 
           <ThemedText
             type="small"
-            themeColor="textSecondary"
-            numberOfLines={1}
-            style={{ fontWeight: hasUnread ? "600" : "400" }}
-          >
-            {chat.postTitle}
-          </ThemedText>
-
-          <ThemedText
-            type="small"
             numberOfLines={1}
             style={{
               color: hasUnread ? theme.text : theme.textSecondary,
@@ -173,13 +169,7 @@ function ChatItem({ chat }: { chat: ChatPreview }) {
             {chat.lastMessage || "No messages yet"}
           </ThemedText>
         </View>
-
-        <AppIcon
-          name="chevron-forward"
-          size={16}
-          color={theme.textSecondary}
-        />
-      </ThemedView>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -187,7 +177,12 @@ function ChatItem({ chat }: { chat: ChatPreview }) {
 export default function ChatsScreen() {
   const theme = useTheme();
   const uid = auth.currentUser?.uid;
-  const { chats, isLoading } = useChats();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<"all" | "read" | "unread">(
+    "all",
+  );
+  const { chats, isLoading } = useChats(searchQuery, filterType);
+  const insets = useSafeAreaInsets();
 
   return (
     <>
@@ -202,7 +197,10 @@ export default function ChatsScreen() {
         }}
       />
 
-      <ThemedView className="flex-1" style={{ backgroundColor: theme.background }}>
+      <ThemedView
+        className="flex-1"
+        style={{ backgroundColor: theme.background }}
+      >
         {!uid ? (
           <View
             style={{
@@ -230,47 +228,188 @@ export default function ChatsScreen() {
               Your conversations with sellers will appear here.
             </ThemedText>
           </View>
-        ) : isLoading ? (
-          <View
-            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-          >
-            <ActivityIndicator size="large" color={theme.primary} />
-          </View>
-        ) : chats.length === 0 ? (
-          <View
-            style={{
-              flex: 1,
-              alignItems: "center",
-              justifyContent: "center",
-              paddingHorizontal: 32,
-              gap: 10,
-            }}
-          >
-            <AppIcon
-              family="ion"
-              name="chatbubbles-outline"
-              size={44}
-              color={theme.textMuted}
-            />
-            <ThemedText type="subtitle" style={{ fontSize: 18 }}>
-              No chats yet
-            </ThemedText>
-            <ThemedText
-              type="small"
-              themeColor="textSecondary"
-              style={{ textAlign: "center" }}
-            >
-              Open a listing and tap Chat to start a conversation with the
-              seller.
-            </ThemedText>
-          </View>
         ) : (
-          <FlatList
-            data={chats}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => <ChatItem chat={item} />}
-          />
+          <>
+            {/* Search Bar */}
+            <View
+              style={{
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                paddingTop: insets.top + 20,
+                backgroundColor: theme.background,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  paddingHorizontal: 12,
+                  borderRadius: 20,
+                  backgroundColor: theme.backgroundElement,
+                  borderWidth: 1,
+                  borderColor: theme.border,
+                }}
+              >
+                <AppIcon name="search" size={18} color={theme.textSecondary} />
+                <TextInput
+                  placeholder="Search chats..."
+                  placeholderTextColor={theme.textSecondary}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 10,
+                    color: theme.text,
+                    fontSize: 14,
+                  }}
+                />
+                {searchQuery ? (
+                  <TouchableOpacity onPress={() => setSearchQuery("")}>
+                    <AppIcon
+                      name="close"
+                      size={18}
+                      color={theme.textSecondary}
+                    />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            </View>
+
+            {/* Filter Buttons */}
+            <View
+              style={{
+                flexDirection: "row",
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                gap: 10,
+                backgroundColor: theme.background,
+              }}
+            >
+              {["all", "read", "unread"].map((filter) => {
+                const unreadCount = chats.filter(
+                  (c) => c.unreadCount > 0,
+                ).length;
+                return (
+                  <TouchableOpacity
+                    key={filter}
+                    onPress={() =>
+                      setFilterType(filter as "all" | "read" | "unread")
+                    }
+                    style={{
+                      paddingHorizontal: 16,
+                      paddingVertical: 8,
+                      borderRadius: 20,
+                      backgroundColor:
+                        filterType === filter
+                          ? theme.primary
+                          : theme.backgroundElement,
+                      borderWidth: filterType === filter ? 0 : 1,
+                      borderColor: theme.border,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <ThemedText
+                      type="small"
+                      style={{
+                        color:
+                          filterType === filter
+                            ? "#FFFFFF"
+                            : theme.textSecondary,
+                        fontWeight: filterType === filter ? "700" : "600",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {filter === "unread"
+                        ? "Unread"
+                        : filter === "read"
+                          ? "Read"
+                          : "All"}
+                    </ThemedText>
+                    {filter === "unread" && unreadCount > 0 && (
+                      <View
+                        style={{
+                          backgroundColor:
+                            filterType === filter
+                              ? "rgba(255,255,255,0.3)"
+                              : theme.primary,
+                          borderRadius: 12,
+                          width: 24,
+                          height: 24,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <ThemedText
+                          type="small"
+                          style={{
+                            color: "#FFFFFF",
+                            fontSize: 11,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {unreadCount}
+                        </ThemedText>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Chat List */}
+            {isLoading ? (
+              <View
+                style={{
+                  flex: 1,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <ActivityIndicator size="large" color={theme.primary} />
+              </View>
+            ) : chats.length === 0 ? (
+              <View
+                style={{
+                  flex: 1,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingHorizontal: 32,
+                  gap: 10,
+                }}
+              >
+                <AppIcon
+                  family="ion"
+                  name="chatbubbles-outline"
+                  size={44}
+                  color={theme.textMuted}
+                />
+                <ThemedText type="subtitle" style={{ fontSize: 18 }}>
+                  {searchQuery ? "No chats found" : "No chats yet"}
+                </ThemedText>
+                <ThemedText
+                  type="small"
+                  themeColor="textSecondary"
+                  style={{ textAlign: "center" }}
+                >
+                  {searchQuery
+                    ? "Try a different search term."
+                    : "Open a listing and tap Chat to start a conversation with the seller."}
+                </ThemedText>
+              </View>
+            ) : (
+              <FlatList
+                data={chats}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => <ChatItem chat={item} />}
+                contentContainerStyle={{ paddingHorizontal: 16 }}
+                ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+              />
+            )}
+          </>
         )}
       </ThemedView>
     </>

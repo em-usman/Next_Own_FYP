@@ -1,5 +1,5 @@
-import { router, useLocalSearchParams } from "expo-router";
 import { ScreenHeader } from "@/components/ScreenHeader";
+import { router, useLocalSearchParams } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -32,6 +32,10 @@ type ListingDetailsPayload = {
   title: string;
   price: string;
   location: string;
+  province?: string;
+  district?: string;
+  city?: string;
+  address?: string;
   timeAgo: string;
   description?: string;
   category?: string;
@@ -41,6 +45,7 @@ type ListingDetailsPayload = {
   condition?: string;
   sellerName?: string;
   sellerPhone?: string;
+  sellerImageUri?: string;
   hidePhone?: boolean;
   status?: "active" | "deactivated" | "sold";
   isFeatured?: boolean;
@@ -103,6 +108,12 @@ export default function ListingDetailScreen() {
   const [fetchedListing, setFetchedListing] =
     useState<ListingDetailsPayload | null>(null);
   const [isResolvingById, setIsResolvingById] = useState(false);
+  const [sellerInfo, setSellerInfo] = useState<{
+    name: string;
+    phone: string;
+    imageUri: string;
+  } | null>(null);
+  const [resolvedSellerId, setResolvedSellerId] = useState("");
 
   const listing = parsedListing || fetchedListing;
 
@@ -203,6 +214,63 @@ export default function ListingDetailScreen() {
     };
   }, [parsedListing, routeId]);
 
+  // Fetch seller name, phone, and image from users collection.
+  // If sellerId is missing from route params (old cached data), resolve it
+  // first by reading the listing document to get userId.
+  useEffect(() => {
+    const sellerId = listing?.sellerId;
+    const postId = routeId;
+
+    if (sellerId) {
+      getDoc(doc(db, "users", sellerId))
+        .then((snap) => {
+          if (snap.exists()) {
+            const d = snap.data();
+            setSellerInfo({
+              name: d?.displayName || "",
+              phone: d?.phoneNumber || "",
+              imageUri: d?.imageUri || d?.photoURL || "",
+            });
+          }
+        })
+        .catch(console.error);
+      return;
+    }
+
+    if (!postId) return;
+    let cancelled = false;
+
+    (async () => {
+      for (const category of CATEGORIES) {
+        try {
+          const listingSnap = await getDoc(
+            doc(db, "categories", category.id, "posts", postId),
+          );
+          if (!listingSnap.exists()) continue;
+          const userId = listingSnap.data()?.userId as string | undefined;
+          if (!userId) break;
+          if (!cancelled) setResolvedSellerId(userId);
+          const userSnap = await getDoc(doc(db, "users", userId));
+          if (!cancelled && userSnap.exists()) {
+            const d = userSnap.data();
+            setSellerInfo({
+              name: d?.displayName || "",
+              phone: d?.phoneNumber || "",
+              imageUri: d?.imageUri || d?.photoURL || "",
+            });
+          }
+          break;
+        } catch (e) {
+          console.error("Seller info fallback error:", e);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [listing?.sellerId, routeId]);
+
   const imageUrls =
     listing?.imageUrls?.filter((item) => !!item) ||
     (listing?.imageUri ? [listing.imageUri] : []);
@@ -226,15 +294,15 @@ export default function ListingDetailScreen() {
     : [];
 
   function handleCallPress() {
-    if (!listing?.sellerPhone) return;
-    Linking.openURL(`tel:${listing.sellerPhone}`).catch((error) => {
+    if (!sellerInfo?.phone) return;
+    Linking.openURL(`tel:${sellerInfo.phone}`).catch((error) => {
       console.error("Call launch error:", error);
     });
   }
 
   function handleWhatsAppPress() {
-    if (!listing?.sellerPhone) return;
-    let phoneNumber = listing.sellerPhone.trim();
+    if (!listing || !sellerInfo?.phone) return;
+    let phoneNumber = sellerInfo.phone.trim();
 
     // Remove spaces, hyphens, and parentheses but keep +
     phoneNumber = phoneNumber.replace(/[\s\-\(\)]/g, "");
@@ -280,7 +348,13 @@ export default function ListingDetailScreen() {
       setChatLoading(true);
       try {
         for (const category of CATEGORIES) {
-          const postRef = doc(db, "categories", category.id, "posts", listing.id);
+          const postRef = doc(
+            db,
+            "categories",
+            category.id,
+            "posts",
+            listing.id,
+          );
           const snap = await getDoc(postRef);
           if (snap.exists()) {
             sellerId = snap.data()?.userId || "";
@@ -296,22 +370,47 @@ export default function ListingDetailScreen() {
 
     if (!sellerId || sellerId === currentUid) return;
 
-    const chatId = `${listing.id}_${currentUid}`;
+    // If sellerInfo not yet loaded (e.g. sellerId was just resolved), fetch it now
+    let currentSellerInfo = sellerInfo;
+    if (!currentSellerInfo) {
+      try {
+        const sellerDoc = await getDoc(doc(db, "users", sellerId));
+        if (sellerDoc.exists()) {
+          const d = sellerDoc.data();
+          currentSellerInfo = {
+            name: d?.displayName || "",
+            phone: d?.phoneNumber || "",
+            imageUri: d?.imageUri || d?.photoURL || "",
+          };
+          setSellerInfo(currentSellerInfo);
+        }
+      } catch (e) {
+        console.error("Fetch seller info error:", e);
+      }
+    }
+
+    const chatId = [currentUid, sellerId].sort().join("_");
     const chatInfo = {
       postId: listing.id,
       postTitle: listing.title,
       postImageUri: imageUrls[0] || "",
       buyerId: currentUid,
       buyerName: auth.currentUser?.displayName || "User",
+      buyerImageUri: auth.currentUser?.photoURL || "",
       sellerId,
-      sellerName: listing.sellerName || "",
+      sellerName: currentSellerInfo?.name || "",
+      sellerImageUri: currentSellerInfo?.imageUri || "",
     };
+
+    const productUrl = `https://next-own.web.app/listing/${listing.id}`;
+    const defaultMessage = `Hi! I'm interested in your listing "${listing.title}". Is it still available?\n${productUrl}`;
 
     router.push({
       pathname: "/chat/[id]" as never,
       params: {
         id: chatId,
         info: encodeURIComponent(JSON.stringify(chatInfo)),
+        defaultMessage: encodeURIComponent(defaultMessage),
       },
     });
   }
@@ -356,12 +455,11 @@ export default function ListingDetailScreen() {
       model: listing.model,
       color: listing.color,
       condition: listing.condition,
-      sellerName: listing.sellerName,
-      sellerPhone: listing.sellerPhone,
       hidePhone: listing.hidePhone,
       isFeatured: listing.isFeatured,
       details: listing.details,
       status: listing.status,
+      sellerId: listing.sellerId,
     });
   }
 
@@ -390,12 +488,11 @@ export default function ListingDetailScreen() {
       model: listing.model,
       color: listing.color,
       condition: listing.condition,
-      sellerName: listing.sellerName,
-      sellerPhone: listing.sellerPhone,
       hidePhone: listing.hidePhone,
       isFeatured: listing.isFeatured,
       details: listing.details,
       status: listing.status,
+      sellerId: listing.sellerId,
     });
   }
 
@@ -442,7 +539,7 @@ export default function ListingDetailScreen() {
       <ThemedView className="flex-1">
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 100 }}
+          contentContainerStyle={{ paddingBottom: 200 }}
         >
           {/* Image Slider */}
           <View>
@@ -537,18 +634,36 @@ export default function ListingDetailScreen() {
             </View>
 
             {/* Location + Time */}
-            <View className="flex-row items-center gap-1">
+            <View className="flex-row items-start gap-1">
               <AppIcon
                 name="location-sharp"
                 size={14}
                 color={theme.textSecondary}
+                style={{ marginTop: 2 }}
               />
-              <ThemedText type="small" themeColor="textSecondary">
-                {listing.location}
-              </ThemedText>
-              <ThemedText type="small" themeColor="textMuted">
-                · {listing.timeAgo}
-              </ThemedText>
+              <View style={{ flex: 1 }}>
+                {listing.province ? (
+                  <>
+                    {listing.address ? (
+                      <ThemedText type="small" themeColor="textSecondary">
+                        {listing.address}
+                      </ThemedText>
+                    ) : null}
+                    <ThemedText type="small" themeColor="textSecondary">
+                      {[listing.city, listing.district, listing.province]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </ThemedText>
+                  </>
+                ) : (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {listing.location}
+                  </ThemedText>
+                )}
+                <ThemedText type="small" themeColor="textMuted">
+                  {listing.timeAgo}
+                </ThemedText>
+              </View>
             </View>
 
             {/* Divider */}
@@ -605,7 +720,7 @@ export default function ListingDetailScreen() {
             )}
 
             {/* Seller Info */}
-            {listing.sellerName && (
+            {listing.sellerId && (
               <View className="gap-2">
                 <ThemedText type="smallBold" style={{ fontSize: 16 }}>
                   Seller
@@ -615,25 +730,28 @@ export default function ListingDetailScreen() {
                   className="flex-row items-center gap-3 p-4 rounded-2xl border"
                   style={{ borderColor: theme.border }}
                 >
-                  <View
-                    className="w-12 h-12 rounded-full items-center justify-center"
-                    style={{ backgroundColor: theme.backgroundSelected }}
-                  >
-                    <AppIcon
-                      name="person"
-                      size={24}
-                      color={theme.textSecondary}
+                  {sellerInfo?.imageUri ? (
+                    <Image
+                      source={{ uri: sellerInfo.imageUri }}
+                      style={{ width: 48, height: 48, borderRadius: 24 }}
+                      resizeMode="cover"
                     />
-                  </View>
+                  ) : (
+                    <View
+                      className="w-12 h-12 rounded-full items-center justify-center"
+                      style={{ backgroundColor: theme.backgroundSelected }}
+                    >
+                      <AppIcon
+                        name="person"
+                        size={24}
+                        color={theme.textSecondary}
+                      />
+                    </View>
+                  )}
                   <View className="flex-1">
                     <ThemedText type="smallBold">
-                      {listing.sellerName}
+                      {sellerInfo?.name || "Seller"}
                     </ThemedText>
-                    {listing.sellerPhone && (
-                      <ThemedText type="small" themeColor="textSecondary">
-                        {listing.sellerPhone}
-                      </ThemedText>
-                    )}
                   </View>
                   <AppIcon
                     name="chevron-forward"
@@ -651,77 +769,94 @@ export default function ListingDetailScreen() {
           className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-3 gap-2"
           style={{ borderTopWidth: 1, borderTopColor: theme.border }}
         >
-          {/* Row 1: Call + Chat */}
-          <View className="flex-row gap-2">
-            <TouchableOpacity
-              className="flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-full border"
-              style={{ borderColor: theme.primary }}
-              onPress={handleCallPress}
-              disabled={!listing.sellerPhone}
-            >
-              <AppIcon name="call-outline" size={18} color={theme.primary} />
-              <ThemedText type="smallBold" themeColor="primary">
-                Call
-              </ThemedText>
-            </TouchableOpacity>
+          {/* Buyer-only buttons */}
+          {(listing.sellerId || resolvedSellerId) !== auth.currentUser?.uid && (
+            <>
+              {/* Row 1: Call (if phone allowed) + Chat */}
+              <View className="flex-row gap-2">
+                {!listing.hidePhone && (
+                  <TouchableOpacity
+                    className="flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-full border"
+                    style={{ borderColor: theme.primary }}
+                    onPress={handleCallPress}
+                    disabled={!sellerInfo?.phone}
+                  >
+                    <AppIcon name="call-outline" size={18} color={theme.primary} />
+                    <ThemedText type="smallBold" themeColor="primary">
+                      Call
+                    </ThemedText>
+                  </TouchableOpacity>
+                )}
 
-            <TouchableOpacity
-              className="flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-full"
-              style={{ backgroundColor: theme.primary }}
-              onPress={handleChatPress}
-              disabled={chatLoading || listing.sellerId === auth.currentUser?.uid}
-            >
-              {chatLoading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <>
-                  <AppIcon name="chatbubble-outline" size={18} color="#FFFFFF" />
-                  <ThemedText type="smallBold" style={{ color: "#FFFFFF" }}>
-                    Chat
+                <TouchableOpacity
+                  className="flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-full"
+                  style={{ backgroundColor: theme.primary }}
+                  onPress={handleChatPress}
+                  disabled={chatLoading}
+                >
+                  {chatLoading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <>
+                      <AppIcon
+                        name="chatbubble-outline"
+                        size={18}
+                        color="#FFFFFF"
+                      />
+                      <ThemedText type="smallBold" style={{ color: "#FFFFFF" }}>
+                        Chat
+                      </ThemedText>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+
+              {/* Row 2: Cart + WhatsApp (WhatsApp only if phone allowed) */}
+              <View className="flex-row gap-2">
+                <TouchableOpacity
+                  className="flex-1 flex-row items-center justify-center gap-1.5 py-3 rounded-full border"
+                  style={{ borderColor: cartHasItem ? theme.error : theme.border }}
+                  onPress={handleAddToCartPress}
+                  disabled={
+                    isUpdating ||
+                    (!cartHasItem &&
+                      listing.status !== undefined &&
+                      listing.status !== "active")
+                  }
+                >
+                  <AppIcon
+                    name={cartHasItem ? "trash-outline" : "cart-outline"}
+                    size={16}
+                    color={cartHasItem ? theme.error : theme.text}
+                  />
+                  <ThemedText
+                    type="small"
+                    style={{ color: cartHasItem ? theme.error : theme.text }}
+                  >
+                    {cartHasItem ? "Remove" : "Add to Cart"}
                   </ThemedText>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
+                </TouchableOpacity>
 
-          {/* Row 2: Cart + WhatsApp */}
-          <View className="flex-row gap-2">
-            <TouchableOpacity
-              className="flex-1 flex-row items-center justify-center gap-1.5 py-3 rounded-full border"
-              style={{ borderColor: cartHasItem ? theme.error : theme.border }}
-              onPress={handleAddToCartPress}
-              disabled={
-                isUpdating ||
-                (!cartHasItem &&
-                  listing.status !== undefined &&
-                  listing.status !== "active")
-              }
-            >
-              <AppIcon
-                name={cartHasItem ? "trash-outline" : "cart-outline"}
-                size={16}
-                color={cartHasItem ? theme.error : theme.text}
-              />
-              <ThemedText
-                type="small"
-                style={{ color: cartHasItem ? theme.error : theme.text }}
-              >
-                {cartHasItem ? "Remove" : "Add to Cart"}
-              </ThemedText>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-full"
-              style={{ backgroundColor: theme.black }}
-              onPress={handleWhatsAppPress}
-              disabled={!listing.sellerPhone}
-            >
-              <AppIcon name="chatbubble-outline" size={16} color={theme.white} />
-              <ThemedText type="small" style={{ color: theme.white }}>
-                WhatsApp
-              </ThemedText>
-            </TouchableOpacity>
-          </View>
+                {!listing.hidePhone && (
+                  <TouchableOpacity
+                    className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-full"
+                    style={{ backgroundColor: theme.black }}
+                    onPress={handleWhatsAppPress}
+                    disabled={!sellerInfo?.phone}
+                  >
+                    <AppIcon
+                      name="chatbubble-outline"
+                      size={16}
+                      color={theme.white}
+                    />
+                    <ThemedText type="small" style={{ color: theme.white }}>
+                      WhatsApp
+                    </ThemedText>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </>
+          )}
         </ThemedView>
       </ThemedView>
     </>

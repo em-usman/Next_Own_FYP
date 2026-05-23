@@ -10,6 +10,12 @@ export type Listing = {
   timeAgo: string;
   image: any;
 
+  // Structured location (new posts)
+  province?: string;
+  district?: string;
+  city?: string;
+  address?: string;
+
   // Optional fields (not every listing needs these)
   isFeatured?: boolean;
   description?: string;

@@ -25,9 +25,11 @@ export type Post = {
   price: number;
   images: string[];
   coverImage: string;
-  location: string;
-  contactName: string;
-  contactPhone: string;
+  location?: string;
+  province?: string;
+  district?: string;
+  city?: string;
+  address?: string;
   hidePhone: boolean;
   details: Record<string, string>;
   status: PostStatus;
@@ -156,6 +158,7 @@ export const usePost = (): UsePostReturn => {
     postId: string,
     data: Partial<CreatePostData>,
   ): Promise<boolean> {
+    setIsSubmitting(true);
     try {
       const postRef = await getPostDocRef(postId);
       if (!postRef) {
@@ -188,6 +191,8 @@ export const usePost = (): UsePostReturn => {
         position: "bottom",
       });
       return false;
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
