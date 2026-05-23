@@ -1,15 +1,19 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
+  getDocs,
   increment,
+  limit,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
@@ -21,6 +25,7 @@ export type ChatMessage = {
   senderName: string;
   text: string;
   createdAt: string;
+  status: "sending" | "sent" | "seen";
 };
 
 export type ChatInfo = {
@@ -86,6 +91,7 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
             createdAt:
               data.createdAt?.toDate?.()?.toISOString() ||
               new Date().toISOString(),
+            status: data.status || "sent",
           };
         });
         setMessages(items);
@@ -116,8 +122,22 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
     const trimmed = text.trim();
     const otherParticipantId =
       uid === chatInfo.buyerId ? chatInfo.sellerId : chatInfo.buyerId;
+    const tempId = `temp_${Date.now()}`;
+    const now = new Date().toISOString();
 
-    setIsSending(true);
+    // Create optimistic message
+    const optimisticMessage: ChatMessage = {
+      id: tempId,
+      senderId: uid,
+      senderName: displayName,
+      text: trimmed,
+      createdAt: now,
+      status: "sending",
+    };
+
+    // Add optimistic message to state immediately
+    setMessages((prev) => [optimisticMessage, ...prev]);
+
     try {
       const chatRef = doc(db, "chats", chatId);
 
@@ -165,19 +185,104 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
         [`unreadCounts.${uid}`]: 0,
       });
 
-      // Add message to subcollection
-      await addDoc(collection(db, "chats", chatId, "messages"), {
-        senderId: uid,
-        senderName: displayName,
-        text: trimmed,
-        createdAt: serverTimestamp(),
-      });
+      // Add message to subcollection with status "sent"
+      const messageRef = await addDoc(
+        collection(db, "chats", chatId, "messages"),
+        {
+          senderId: uid,
+          senderName: displayName,
+          text: trimmed,
+          createdAt: serverTimestamp(),
+          status: "sent",
+        },
+      );
+
+      // Replace temp message with real message from Firestore
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === tempId
+            ? {
+                ...msg,
+                id: messageRef.id,
+                status: "sent",
+              }
+            : msg,
+        ),
+      );
     } catch (e) {
       console.error("sendMessage error:", e);
-    } finally {
-      setIsSending(false);
     }
   }
 
-  return { messages, isLoading, isSending, sendMessage };
+  async function markMessagesAsSeen(): Promise<void> {
+    if (!chatId || !uid) return;
+
+    try {
+      const messagesRef = collection(db, "chats", chatId, "messages");
+      const q = query(messagesRef, where("senderId", "!=", uid));
+      const querySnapshot = await getDocs(q);
+
+      const batch: Promise<void>[] = [];
+      querySnapshot.forEach((docSnap) => {
+        const messageData = docSnap.data() as ChatMessage;
+        // Only update if status is not already "seen"
+        if (messageData.status !== "seen") {
+          batch.push(
+            updateDoc(doc(db, "chats", chatId, "messages", docSnap.id), {
+              status: "seen",
+            }),
+          );
+        }
+      });
+
+      await Promise.all(batch);
+    } catch (error) {
+      console.error("markMessagesAsSeen error:", error);
+    }
+  }
+
+  async function deleteMessages(messageIds: string[]): Promise<void> {
+    if (!chatId || messageIds.length === 0) return;
+
+    try {
+      // Delete the messages
+      for (const msgId of messageIds) {
+        await deleteDoc(doc(db, "chats", chatId, "messages", msgId));
+      }
+
+      // Fetch the new last message after deletion
+      const messagesRef = collection(db, "chats", chatId, "messages");
+      const q = query(messagesRef, orderBy("createdAt", "desc"), limit(1));
+      const querySnapshot = await getDocs(q);
+
+      const chatRef = doc(db, "chats", chatId);
+
+      if (querySnapshot.empty) {
+        // No messages left, clear the last message fields
+        await updateDoc(chatRef, {
+          lastMessage: "",
+          lastMessageAt: null,
+        });
+      } else {
+        // Update with new last message
+        const lastMsg = querySnapshot.docs[0].data();
+        await updateDoc(chatRef, {
+          lastMessage: lastMsg.text || "",
+          lastMessageAt: lastMsg.createdAt || null,
+        });
+      }
+    } catch (error) {
+      console.error("deleteMessages error:", error);
+      throw error;
+    }
+  }
+
+  return {
+    messages,
+    isLoading,
+    isSending,
+    sendMessage,
+    deleteMessages,
+    markMessagesAsSeen,
+  };
 }

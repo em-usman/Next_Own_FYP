@@ -1,10 +1,11 @@
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   TextInput,
   TouchableOpacity,
@@ -68,57 +69,143 @@ function getMessageDateKey(isoString: string): string {
 function MessageBubble({
   message,
   isOwn,
+  isSelected,
+  isSelectionMode,
+  onLongPress,
+  onPress,
 }: {
   message: ChatMessage;
   isOwn: boolean;
+  isSelected: boolean;
+  isSelectionMode: boolean;
+  onLongPress: () => void;
+  onPress: () => void;
 }) {
   const theme = useTheme();
 
   return (
-    <View
-      style={{
-        alignSelf: isOwn ? "flex-end" : "flex-start",
-        maxWidth: "75%",
-        marginVertical: 3,
-        marginHorizontal: 16,
-      }}
+    <TouchableOpacity
+      onLongPress={onLongPress}
+      onPress={isSelectionMode ? onPress : undefined}
+      activeOpacity={0.7}
     >
       <View
         style={{
-          backgroundColor: isOwn ? theme.primary : theme.backgroundElement,
-          borderRadius: 18,
-          borderBottomRightRadius: isOwn ? 4 : 18,
-          borderBottomLeftRadius: isOwn ? 18 : 4,
-          paddingVertical: 10,
-          paddingHorizontal: 14,
-          borderWidth: isOwn ? 0 : 1,
-          borderColor: theme.border,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.06,
-          shadowRadius: 3,
-          elevation: 1,
+          alignSelf: isOwn ? "flex-end" : "flex-start",
+          maxWidth: "75%",
+          marginVertical: 3,
+          marginHorizontal: 16,
+          flexDirection: "row",
+          alignItems: "flex-end",
+          gap: 8,
         }}
       >
-        <ThemedText
-          type="small"
-          style={{ color: isOwn ? "#FFFFFF" : theme.text, lineHeight: 20 }}
-        >
-          {message.text}
-        </ThemedText>
-        <ThemedText
-          type="small"
+        {isSelectionMode && (
+          <View
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: 12,
+              backgroundColor: isSelected ? theme.primary : theme.border,
+              borderWidth: isSelected ? 0 : 2,
+              borderColor: theme.border,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {isSelected && (
+              <ThemedText
+                type="small"
+                style={{
+                  color: "#FFFFFF",
+                  fontSize: 14,
+                  fontWeight: "700",
+                }}
+              >
+                ✓
+              </ThemedText>
+            )}
+          </View>
+        )}
+        <View
           style={{
-            color: isOwn ? "rgba(255,255,255,0.65)" : theme.textMuted,
-            fontSize: 10,
-            marginTop: 4,
-            textAlign: isOwn ? "right" : "left",
+            backgroundColor: isSelected
+              ? theme.primary + "40"
+              : isOwn
+                ? theme.primary
+                : theme.backgroundElement,
+            borderRadius: 18,
+            borderBottomRightRadius: isOwn ? 4 : 18,
+            borderBottomLeftRadius: isOwn ? 18 : 4,
+            paddingVertical: 10,
+            paddingHorizontal: 14,
+            borderWidth: isOwn ? 0 : 1,
+            borderColor: theme.border,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.06,
+            shadowRadius: 3,
+            elevation: 1,
           }}
         >
-          {formatMessageTime(message.createdAt)}
-        </ThemedText>
+          <ThemedText
+            type="small"
+            style={{ color: isOwn ? "#FFFFFF" : theme.text, lineHeight: 20 }}
+          >
+            {message.text}
+          </ThemedText>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 4,
+              marginTop: 4,
+              justifyContent: isOwn ? "flex-end" : "flex-start",
+            }}
+          >
+            <ThemedText
+              type="small"
+              style={{
+                color: isOwn ? "rgba(255,255,255,0.65)" : theme.textMuted,
+                fontSize: 10,
+              }}
+            >
+              {formatMessageTime(message.createdAt)}
+            </ThemedText>
+            {isOwn && (
+              <View style={{ marginLeft: 4 }}>
+                {message.status === "sending" && (
+                  <AppIcon
+                    family="ion"
+                    name="time"
+                    size={10}
+                    color="rgba(255,255,255,0.65)"
+                  />
+                )}
+                {message.status === "sent" && (
+                  <ThemedText
+                    style={{ color: "rgba(255,255,255,0.65)", fontSize: 9 }}
+                  >
+                    ✓✓
+                  </ThemedText>
+                )}
+                {message.status === "seen" && (
+                  <ThemedText
+                    style={{
+                      color: "#000000",
+                      fontSize: 9,
+                      fontWeight: "600",
+                    }}
+                  >
+                    ✓✓
+                  </ThemedText>
+                )}
+              </View>
+            )}
+          </View>
+        </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -198,12 +285,27 @@ export default function ChatScreen() {
   }, [rawInfo]);
 
   const uid = auth.currentUser?.uid || "";
-  const { messages, isLoading, isSending, sendMessage } = useChatMessages(
-    chatId,
-    chatInfo,
-  );
+  const {
+    messages,
+    isLoading,
+    isSending,
+    sendMessage,
+    deleteMessages,
+    markMessagesAsSeen,
+  } = useChatMessages(chatId, chatInfo);
 
   const [inputText, setInputText] = useState("");
+  const [selectedMessages, setSelectedMessages] = useState<string[]>([]);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  useEffect(() => {
+    markMessagesAsSeen().catch((error) => {
+      console.error("Failed to mark messages as seen:", error);
+    });
+  }, [chatId, markMessagesAsSeen]);
 
   const otherName =
     uid === chatInfo.buyerId ? chatInfo.sellerName : chatInfo.buyerName;
@@ -217,12 +319,62 @@ export default function ChatScreen() {
     await sendMessage(text);
   }
 
+  function handleMessageLongPress(messageId: string) {
+    setIsSelectionMode(true);
+    setSelectedMessages([messageId]);
+  }
+
+  function handleMessagePress(messageId: string) {
+    if (!isSelectionMode) return;
+    setSelectedMessages((prev) => {
+      if (prev.includes(messageId)) {
+        const updated = prev.filter((id) => id !== messageId);
+        if (updated.length === 0) {
+          setIsSelectionMode(false);
+        }
+        return updated;
+      } else {
+        return [...prev, messageId];
+      }
+    });
+  }
+
+  async function handleDelete() {
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteMessages(selectedMessages);
+      setSelectedMessages([]);
+      setIsSelectionMode(false);
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error("Failed to delete messages:", error);
+      setDeleteError(
+        error instanceof Error ? error.message : "Failed to delete message",
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  function handleCloseDeleteModal() {
+    setShowDeleteModal(false);
+    setDeleteError(null);
+  }
+
+  function cancelSelection() {
+    setSelectedMessages([]);
+    setIsSelectionMode(false);
+  }
+
   return (
     <>
       <Stack.Screen
         options={{
           headerShown: true,
-          title: otherName || "Chat",
+          title: isSelectionMode
+            ? `${selectedMessages.length} selected`
+            : otherName || "Chat",
           headerStyle: { backgroundColor: theme.background },
           headerTintColor: theme.text,
           headerShadowVisible: false,
@@ -236,25 +388,159 @@ export default function ChatScreen() {
                 paddingLeft: 16,
               }}
             >
-              <TouchableOpacity onPress={() => router.back()}>
-                <AppIcon
-                  family="ion"
-                  name="chevron-back"
-                  size={24}
-                  color={theme.text}
+              {isSelectionMode ? (
+                <TouchableOpacity onPress={cancelSelection}>
+                  <AppIcon
+                    family="ion"
+                    name="close"
+                    size={24}
+                    color={theme.text}
+                  />
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity onPress={() => router.back()}>
+                  <AppIcon
+                    family="ion"
+                    name="chevron-back"
+                    size={24}
+                    color={theme.text}
+                  />
+                </TouchableOpacity>
+              )}
+              {!isSelectionMode && (
+                <Image
+                  source={
+                    otherImageUri ? { uri: otherImageUri } : placeholderImage
+                  }
+                  style={{ width: 32, height: 32, borderRadius: 16 }}
+                  resizeMode="cover"
                 />
-              </TouchableOpacity>
-              <Image
-                source={
-                  otherImageUri ? { uri: otherImageUri } : placeholderImage
-                }
-                style={{ width: 32, height: 32, borderRadius: 16 }}
-                resizeMode="cover"
-              />
+              )}
             </View>
           ),
+          headerRight: () =>
+            isSelectionMode ? (
+              <TouchableOpacity
+                onPress={() => setShowDeleteModal(true)}
+                style={{ paddingRight: 16 }}
+              >
+                <AppIcon
+                  family="ion"
+                  name="trash"
+                  size={24}
+                  color={theme.primary}
+                />
+              </TouchableOpacity>
+            ) : null,
         }}
       />
+
+      {/* Delete confirmation modal */}
+      <Modal
+        visible={showDeleteModal}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCloseDeleteModal}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 20,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: theme.background,
+              borderRadius: 16,
+              padding: 24,
+              width: "100%",
+              maxWidth: 320,
+            }}
+          >
+            <ThemedText
+              type="subtitle"
+              style={{ fontSize: 18, marginBottom: 8, textAlign: "center" }}
+            >
+              Delete Message{selectedMessages.length > 1 ? "s" : ""}?
+            </ThemedText>
+            <ThemedText
+              type="small"
+              themeColor="textSecondary"
+              style={{ textAlign: "center", marginBottom: 24 }}
+            >
+              This action cannot be undone.
+            </ThemedText>
+
+            {deleteError && (
+              <View
+                style={{
+                  backgroundColor: "#FF3B30",
+                  borderRadius: 10,
+                  padding: 12,
+                  marginBottom: 16,
+                }}
+              >
+                <ThemedText
+                  type="small"
+                  style={{ color: "#FFFFFF", textAlign: "center" }}
+                >
+                  {deleteError}
+                </ThemedText>
+              </View>
+            )}
+
+            <View style={{ gap: 12, flexDirection: "row" }}>
+              <TouchableOpacity
+                onPress={handleCloseDeleteModal}
+                disabled={isDeleting}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 10,
+                  backgroundColor: theme.backgroundElement,
+                  borderWidth: 1,
+                  borderColor: theme.border,
+                  alignItems: "center",
+                  opacity: isDeleting ? 0.5 : 1,
+                }}
+              >
+                <ThemedText
+                  type="small"
+                  style={{ fontWeight: "600", color: theme.text }}
+                >
+                  Cancel
+                </ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleDelete}
+                disabled={isDeleting}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 10,
+                  backgroundColor: isDeleting ? "#FF3B30CC" : "#FF3B30",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <ThemedText
+                    type="small"
+                    style={{ fontWeight: "600", color: "#FFFFFF" }}
+                  >
+                    Delete
+                  </ThemedText>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <ThemedView
         className="flex-1"
@@ -378,6 +664,10 @@ export default function ChatScreen() {
                     <MessageBubble
                       message={item}
                       isOwn={item.senderId === uid}
+                      isSelected={selectedMessages.includes(item.id)}
+                      isSelectionMode={isSelectionMode}
+                      onLongPress={() => handleMessageLongPress(item.id)}
+                      onPress={() => handleMessagePress(item.id)}
                     />
                   </View>
                 );
@@ -424,7 +714,7 @@ export default function ChatScreen() {
 
             <TouchableOpacity
               onPress={handleSend}
-              disabled={isSending || !inputText.trim()}
+              disabled={!inputText.trim()}
               style={{
                 width: 44,
                 height: 44,
@@ -436,11 +726,7 @@ export default function ChatScreen() {
                 justifyContent: "center",
               }}
             >
-              {isSending ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <AppIcon family="ion" name="send" size={18} color="#FFFFFF" />
-              )}
+              <AppIcon family="ion" name="send" size={18} color="#FFFFFF" />
             </TouchableOpacity>
           </ThemedView>
         </KeyboardAvoidingView>
