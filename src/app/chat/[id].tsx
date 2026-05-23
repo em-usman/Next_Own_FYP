@@ -7,9 +7,11 @@ import {
   FlatList,
   Image,
   KeyboardAvoidingView,
+  Linking,
   Modal,
   Platform,
   Pressable,
+  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -242,12 +244,28 @@ function MessageBubble({
               elevation: 1,
             }}
           >
-            <ThemedText
-              type="small"
-              style={{ color: isOwn ? "#FFFFFF" : theme.text, lineHeight: 20 }}
-            >
-              {message.text}
-            </ThemedText>
+            {(() => {
+              const parts = message.text.split(/(https?:\/\/[^\s]+)/g);
+              const textColor = isOwn ? "#FFFFFF" : theme.text;
+              const linkColor = isOwn ? "rgba(255,255,255,0.9)" : theme.primary;
+              return (
+                <Text style={{ color: textColor, fontSize: 13, lineHeight: 20 }}>
+                  {parts.map((part, i) =>
+                    i % 2 === 1 ? (
+                      <Text
+                        key={i}
+                        style={{ color: linkColor, textDecorationLine: "underline" }}
+                        onPress={() => Linking.openURL(part).catch(console.error)}
+                      >
+                        {part}
+                      </Text>
+                    ) : (
+                      <Text key={i}>{part}</Text>
+                    ),
+                  )}
+                </Text>
+              );
+            })()}
             <View
               style={{
                 flexDirection: "row",
@@ -584,55 +602,6 @@ export default function ChatScreen() {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 90}
         >
-          {/* Post info card */}
-          {chatInfo.postTitle ? (
-            <TouchableOpacity
-              onPress={() =>
-                router.push({
-                  pathname: "/listing/[id]",
-                  params: { id: chatInfo.postId },
-                })
-              }
-              activeOpacity={0.8}
-            >
-              <ThemedView
-                type="backgroundElement"
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 12,
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                  borderBottomWidth: 1,
-                  borderBottomColor: theme.border,
-                }}
-              >
-                <Image
-                  source={
-                    chatInfo.postImageUri
-                      ? { uri: chatInfo.postImageUri }
-                      : placeholderImage
-                  }
-                  style={{ width: 48, height: 48, borderRadius: 10 }}
-                  resizeMode="cover"
-                />
-                <View style={{ flex: 1 }}>
-                  <ThemedText type="smallBold" numberOfLines={1}>
-                    {chatInfo.postTitle}
-                  </ThemedText>
-                  <ThemedText type="small" themeColor="textSecondary">
-                    Tap to view listing
-                  </ThemedText>
-                </View>
-                <AppIcon
-                  name="chevron-forward"
-                  size={16}
-                  color={theme.textSecondary}
-                />
-              </ThemedView>
-            </TouchableOpacity>
-          ) : null}
-
           {/* Messages */}
           {isLoading ? (
             <View

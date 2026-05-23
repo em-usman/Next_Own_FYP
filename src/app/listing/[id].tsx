@@ -385,7 +385,7 @@ export default function ListingDetailScreen() {
       }
     }
 
-    const chatId = `${listing.id}_${currentUid}`;
+    const chatId = [currentUid, sellerId].sort().join("_");
     const chatInfo = {
       postId: listing.id,
       postTitle: listing.title,
