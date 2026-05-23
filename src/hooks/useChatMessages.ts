@@ -14,7 +14,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { auth, db } from "../../firebaseConfig";
 
@@ -66,6 +66,8 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
   const [isSending] = useState(false);
   const uid = auth.currentUser?.uid || "";
   const displayName = auth.currentUser?.displayName || "User";
+  // Tracks temp IDs of messages that are still being written to Firestore
+  const pendingTemps = useRef<Set<string>>(new Set());
 
   // Real-time listener on messages (descending for inverted FlatList)
   useEffect(() => {
@@ -100,12 +102,24 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
             };
           })
           .filter((msg) => {
-            // Always keep deletedForEveryone messages (shown as placeholder)
-            if (msg.deletedForEveryone) return true;
-            // Hide messages this user soft-deleted for themselves
-            return !msg.deletedFor?.includes(uid);
+            // If the user removed it from their view, hide it entirely
+            if (msg.deletedFor?.includes(uid)) return false;
+            return true;
           });
-        setMessages(items);
+
+        // Re-inject any optimistic messages still in-flight so they don't
+        // disappear when a previous message triggers the snapshot
+        setMessages((prev) => {
+          const stillPending = prev.filter((m) =>
+            pendingTemps.current.has(m.id),
+          );
+          const merged = [...stillPending, ...items];
+          merged.sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          );
+          return merged;
+        });
         setIsLoading(false);
       },
       (error) => {
@@ -145,6 +159,7 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
       createdAt: now,
       status: "sending",
     };
+    pendingTemps.current.add(tempId);
     setMessages((prev) => [optimisticMessage, ...prev]);
 
     try {
@@ -201,14 +216,21 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
         },
       );
 
-      // Promote temp message to real ID + "sent" status
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === tempId ? { ...msg, id: messageRef.id, status: "sent" } : msg,
-        ),
-      );
+      // Promote temp message to real ID + "sent" status.
+      // Also strip any snapshot-injected copy of the same real ID to avoid
+      // duplicate keys when the onSnapshot fires before this runs.
+      pendingTemps.current.delete(tempId);
+      setMessages((prev) => {
+        const withoutDuplicate = prev.filter((msg) => msg.id !== messageRef.id);
+        return withoutDuplicate.map((msg) =>
+          msg.id === tempId
+            ? { ...msg, id: messageRef.id, status: "sent" }
+            : msg,
+        );
+      });
     } catch (e) {
       console.error("sendMessage error:", e);
+      pendingTemps.current.delete(tempId);
     }
   }
 
@@ -249,8 +271,25 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
       const msgRef = doc(db, "chats", chatId, "messages", messageId);
       if (forEveryone) {
         await updateDoc(msgRef, { deletedForEveryone: true, text: "" });
+        if (messages.length > 0 && messages[0].id === messageId) {
+          await updateDoc(doc(db, "chats", chatId), {
+            lastMessage: "This message was deleted",
+          });
+        }
       } else {
         await updateDoc(msgRef, { deletedFor: arrayUnion(uid) });
+        // If this was the last visible message, roll the preview back to the
+        // previous message so the chats list doesn't stay stale
+        if (messages.length > 0 && messages[0].id === messageId) {
+          const prev = messages[1] ?? null;
+          await updateDoc(doc(db, "chats", chatId), {
+            lastMessage: prev
+              ? prev.deletedForEveryone
+                ? "This message was deleted"
+                : prev.text
+              : "",
+          });
+        }
       }
     } catch (e) {
       console.error("deleteMessage error:", e);
@@ -263,10 +302,15 @@ export function useChatMessages(chatId: string, chatInfo: ChatInfo) {
   ): Promise<void> {
     if (!uid || !chatId || !newText.trim()) return;
     try {
+      const trimmed = newText.trim();
       await updateDoc(doc(db, "chats", chatId, "messages", messageId), {
-        text: newText.trim(),
+        text: trimmed,
         edited: true,
       });
+      // Keep the chat preview in sync when the last message is edited
+      if (messages.length > 0 && messages[0].id === messageId) {
+        await updateDoc(doc(db, "chats", chatId), { lastMessage: trimmed });
+      }
     } catch (e) {
       console.error("editMessage error:", e);
     }

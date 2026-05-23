@@ -75,7 +75,7 @@ function formatMessageDate(isoString: string): string {
   return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
-    year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+    year: "numeric",
   });
 }
 
@@ -121,28 +121,6 @@ function StatusTick({
   );
 }
 
-// --- Selection circle ---
-function SelectionCircle({ isSelected }: { isSelected: boolean }) {
-  const theme = useTheme();
-  return (
-    <View
-      style={{
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: isSelected ? theme.primary : "transparent",
-        borderWidth: 2,
-        borderColor: isSelected ? theme.primary : theme.border,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      {isSelected ? (
-        <AppIcon family="ion" name="checkmark" size={14} color="#FFFFFF" />
-      ) : null}
-    </View>
-  );
-}
 
 function MessageBubble({
   message,
@@ -166,6 +144,8 @@ function MessageBubble({
     return (
       <TouchableOpacity
         onPress={isSelectionMode ? onPress : undefined}
+        onLongPress={onLongPress}
+        delayLongPress={300}
         activeOpacity={0.7}
       >
         <View
@@ -185,7 +165,6 @@ function MessageBubble({
               gap: 8,
             }}
           >
-            {isSelectionMode ? <SelectionCircle isSelected={isSelected} /> : null}
             <View
               style={{
                 backgroundColor: theme.backgroundElement,
@@ -246,7 +225,6 @@ function MessageBubble({
             gap: 8,
           }}
         >
-          {isSelectionMode ? <SelectionCircle isSelected={isSelected} /> : null}
           <View
             style={{
               backgroundColor: isOwn ? theme.primary : theme.backgroundElement,
@@ -416,7 +394,7 @@ export default function ChatScreen() {
     selectedMessages.length === 1 ? selectedMessageObjs[0] : null;
   const allSelectedOwn =
     selectedMessageObjs.length > 0 &&
-    selectedMessageObjs.every((m) => m.senderId === uid);
+    selectedMessageObjs.every((m) => m.senderId === uid && !m.deletedForEveryone);
   const canEdit =
     !!singleSelected &&
     singleSelected.senderId === uid &&
@@ -431,15 +409,13 @@ export default function ChatScreen() {
     setMenuVisible(false);
   }
 
-  function handleMessageLongPress(messageId: string, msg: ChatMessage) {
-    if (msg.deletedForEveryone) return;
+  function handleMessageLongPress(messageId: string, _msg: ChatMessage) {
     setIsSelectionMode(true);
     setSelectedMessages([messageId]);
   }
 
-  function handleMessagePress(messageId: string, msg: ChatMessage) {
+  function handleMessagePress(messageId: string, _msg: ChatMessage) {
     if (!isSelectionMode) return;
-    if (msg.deletedForEveryone) return;
     setSelectedMessages((prev) => {
       const updated = prev.includes(messageId)
         ? prev.filter((mid) => mid !== messageId)
