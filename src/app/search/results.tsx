@@ -47,7 +47,8 @@ export default function SearchResultsScreen() {
     });
   }, [results, sortOption]);
 
-  const activeSortLabel = SORT_OPTIONS.find((o) => o.key === sortOption)?.label ?? "Sort";
+  const activeSortLabel =
+    SORT_OPTIONS.find((o) => o.key === sortOption)?.label ?? "Sort";
 
   return (
     <>
@@ -66,7 +67,12 @@ export default function SearchResultsScreen() {
           }}
         >
           <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
-            <AppIcon family="ion" name="arrow-back" size={24} color={theme.text} />
+            <AppIcon
+              family="ion"
+              name="chevron-back-circle"
+              size={30}
+              color={theme.primary}
+            />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -87,9 +93,18 @@ export default function SearchResultsScreen() {
                 gap: 8,
               }}
             >
-              <AppIcon family="ion" name="search-outline" size={16} color={theme.textMuted} />
+              <AppIcon
+                family="ion"
+                name="search-outline"
+                size={16}
+                color={theme.textMuted}
+              />
               <ThemedText
-                style={{ flex: 1, fontSize: 15, color: query ? theme.text : theme.textMuted }}
+                style={{
+                  flex: 1,
+                  fontSize: 15,
+                  color: query ? theme.text : theme.textMuted,
+                }}
                 numberOfLines={1}
               >
                 {query || "Search listings..."}
@@ -128,8 +143,19 @@ export default function SearchResultsScreen() {
               }}
               onPress={() => setSortModalVisible(true)}
             >
-              <AppIcon family="ion" name="options-outline" size={14} color={theme.primary} />
-              <ThemedText style={{ fontSize: 13, color: theme.primary, fontWeight: "600" }}>
+              <AppIcon
+                family="ion"
+                name="options-outline"
+                size={14}
+                color={theme.primary}
+              />
+              <ThemedText
+                style={{
+                  fontSize: 13,
+                  color: theme.primary,
+                  fontWeight: "600",
+                }}
+              >
                 {activeSortLabel}
               </ThemedText>
             </TouchableOpacity>
@@ -138,7 +164,14 @@ export default function SearchResultsScreen() {
 
         {/* Loading */}
         {isLoading && (
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12 }}>
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 12,
+            }}
+          >
             <ActivityIndicator size="large" color={theme.primary} />
             <ThemedText type="small" themeColor="textSecondary">
               Searching across all categories...
@@ -148,12 +181,32 @@ export default function SearchResultsScreen() {
 
         {/* Empty */}
         {!isLoading && sorted.length === 0 && (
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 10, paddingHorizontal: 32 }}>
-            <AppIcon family="ion" name="search-outline" size={44} color={theme.textMuted} />
-            <ThemedText type="subtitle" style={{ fontSize: 18, textAlign: "center" }}>
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
+              paddingHorizontal: 32,
+            }}
+          >
+            <AppIcon
+              family="ion"
+              name="search-outline"
+              size={44}
+              color={theme.textMuted}
+            />
+            <ThemedText
+              type="subtitle"
+              style={{ fontSize: 18, textAlign: "center" }}
+            >
               No results found
             </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary" style={{ textAlign: "center" }}>
+            <ThemedText
+              type="small"
+              themeColor="textSecondary"
+              style={{ textAlign: "center" }}
+            >
               No listings matched "{query}". Try different keywords.
             </ThemedText>
           </View>
@@ -195,11 +248,29 @@ export default function SearchResultsScreen() {
             paddingBottom: 32,
           }}
         >
-          <View style={{ alignItems: "center", paddingTop: 10, paddingBottom: 4 }}>
-            <View style={{ width: 44, height: 4, borderRadius: 99, backgroundColor: theme.border }} />
+          <View
+            style={{ alignItems: "center", paddingTop: 10, paddingBottom: 4 }}
+          >
+            <View
+              style={{
+                width: 44,
+                height: 4,
+                borderRadius: 99,
+                backgroundColor: theme.border,
+              }}
+            />
           </View>
-          <View style={{ paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: theme.border }}>
-            <ThemedText type="subtitle" style={{ fontSize: 20 }}>Sort by</ThemedText>
+          <View
+            style={{
+              paddingHorizontal: 20,
+              paddingVertical: 14,
+              borderBottomWidth: 1,
+              borderBottomColor: theme.border,
+            }}
+          >
+            <ThemedText type="subtitle" style={{ fontSize: 20 }}>
+              Sort by
+            </ThemedText>
           </View>
           {SORT_OPTIONS.map((option) => {
             const isSelected = option.key === sortOption;
@@ -220,11 +291,21 @@ export default function SearchResultsScreen() {
                   setSortModalVisible(false);
                 }}
               >
-                <ThemedText style={{ fontSize: 15, fontWeight: isSelected ? "700" : "400" }}>
+                <ThemedText
+                  style={{
+                    fontSize: 15,
+                    fontWeight: isSelected ? "700" : "400",
+                  }}
+                >
                   {option.label}
                 </ThemedText>
                 {isSelected && (
-                  <AppIcon family="ion" name="checkmark" size={20} color={theme.primary} />
+                  <AppIcon
+                    family="ion"
+                    name="checkmark"
+                    size={20}
+                    color={theme.primary}
+                  />
                 )}
               </TouchableOpacity>
             );

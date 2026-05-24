@@ -1,7 +1,8 @@
 import { AppIcon } from "@/components/Icons/AppIcon";
 import CommonListingForm, {
-    type CommonFormData,
+  type CommonFormData,
 } from "@/components/post/postForm";
+import { ScreenHeader } from "@/components/ScreenHeader";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { CATEGORIES } from "@/config/categoryConfig";
@@ -11,16 +12,15 @@ import { useCloudinary } from "@/hooks/useCloudnary";
 import { usePost } from "@/hooks/usePost";
 import { useUserData } from "@/hooks/useUserData";
 import * as ImagePicker from "expo-image-picker";
-import { router, Stack, useLocalSearchParams } from "expo-router";
-import { ScreenHeader } from "@/components/ScreenHeader";
+import { router, useLocalSearchParams } from "expo-router";
 import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    Image,
-    ScrollView,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { db } from "../../../../firebaseConfig";
 
@@ -215,7 +215,8 @@ export default function EditMyAdScreen() {
     setForm((prev) => ({
       ...prev,
       contactName: prev.contactName || userData.displayName || "",
-      contactPhone: prev.contactPhone || stripPhonePrefix(userData.phoneNumber || ""),
+      contactPhone:
+        prev.contactPhone || stripPhonePrefix(userData.phoneNumber || ""),
     }));
   }, [userData]);
 
@@ -333,17 +334,7 @@ export default function EditMyAdScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          title: "Edit Ad",
-          headerStyle: { backgroundColor: theme.background },
-          headerTintColor: theme.text,
-          headerShadowVisible: false,
-          headerBackButtonDisplayMode: "minimal",
-          headerTitleStyle: { fontSize: 18, fontWeight: "700" },
-        }}
-      />
+      <ScreenHeader title="Edit Ad" />
 
       <ThemedView
         className="flex-1"
@@ -526,7 +517,6 @@ export default function EditMyAdScreen() {
           </>
         )}
       </ThemedView>
-
     </>
   );
 }
