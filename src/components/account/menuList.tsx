@@ -43,11 +43,32 @@ const menuItems: MenuItem[] = [
     route: "/feedback",
   },
   {
-    id: "settings",
-    icon: { family: "material-community", name: "cog-outline" },
-    title: "Settings",
-    description: "App preferences and notifications",
-    route: "/profile/settings/SettingsHelp",
+    id: "help",
+    icon: { family: "material-community", name: "help-circle-outline" },
+    title: "Help & Support",
+    description: "Get help and view FAQs",
+    route: "/profile/help",
+  },
+  // {
+  //   id: "privacy",
+  //   icon: { family: "material-community", name: "shield-lock-outline" },
+  //   title: "Data & Privacy",
+  //   description: "Manage your privacy settings",
+  //   route: "/profile/privacy",
+  // },
+  {
+    id: "privacy-policy",
+    icon: { family: "material-community", name: "file-document-outline" },
+    title: "Privacy Policy",
+    description: "View our privacy policy",
+    route: "/profile/privacy-policy",
+  },
+  {
+    id: "policies",
+    icon: { family: "material-community", name: "file-certificate-outline" },
+    title: "Terms & Conditions",
+    description: "Review terms and conditions",
+    route: "/profile/policies",
   },
 ];
 
@@ -65,6 +86,11 @@ export default function SettingsMenu() {
     }
   };
 
+  const handleDeactivateAccount = () => {
+    // Navigate to deactivation form
+    router.push("/profile/deactivate-account" as any);
+  };
+
   return (
     <View style={{ paddingHorizontal: 16 }}>
       <View
@@ -79,7 +105,9 @@ export default function SettingsMenu() {
         {menuItems.map((item, index) => (
           <TouchableOpacity
             key={item.id}
-            onPress={() => { if (item.route) router.push(item.route as any); }}
+            onPress={() => {
+              if (item.route) router.push(item.route as any);
+            }}
             activeOpacity={0.7}
             style={{
               flexDirection: "row",
@@ -128,6 +156,61 @@ export default function SettingsMenu() {
         ))}
       </View>
 
+      {/* Deactivate Account */}
+      <TouchableOpacity
+        onPress={handleDeactivateAccount}
+        activeOpacity={0.8}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginTop: 12,
+          padding: 16,
+          borderRadius: 20,
+          backgroundColor: "rgba(249,115,22,0.1)",
+          borderWidth: 1,
+          borderColor: "#F97316",
+        }}
+      >
+        <View
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: 13,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "rgba(249,115,22,0.12)",
+            marginRight: 14,
+          }}
+        >
+          <AppIcon
+            family="material-community"
+            name="lock-remove-outline"
+            color="#F97316"
+            size={22}
+          />
+        </View>
+
+        <View style={{ flex: 1 }}>
+          <ThemedText
+            style={{ fontSize: 15, fontWeight: "600", color: "#F97316" }}
+          >
+            Deactivate Account
+          </ThemedText>
+          <ThemedText
+            style={{
+              fontSize: 12,
+              marginTop: 1,
+              color: "#F97316",
+              opacity: 0.7,
+            }}
+          >
+            Temporarily disable your account
+          </ThemedText>
+        </View>
+
+        <AppIcon name="chevron-forward" size={16} color="#F97316" />
+      </TouchableOpacity>
+
       {/* Logout */}
       <TouchableOpacity
         onPress={handleLogout}
@@ -135,7 +218,7 @@ export default function SettingsMenu() {
         style={{
           flexDirection: "row",
           alignItems: "center",
-          marginTop: 16,
+          marginTop: 12,
           padding: 16,
           borderRadius: 20,
           backgroundColor: theme.errorBackground,
@@ -154,14 +237,28 @@ export default function SettingsMenu() {
             marginRight: 14,
           }}
         >
-          <AppIcon family="material-community" name="logout" color={theme.error} size={22} />
+          <AppIcon
+            family="material-community"
+            name="logout"
+            color={theme.error}
+            size={22}
+          />
         </View>
 
         <View style={{ flex: 1 }}>
-          <ThemedText style={{ fontSize: 15, fontWeight: "600", color: theme.error }}>
+          <ThemedText
+            style={{ fontSize: 15, fontWeight: "600", color: theme.error }}
+          >
             Logout
           </ThemedText>
-          <ThemedText style={{ fontSize: 12, marginTop: 1, color: theme.error, opacity: 0.7 }}>
+          <ThemedText
+            style={{
+              fontSize: 12,
+              marginTop: 1,
+              color: theme.error,
+              opacity: 0.7,
+            }}
+          >
             Sign out of your account
           </ThemedText>
         </View>
