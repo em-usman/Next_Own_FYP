@@ -36,6 +36,8 @@ const useGoogleSignIn = () => {
 
     GoogleSignin.configure({
       webClientId,
+      offlineAccess: true,
+      forceCodeForRefreshToken: true,
     });
   }, [webClientId]);
 
@@ -87,6 +89,14 @@ const useGoogleSignIn = () => {
     try {
       setLoading(true);
       console.log("Signing in with Google...");
+
+      // Sign out first to force account picker to show all available accounts
+      try {
+        await GoogleSignin.signOut();
+      } catch (error) {
+        console.log("No previous session to sign out from");
+      }
+
       const response = await GoogleSignin.signIn();
 
       if (!isSuccessResponse(response)) {

@@ -928,7 +928,7 @@ export default function ChatScreen() {
             ) : null}
 
             {/* Forward */}
-            <TouchableOpacity
+            {/* <TouchableOpacity
               onPress={handleForward}
               style={{
                 flexDirection: "row",
@@ -945,7 +945,7 @@ export default function ChatScreen() {
                 color={theme.text}
               />
               <ThemedText type="default">Forward</ThemedText>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </Pressable>
       </Modal>

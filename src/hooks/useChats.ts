@@ -51,9 +51,12 @@ export function useChats(
   const uid = auth.currentUser?.uid;
 
   // In-memory cache so repeated snapshots don't re-fetch the same user docs
-  const userCache = useRef<Map<string, { displayName: string; imageUri: string }>>(
-    new Map(),
-  );
+  const userCache = useRef<
+    Map<string, { displayName: string; imageUri: string }>
+  >(new Map());
+
+  // Track if component is mounted to prevent state updates after unmount
+  const isMountedRef = useRef(true);
 
   async function fetchCached(userId: string) {
     if (userCache.current.has(userId)) return userCache.current.get(userId)!;
@@ -64,6 +67,8 @@ export function useChats(
 
   // Subscribe once — only re-subscribes when the logged-in user changes
   useEffect(() => {
+    isMountedRef.current = true;
+
     if (!uid) {
       setAllChats([]);
       setIsLoading(false);
@@ -124,16 +129,24 @@ export function useChats(
           );
         });
 
-        setAllChats(items);
-        setIsLoading(false);
+        // Only update state if component is still mounted
+        if (isMountedRef.current) {
+          setAllChats(items);
+          setIsLoading(false);
+        }
       },
       (error) => {
         console.error("useChats error:", error);
-        setIsLoading(false);
+        if (isMountedRef.current) {
+          setIsLoading(false);
+        }
       },
     );
 
-    return () => unsubscribe();
+    return () => {
+      isMountedRef.current = false;
+      unsubscribe();
+    };
   }, [uid]); // filterType / searchQuery no longer cause a re-subscribe
 
   // Filtering and searching are pure in-memory operations — instant
