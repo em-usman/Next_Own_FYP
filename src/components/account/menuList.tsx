@@ -130,61 +130,6 @@ export default function SettingsMenu() {
         ))}
       </View>
 
-      {/* Upgrade Plan */}
-      <TouchableOpacity
-        onPress={() => router.push("/profile/upgrade-plan")}
-        activeOpacity={0.8}
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          marginTop: 16,
-          padding: 16,
-          borderRadius: 20,
-          backgroundColor: `${theme.primary}15`,
-          borderWidth: 1,
-          borderColor: theme.primary,
-        }}
-      >
-        <View
-          style={{
-            width: 42,
-            height: 42,
-            borderRadius: 13,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: `${theme.primary}25`,
-            marginRight: 14,
-          }}
-        >
-          <AppIcon
-            family="material-community"
-            name="star-circle"
-            color={theme.primary}
-            size={22}
-          />
-        </View>
-
-        <View style={{ flex: 1 }}>
-          <ThemedText
-            style={{ fontSize: 15, fontWeight: "600", color: theme.primary }}
-          >
-            Upgrade Plan
-          </ThemedText>
-          <ThemedText
-            style={{
-              fontSize: 12,
-              marginTop: 1,
-              color: theme.primary,
-              opacity: 0.7,
-            }}
-          >
-            Unlock premium features and reach more buyers
-          </ThemedText>
-        </View>
-
-        <AppIcon name="chevron-forward" size={16} color={theme.primary} />
-      </TouchableOpacity>
-
       {/* Logout */}
       <TouchableOpacity
         onPress={handleLogout}
