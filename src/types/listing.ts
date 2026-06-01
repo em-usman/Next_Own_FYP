@@ -8,6 +8,7 @@ export type Listing = {
   price: string;
   location: string;
   timeAgo: string;
+  createdAt?: string;
   image: any;
 
   // Structured location (new posts)

@@ -1,12 +1,6 @@
 import { CATEGORIES } from "@/config/categoryConfig";
 import type { Listing } from "@/types/listing";
-import {
-  collection,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-} from "firebase/firestore";
+import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { db } from "../../firebaseConfig";
 
@@ -24,7 +18,8 @@ function toTimeAgo(createdAt?: string): string {
   const hour = 60 * minute;
   const day = 24 * hour;
   if (diffMs < minute) return "Just now";
-  if (diffMs < hour) return `${Math.max(1, Math.floor(diffMs / minute))} min ago`;
+  if (diffMs < hour)
+    return `${Math.max(1, Math.floor(diffMs / minute))} min ago`;
   if (diffMs < day) return `${Math.max(1, Math.floor(diffMs / hour))} hr ago`;
   const days = Math.max(1, Math.floor(diffMs / day));
   return `${days} day${days > 1 ? "s" : ""} ago`;
@@ -46,6 +41,7 @@ function docToListing(
     city: data.city || "",
     address: data.address || "",
     timeAgo: toTimeAgo(data.createdAt),
+    createdAt: data.createdAt,
     image: coverUrl ? { uri: coverUrl } : null,
     images: (data.images || []).map((url: string) => ({ uri: url })),
     description: data.description || "",
@@ -70,13 +66,17 @@ async function fetchAllActiveListings(): Promise<Listing[]> {
       );
       const snap = await getDocs(q);
       return snap.docs
-        .map((d) => docToListing(d.id, d.data() as Record<string, any>, category.label))
+        .map((d) =>
+          docToListing(d.id, d.data() as Record<string, any>, category.label),
+        )
         .filter((l) => l.status === "active");
     }),
   );
 
   return results
-    .filter((r): r is PromiseFulfilledResult<Listing[]> => r.status === "fulfilled")
+    .filter(
+      (r): r is PromiseFulfilledResult<Listing[]> => r.status === "fulfilled",
+    )
     .flatMap((r) => r.value);
 }
 
@@ -186,7 +186,10 @@ export function useSuggestions(query: string) {
 
         for (const l of listings) {
           // Title suggestions
-          if (l.title.toLowerCase().includes(lower) && !seenTitles.has(l.title)) {
+          if (
+            l.title.toLowerCase().includes(lower) &&
+            !seenTitles.has(l.title)
+          ) {
             seenTitles.add(l.title);
             titleMatches.push(l.title);
           }
