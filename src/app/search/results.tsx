@@ -94,8 +94,20 @@ export default function SearchResultsScreen() {
   const activeSortLabel =
     SORT_OPTIONS.find((o) => o.key === sortOption)?.label ?? "Sort";
 
-  const activeSortLabel =
-    SORT_OPTIONS.find((o) => o.key === sortOption)?.label ?? "Sort";
+  // Build location filter label
+  const locationFilterLabel = selectedCity
+    ? selectedCity
+    : selectedDistrict
+      ? selectedDistrict
+      : selectedProvince
+        ? selectedProvince
+        : "Location";
+
+  const hasLocationFilter = !!(
+    selectedProvince ||
+    selectedDistrict ||
+    selectedCity
+  );
 
   return (
     <>
