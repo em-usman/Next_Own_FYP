@@ -6,18 +6,14 @@ import { useRecentSearches } from "@/hooks/useRecentSearches";
 import { useSuggestions } from "@/hooks/useSearch";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import {
-  FlatList,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { FlatList, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function SearchScreen() {
   const theme = useTheme();
   const [query, setQuery] = useState("");
   const inputRef = useRef<TextInput>(null);
-  const { recentSearches, addSearch, removeSearch, clearAll } = useRecentSearches();
+  const { recentSearches, addSearch, removeSearch, clearAll } =
+    useRecentSearches();
   const suggestions = useSuggestions(query);
 
   useEffect(() => {
@@ -51,7 +47,12 @@ export default function SearchScreen() {
         }}
       >
         <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
-          <AppIcon family="ion" name="arrow-back" size={24} color={theme.text} />
+          <AppIcon
+            family="ion"
+            name="chevron-back-circle"
+            size={30}
+            color={theme.primary}
+          />
         </TouchableOpacity>
 
         <View
@@ -68,7 +69,12 @@ export default function SearchScreen() {
             height: 46,
           }}
         >
-          <AppIcon family="ion" name="search-outline" size={18} color={theme.primary} />
+          <AppIcon
+            family="ion"
+            name="search-outline"
+            size={18}
+            color={theme.primary}
+          />
           <TextInput
             ref={inputRef}
             value={query}
@@ -87,14 +93,21 @@ export default function SearchScreen() {
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={() => setQuery("")} hitSlop={8}>
-              <AppIcon family="ion" name="close-circle" size={18} color={theme.textMuted} />
+              <AppIcon
+                family="ion"
+                name="close-circle"
+                size={18}
+                color={theme.textMuted}
+              />
             </TouchableOpacity>
           )}
         </View>
 
         {query.trim().length > 0 && (
           <TouchableOpacity onPress={() => goToResults(query)}>
-            <ThemedText style={{ color: theme.primary, fontWeight: "600", fontSize: 15 }}>
+            <ThemedText
+              style={{ color: theme.primary, fontWeight: "600", fontSize: 15 }}
+            >
               Search
             </ThemedText>
           </TouchableOpacity>
@@ -122,15 +135,22 @@ export default function SearchScreen() {
               }}
               onPress={() => goToResults(item)}
             >
-              <AppIcon family="ion" name="search-outline" size={16} color={theme.textMuted} />
+              <AppIcon
+                family="ion"
+                name="search-outline"
+                size={16}
+                color={theme.textMuted}
+              />
               <ThemedText style={{ flex: 1, fontSize: 14 }} numberOfLines={1}>
                 {item}
               </ThemedText>
-              <TouchableOpacity
-                hitSlop={10}
-                onPress={() => setQuery(item)}
-              >
-                <AppIcon family="ion" name="arrow-up-back-outline" size={16} color={theme.textMuted} />
+              <TouchableOpacity hitSlop={10} onPress={() => setQuery(item)}>
+                <AppIcon
+                  family="ion"
+                  name="arrow-up-back-outline"
+                  size={16}
+                  color={theme.textMuted}
+                />
               </TouchableOpacity>
             </TouchableOpacity>
           )}
@@ -183,10 +203,25 @@ export default function SearchScreen() {
                 }}
                 onPress={() => goToResults(item)}
               >
-                <AppIcon family="ion" name="time-outline" size={16} color={theme.textMuted} />
-                <ThemedText style={{ flex: 1, fontSize: 14 }}>{item}</ThemedText>
-                <TouchableOpacity hitSlop={10} onPress={() => removeSearch(item)}>
-                  <AppIcon family="ion" name="close" size={16} color={theme.textMuted} />
+                <AppIcon
+                  family="ion"
+                  name="time-outline"
+                  size={16}
+                  color={theme.textMuted}
+                />
+                <ThemedText style={{ flex: 1, fontSize: 14 }}>
+                  {item}
+                </ThemedText>
+                <TouchableOpacity
+                  hitSlop={10}
+                  onPress={() => removeSearch(item)}
+                >
+                  <AppIcon
+                    family="ion"
+                    name="close"
+                    size={16}
+                    color={theme.textMuted}
+                  />
                 </TouchableOpacity>
               </TouchableOpacity>
             )}
@@ -196,12 +231,28 @@ export default function SearchScreen() {
 
       {/* Empty state — nothing typed, no recents */}
       {!showSuggestions && !showRecent && (
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 10 }}>
-          <AppIcon family="ion" name="search-outline" size={44} color={theme.textMuted} />
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+          }}
+        >
+          <AppIcon
+            family="ion"
+            name="search-outline"
+            size={44}
+            color={theme.textMuted}
+          />
           <ThemedText type="subtitle" style={{ fontSize: 18 }}>
             Search anything
           </ThemedText>
-          <ThemedText type="small" themeColor="textSecondary" style={{ textAlign: "center", paddingHorizontal: 40 }}>
+          <ThemedText
+            type="small"
+            themeColor="textSecondary"
+            style={{ textAlign: "center", paddingHorizontal: 40 }}
+          >
             Find mobiles, cars, property, jobs and more across Pakistan
           </ThemedText>
         </View>

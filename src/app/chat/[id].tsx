@@ -550,9 +550,9 @@ export default function ChatScreen() {
                 >
                   <AppIcon
                     family="ion"
-                    name="chevron-back"
-                    size={24}
-                    color={theme.text}
+                    name="chevron-back-circle"
+                    size={30}
+                    color={theme.primary}
                   />
                 </TouchableOpacity>
               )}

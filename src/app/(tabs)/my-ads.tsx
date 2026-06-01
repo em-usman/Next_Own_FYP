@@ -266,10 +266,16 @@ export default function MyAdsScreen() {
       className="flex-1"
       style={{ backgroundColor: theme.background }}
     >
-      <ScrollView
-        contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 100 }}
+      {/* Fixed Header */}
+      <View
+        style={{
+          paddingHorizontal: 16,
+          paddingTop: 60,
+          paddingBottom: 12,
+          backgroundColor: theme.background,
+        }}
       >
-        <View className="gap-1">
+        <View className="gap-1 mb-3">
           <ThemedText type="subtitle" style={{ fontSize: 24 }}>
             My Ads
           </ThemedText>
@@ -297,7 +303,16 @@ export default function MyAdsScreen() {
             onPress={() => setFilter("sold")}
           />
         </View>
+      </View>
 
+      {/* Scrollable Ads List */}
+      <ScrollView
+        contentContainerStyle={{
+          padding: 16,
+          gap: 12,
+          paddingBottom: 100,
+        }}
+      >
         {isLoading && (
           <View className="py-16 items-center gap-3">
             <ActivityIndicator size="large" color={theme.primary} />

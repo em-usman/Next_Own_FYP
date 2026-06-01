@@ -1,21 +1,21 @@
 import { AppIcon } from "@/components/Icons/AppIcon";
+import { ScreenHeader } from "@/components/ScreenHeader";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { CATEGORIES } from "@/config/categoryConfig";
 import { useTheme } from "@/hooks/use-theme";
 import { usePost, type ManagedPostStatus } from "@/hooks/usePost";
-import { router, Stack, useLocalSearchParams } from "expo-router";
-import { ScreenHeader } from "@/components/ScreenHeader";
+import { router, useLocalSearchParams } from "expo-router";
 import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Image,
-    ScrollView,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { db } from "../../../firebaseConfig";
 
@@ -190,17 +190,7 @@ export default function MyAdDetailScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          title: "My Ad",
-          headerStyle: { backgroundColor: theme.background },
-          headerTintColor: theme.text,
-          headerShadowVisible: false,
-          headerBackButtonDisplayMode: "minimal",
-          headerTitleStyle: { fontSize: 18, fontWeight: "700" },
-        }}
-      />
+      <ScreenHeader title="My Ad" />
 
       <ThemedView
         className="flex-1"

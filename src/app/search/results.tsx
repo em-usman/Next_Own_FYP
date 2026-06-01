@@ -94,20 +94,8 @@ export default function SearchResultsScreen() {
   const activeSortLabel =
     SORT_OPTIONS.find((o) => o.key === sortOption)?.label ?? "Sort";
 
-  // Build location filter label
-  const locationFilterLabel = selectedCity
-    ? selectedCity
-    : selectedDistrict
-      ? selectedDistrict
-      : selectedProvince
-        ? selectedProvince
-        : "Location";
-
-  const hasLocationFilter = !!(
-    selectedProvince ||
-    selectedDistrict ||
-    selectedCity
-  );
+  const activeSortLabel =
+    SORT_OPTIONS.find((o) => o.key === sortOption)?.label ?? "Sort";
 
   return (
     <>
@@ -128,9 +116,9 @@ export default function SearchResultsScreen() {
           <TouchableOpacity onPress={() => router.back()} hitSlop={10}>
             <AppIcon
               family="ion"
-              name="arrow-back"
-              size={24}
-              color={theme.text}
+              name="chevron-back-circle"
+              size={30}
+              color={theme.primary}
             />
           </TouchableOpacity>
 
