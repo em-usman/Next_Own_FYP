@@ -46,3 +46,4 @@ app-example
 # google-services
 # /google-services.json
 # /firebaseConfig.ts.env
+.env
